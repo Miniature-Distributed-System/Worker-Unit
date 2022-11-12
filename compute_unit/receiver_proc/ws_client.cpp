@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <ws_client.hpp>
+#include "ws_client.hpp"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -13,8 +13,7 @@ namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-int ws_client_launch(int port_num, std::string hostname,
-        std::string packet){
+int ws_client_launch(int port_num, std::string hostname){
     try
     {
         std::string host = hostname;
@@ -65,6 +64,7 @@ int ws_client_launch(int port_num, std::string hostname,
         // If we get here then the connection is closed gracefully
         // The make_printable() function helps print a ConstBufferSequence
         std::cout << beast::make_printable(buffer.data()) << std::endl;
+        beast::buffers_to_string(data_buffer);
 
     } catch(std::exception const& e) {
         std::cerr << "Error: " << e.what() << std::endl;
