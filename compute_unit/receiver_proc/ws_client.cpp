@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include "ws_client.hpp"
+#include "packet.hpp"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -13,12 +14,12 @@ namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-int ws_client_launch(int port_num, std::string hostname){
+int ws_client_launch(std::string port_num, std::string hostname){
     try
     {
         std::string host = hostname;
         auto const  port = port_num;
-        std::string text = packet;
+        std::string text = packet.dump();
 
         // The io_context is required for all I/O
         net::io_context ioc;
@@ -63,8 +64,11 @@ int ws_client_launch(int port_num, std::string hostname){
         ws.close(websocket::close_code::normal);
         // If we get here then the connection is closed gracefully
         // The make_printable() function helps print a ConstBufferSequence
-        std::cout << beast::make_printable(buffer.data()) << std::endl;
-        beast::buffers_to_string(data_buffer);
+        //std::cout << beast::make_printable(buffer.data()) << std::endl;
+
+        std::string data_buffers(boost::asio::buffer_cast<const char*>(buffer.data()), 
+                    buffer.size());
+        packet = json::parse(data_buffers);
 
     } catch(std::exception const& e) {
         std::cerr << "Error: " << e.what() << std::endl;
