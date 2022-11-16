@@ -1,0 +1,36 @@
+#include <iostream>
+#include <time.h>
+
+template<class ... Args>
+void DEBUG(Args && ... args){
+    int i = 0;
+    ([&]{
+        ++i;
+        std::cout << args;
+    }(), ...);
+    std::cout << std::endl;
+}
+
+inline const std::string currentDateTime() {
+    time_t     now = time(0);
+    struct tm  tstruct;
+    char       buf[20];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "[%d-%Y.%X]", &tstruct);
+
+    return buf;
+}
+
+
+template<typename... Args>
+void DEBUG_MSG(std::string fun_name, Args... args){
+    std::cout << currentDateTime() << " I " << fun_name << ":"; 
+    DEBUG(args...); 
+}
+
+
+template<typename... Args>
+void DEBUG_ERR(std::string fun_name, Args... args){
+    std::cout << currentDateTime() << " E " << fun_name << ":";
+    DEBUG(args...);
+}
