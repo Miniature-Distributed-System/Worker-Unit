@@ -4,6 +4,7 @@
 #include <sqlite3.h> 
 #include "ws_client.hpp"
 #include "packet.hpp"
+#include "debug_rp.hpp"
 #define ERR_DBOPEN -1
 
 json packet;
@@ -30,6 +31,7 @@ int countCols(std::string data){
     }
     //count the last row as it doesn't end with ','
     return rows + 1;
+    DEBUG_MSG(__func__, "number of columns:", cols+1);
 }
 
 int createSqlCmds(int cols, std::string header){
@@ -58,6 +60,8 @@ int createSqlCmds(int cols, std::string header){
     insertCmd.append(") VALUES(");
     
     return 0;
+    DEBUG_MSG(__func__, "sql createcmd:", createCmd);
+    DEBUG_MSG(__func__, "sql insertcmd:", insertCmd);
 }
 
 int insertIntoTable(std::string data, int cols){
@@ -69,10 +73,11 @@ int insertIntoTable(std::string data, int cols){
     const char *sqlCmd = createCmd.c_str();
     rc = sqlite3_exec(db, sqlCmd,NULL , 0, &sqlErrMsg);
     if(rc != SQLITE_OK){
+            DEBUG_ERR(__func__, "db create command failed");
             sqlite3_free(sqlErrMsg);
             return EXIT_FAILURE;
     }
-
+    DEBUG_MSG(__func__,"\n");
     //insert values into table
     while(end < data.length())
     {
@@ -92,10 +97,12 @@ int insertIntoTable(std::string data, int cols){
         }
         //finish insert command
         tempInsert.append(");");
+        DEBUG_MSG(__func__, "constructed insert cmd:", tempInsert);
 
         const char *sqlInsert = tempInsert.c_str();
         rc = sqlite3_exec(db, sqlInsert,NULL , 0, &sqlErrMsg);
         if(rc != SQLITE_OK){
+                DEBUG_ERR(__func__, "db insert command failed");
                 sqlite3_free(sqlErrMsg);
                 return EXIT_FAILURE;
         }
@@ -109,6 +116,7 @@ void dropTable(){
     char* sqlErrMsg;
     int rc;
 
+    DEBUG_MSG(__func__, "dropping current table in database...");
     dropCmd = "DROP TABLE " + tableId + ";";
     sqlCmd = dropCmd.c_str();
     sqlite3_exec(db, sqlCmd,NULL , 0, &sqlErrMsg);
@@ -157,20 +165,25 @@ void *receiver_process(void *ptr){
     while(1){
         ret = ws_client_launch(port, hostname);
         if(ret == EXIT_FAILURE){
+            DEBUG_ERR(__func__, "websocket client failed");
             //need to report back crash to server
             break;
         }
         ret = processPacket();
         if(ret == ERR_DBOPEN){
+            DEBUG_ERR(__func__, "sqlite3 failed to open .db file");
             //need to report back crash to server
             packet["head"] = P_SEIZE;
             ws_client_launch(port, hostname);
+            DEBUG_ERR(__func__, "closing websocket connection...");
             break;
         }else if(ret == EXIT_FAILURE){
             //notufy server to resend data
+            DEBUG_ERR(__func__, "packet error encountered resend packet");
             packet["head"] = P_RSEND_DATA;
         }else{
             //notify server data received successfully
+            DEBUG_MSG(__func__,"packet received successfully");
             packet["head"] = P_RECV_DATA;
         }
         
@@ -188,12 +201,15 @@ int main(int argc, char** argv)
     if(argc != 3){
         args[0] = "8080";
         args[1] = "0:0:0:0";
+        DEBUG_MSG(__func__, "manual portno & hostname attached.");
     }
     else{
         args[0] = argv[1];
         args[1] = argv[2];
+        DEBUG_MSG(__func__, "cmd args portno & hostname attached.");
     }
 
     ret = pthread_create(&mainThread, NULL, receiver_process, (void*)args);
+    DEBUG_MSG(__func__, "pthread thread starting...\n");
     return 0;
 }

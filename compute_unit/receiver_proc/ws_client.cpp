@@ -7,6 +7,7 @@
 #include <string>
 #include "ws_client.hpp"
 #include "packet.hpp"
+#include "debug_rp.hpp"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -20,6 +21,7 @@ int ws_client_launch(std::string port_num, std::string hostname){
         std::string host = hostname;
         auto const  port = port_num;
         std::string text = packet.dump();
+        DEBUG_MSG(__func__, "conn with"," host:", host, "port no:", port);
 
         // The io_context is required for all I/O
         net::io_context ioc;
@@ -73,6 +75,7 @@ int ws_client_launch(std::string port_num, std::string hostname){
     } catch(std::exception const& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return EXIT_FAILURE;
+        DEBUG_ERR(__func__, "Error: ", e.what());
     }
     return EXIT_SUCCESS;
 }
