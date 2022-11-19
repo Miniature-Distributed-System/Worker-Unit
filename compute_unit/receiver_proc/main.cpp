@@ -200,7 +200,7 @@ int main(int argc, char** argv)
     
     if(argc != 3){
         args[0] = "8080";
-        args[1] = "0:0:0:0";
+        args[1] = "0.0.0.0";
         DEBUG_MSG(__func__, "manual portno & hostname attached.");
     }
     else{
