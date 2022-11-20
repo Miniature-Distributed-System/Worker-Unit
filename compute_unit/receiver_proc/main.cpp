@@ -208,8 +208,9 @@ int main(int argc, char** argv)
         args[1] = argv[2];
         DEBUG_MSG(__func__, "cmd args portno & hostname attached.");
     }
-
-    ret = pthread_create(&mainThread, NULL, receiver_process, (void*)args);
     DEBUG_MSG(__func__, "pthread thread starting...\n");
+    //ret = pthread_create(&mainThread, NULL, receiver_process, (void*)args);
+    //pthread_join(mainThread, NULL);
+    receiver_process((void*)args);
     return 0;
 }
