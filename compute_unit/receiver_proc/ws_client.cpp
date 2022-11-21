@@ -6,7 +6,6 @@
 #include <iostream>
 #include <string>
 #include "ws_client.hpp"
-#include "packet.hpp"
 #include "debug_rp.hpp"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
