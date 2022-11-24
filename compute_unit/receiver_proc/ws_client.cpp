@@ -14,11 +14,12 @@ namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-int ws_client_launch(std::string port_num, std::string hostname){
+json ws_client_launch(std::string port_num, std::string hostname){
+    json outJs;
     try
     {
         std::string host = hostname;
-        auto const  port = port_num;
+        const auto port = port_num;
         std::string text = packet.dump();
         DEBUG_MSG(__func__, "conn with"," host:", host, "port no:", port);
 
@@ -69,12 +70,10 @@ int ws_client_launch(std::string port_num, std::string hostname){
 
         std::string data_buffers(boost::asio::buffer_cast<const char*>(buffer.data()), 
                     buffer.size());
-        packet = json::parse(data_buffers);
+        outJs = json::parse(data_buffers.c_str());
 
     } catch(std::exception const& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        return EXIT_FAILURE;
         DEBUG_ERR(__func__, "Error: ", e.what());
     }
-    return EXIT_SUCCESS;
+    return outJs;
 }
