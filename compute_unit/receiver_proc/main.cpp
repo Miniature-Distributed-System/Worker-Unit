@@ -153,40 +153,38 @@ int processPacket()
 
 void *receiver_process(void *ptr){
     int ret = 0;
-    char* args = (char*)ptr;
-    std::string port = (char*)args[0];
-    std::string hostname = (char*)args[1];
-    
+    std::string *args = static_cast<std::string*>(ptr);
+
     //init packet
     resetPacket();
     //set packet as initial handshake
     packet["head"] = P_HANDSHAKE;
 
     while(1){
-        ret = ws_client_launch(port, hostname);
-        if(ret == EXIT_FAILURE){
+        packet = ws_client_launch(args[0], args[1]);
+        if(!packet.contains("head")){
             DEBUG_ERR(__func__, "websocket client failed");
             //need to report back crash to server
             break;
         }
+
         ret = processPacket();
         if(ret == ERR_DBOPEN){
             DEBUG_ERR(__func__, "sqlite3 failed to open .db file");
             //need to report back crash to server
             packet["head"] = P_SEIZE;
-            ws_client_launch(port, hostname);
             DEBUG_ERR(__func__, "closing websocket connection...");
+            ws_client_launch(args[0], args[1]);
             break;
-        }else if(ret == EXIT_FAILURE){
-            //notufy server to resend data
+        } else if(ret == EXIT_FAILURE){
+            //notify server to resend data
             DEBUG_ERR(__func__, "packet error encountered resend packet");
             packet["head"] = P_RSEND_DATA;
-        }else{
+        } else {
             //notify server data received successfully
             DEBUG_MSG(__func__,"packet received successfully");
             packet["head"] = P_RECV_DATA;
-        }
-        
+        }    
     }
 
     return 0;
