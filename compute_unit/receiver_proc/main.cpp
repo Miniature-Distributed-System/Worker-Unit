@@ -34,21 +34,23 @@ int countCols(std::string data){
     DEBUG_MSG(__func__, "number of columns:", cols+1);
 }
 
-int createSqlCmds(int cols, std::string header){
+int createSqlCmds(int cols, std::string body){
     int i, start = 0, end = 0;
-    createCmd = "CREATE TABLE " + tableId + "(";
-    insertCmd = "INSERT INTO "+ tableId +"(";
-
+    createCmd = "CREATE TABLE " + tableId + " (";
+    insertCmd = "INSERT INTO "+ tableId +" (";
+    
     for(i = 0; i < cols; i++)
     {
-        while(header[end] != ',' || header[end] != '\n'){
+        while(end < body.length()){
+            if(body[end] == ',' || body[end] == '\n')
+                break;
             end++;
         }
-        std::string colFeild = header.substr(start, end - 1);
+        std::string colFeild = body.substr(start, end - start);
         createCmd.append(colFeild).append(" varchar(30) NOT NULL");
         insertCmd.append(colFeild);
         createCmd.append(",");
-        start = end;
+        start = ++end;
     
         if(i < cols - 1){
             
@@ -56,12 +58,12 @@ int createSqlCmds(int cols, std::string header){
         }
     }
 
-    createCmd.append("id int NOT NULL AUTO_INCREMENT, PRIMARY KEY(id));");
-    insertCmd.append(") VALUES(");
-    
     return 0;
+    createCmd.append("ID INTEGER PRIMARY KEY AUTOINCREMENT);");
+    insertCmd.append(") VALUES (");
     DEBUG_MSG(__func__, "sql createcmd:", createCmd);
     DEBUG_MSG(__func__, "sql insertcmd:", insertCmd);
+
 }
 
 int insertIntoTable(std::string data, int cols){
