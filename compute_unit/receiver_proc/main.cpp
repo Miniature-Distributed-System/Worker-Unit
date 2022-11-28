@@ -129,13 +129,14 @@ int processPacket()
     std::string bodyData = packet["body"];
     tableId = packet["id"];
     int rc = 0, cols;
+    int bodyDataStart;
 
     //empty the packet
     resetPacket();
 
     //Count the rows in csv
     cols = countCols(bodyData);
-    rc = createSqlCmds(cols, bodyData);
+    bodyDataStart = createSqlCmds(cols, bodyData);
 
     rc = sqlite3_open("csv.db", &db);
     if(rc){
