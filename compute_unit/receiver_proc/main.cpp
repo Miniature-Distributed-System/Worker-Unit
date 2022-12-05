@@ -66,11 +66,12 @@ int createSqlCmds(int cols, std::string body){
 
 }
 
-int insertIntoTable(std::string data, int cols){
+int insertIntoTable(std::string data, int cols, int startIndex){
     char* sqlErrMsg;
-    int rc, i, end = 0, start = 0;
+    int rc, i, end, start;
     std::string tempInsert;
 
+    end = start = startIndex;
     //construct table
     const char *sqlCmd = createCmd.c_str();
     rc = sqlite3_exec(db, sqlCmd,NULL , 0, &sqlErrMsg);
@@ -84,18 +85,19 @@ int insertIntoTable(std::string data, int cols){
     while(end < data.length())
     {
         tempInsert = insertCmd;
-        //iterate through one row at a time
+        //iterate through one col at a time
         for(i = 0; i < cols; i++)
         {
-            while(data[end] != ',' || data[end] != '\n')
-            {
+             while(end < data.length()){
+                if(data[end] == ',' || data[end] == '\n')
+                    break;
                 end++;
             }
             //get single row value at a time
-            tempInsert.append("'" + data.substr(start, end - 1) + "'");
-            if(data[end] != '\n')
+            tempInsert.append("'" + data.substr(start, end - start) + "'");
+            if(i < cols - 1)
                 tempInsert.append(",");
-            start = end;
+            start = ++end;
         }
         //finish insert command
         tempInsert.append(");");
