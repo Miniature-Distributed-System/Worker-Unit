@@ -145,7 +145,7 @@ int processPacket()
         return ERR_DBOPEN;
     }
     //create table and insert into table;
-    rc = insertIntoTable(bodyData, cols);
+    rc = insertIntoTable(bodyData, cols, bodyDataStart);
     if(rc == EXIT_FAILURE){
         //drop table before we fail
         dropTable();
