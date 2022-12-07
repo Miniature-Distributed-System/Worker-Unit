@@ -58,12 +58,12 @@ int createSqlCmds(int cols, std::string body){
         }
     }
 
-    return 0;
     createCmd.append("ID INTEGER PRIMARY KEY AUTOINCREMENT);");
     insertCmd.append(") VALUES (");
     DEBUG_MSG(__func__, "sql createcmd:", createCmd);
     DEBUG_MSG(__func__, "sql insertcmd:", insertCmd);
 
+    return end;
 }
 
 int insertIntoTable(std::string data, int cols, int startIndex){
