@@ -24,14 +24,14 @@ void resetPacket(){
 
 int countCols(std::string data){
     int i = -1;
-    int rows = 0;
+    int cols = 0;
     while(data[i++] != '\n'){
         if(data[i] == ',')
-            rows++;
+            cols++;
     }
-    //count the last row as it doesn't end with ','
-    return rows + 1;
+    //count the last col as it doesn't end with ','
     DEBUG_MSG(__func__, "number of columns:", cols+1);
+    return cols + 1;
 }
 
 int createSqlCmds(int cols, std::string body){
