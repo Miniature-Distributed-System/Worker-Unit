@@ -36,6 +36,32 @@ struct queue_job** reorder_queue(struct thread_queue *queue)
 
     return doneJobs;
 }
+
+/* @funcion: cycle_jobs() function cycles the jobs in the given queue
+ * It increments the head of queue so in the assosiated task threads
+ * nest run it picks up the next job to run.
+ * All jobs are timesliced so each get a slice of cpu depending on priority
+ * variable assigned to each job. some jobs however are non preemptable which
+ * are onshot job they are not cycled they are immidiatly popped out of queue
+ * once done.
+ * 
+ * @return: boolean
+ *  desc: is queue full or not?
+ */
+
+int cycle_jobs(struct thread_queue *queue)
+{
+    if(queue->headPointer > queue->tailPointer){
+        reorder_queue(queue);
+        queue->headPointer = 0;
+    } else {
+        queue->headPointer++;
+    }
+
+    if(queue->totalJobsInQueue < QUEUE_SIZE)
+        return QUEUE_ISFREE;
+    return QUEUE_FULL;
+}
 void *sched_task(void *ptr)
 {
     int i, j;
