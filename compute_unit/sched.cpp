@@ -1,3 +1,13 @@
+#include <stdlib.h>
+#include <pthread.h>
+#include <cstring>
+#include <unistd.h>
+#include "sched.hpp"
+#include "thread_pool.hpp"
+#include "receiver_proc/debug_rp.hpp"
+//this var needs refactor should make it local scope
+struct thread_queue *list[MAX_THREAD];
+bool sched_should_stop = 0;
 /* @function: reorder_queue() removes done jobs from queue and reorders the pending tasks
  * @args: structure of type thread_queue
  * @desc: This function takes queue of the thread which needs reordering.
