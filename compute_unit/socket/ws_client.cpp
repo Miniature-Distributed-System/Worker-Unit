@@ -6,7 +6,8 @@
 #include <iostream>
 #include <string>
 #include "ws_client.hpp"
-#include "debug_rp.hpp"
+#include "../include/debug_rp.hpp"
+#include "socket.hpp"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -14,14 +15,14 @@ namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-json ws_client_launch(std::string port_num, std::string hostname){
+json ws_client_launch(struct socket *soc, json packet){
     json outJs;
     try
     {
-        std::string host = hostname;
-        const auto port = port_num;
+        std::string host = soc->hostname;
+        const auto port = soc->port;
         std::string text = packet.dump();
-        DEBUG_MSG(__func__, "conn with"," host:", host, "port no:", port);
+        DEBUG_MSG(__func__, "conn with"," hostname:", host, " port-no:", port);
 
         // The io_context is required for all I/O
         net::io_context ioc;
