@@ -21,14 +21,19 @@ struct process_table {
     unsigned int starveCounter;
 };
 
-struct thread_pool {
+struct thread_pool_node {
     struct process_table *pData;
-    struct thread_pool *next;
+    struct thread_pool_node *next;
 };
 
 extern struct thread_pool *threadPoolHead;
 extern unsigned int threadPoolCount;
 extern sem_t threadPool_mutex;
+struct thread_pool {
+    struct thread_pool_node *headNode;
+    uint8_t threadPoolCount;
+    sem_t threadPool_mutex;
+};
 
 int init_thread_pool();
 void exit_thread_pool();
