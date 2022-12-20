@@ -5,10 +5,10 @@
 #include "../socket/socket.hpp"
 #include "../sender_proc/sender.hpp"
 #include "../socket/packet.hpp"
+#include "../sql_access.hpp"
 #include "../include/debug_rp.hpp"
 #include "receiver.hpp"
 
-sqlite3 *db;
 json packet;
 std::string tableId = "";
 std::string insertCmd, createCmd, dropCmd;
@@ -59,19 +59,13 @@ int createSqlCmds(int cols, std::string body){
 
 int insert_into_table(std::string data, int cols, int startIndex)
 {
-    char* sqlErrMsg;
     int rc, i, end, start;
     std::string tempInsert;
 
     end = start = startIndex;
     //construct table
     const char *sqlCmd = createCmd.c_str();
-    rc = sqlite3_exec(db, sqlCmd,NULL , 0, &sqlErrMsg);
-    if(rc != SQLITE_OK){
-            DEBUG_ERR(__func__, "db create command failed");
-            sqlite3_free(sqlErrMsg);
-            return EXIT_FAILURE;
-    }
+    sql_write(sqlCmd);
     DEBUG_MSG(__func__,"\n");
     //insert values into table
     while(end < data.length())
@@ -96,12 +90,7 @@ int insert_into_table(std::string data, int cols, int startIndex)
         DEBUG_MSG(__func__, "constructed insert cmd:", tempInsert);
 
         const char *sqlInsert = tempInsert.c_str();
-        rc = sqlite3_exec(db, sqlInsert,NULL , 0, &sqlErrMsg);
-        if(rc != SQLITE_OK){
-                DEBUG_ERR(__func__, "db insert command failed");
-                sqlite3_free(sqlErrMsg);
-                return EXIT_FAILURE;
-        }
+        sql_write(sqlInsert);
     }
 
     return 0;
@@ -116,7 +105,7 @@ void drop_table()
     DEBUG_MSG(__func__, "dropping current table in database...");
     dropCmd = "DROP TABLE " + tableId + ";";
     sqlCmd = dropCmd.c_str();
-    sqlite3_exec(db, sqlCmd,NULL , 0, &sqlErrMsg);
+    sqlite3_exec(db_ptr, sqlCmd,NULL , 0, &sqlErrMsg);
 }
 
 int process_packet(struct receiver *recv)
@@ -192,11 +181,6 @@ int init_receiver(struct thread_pool* thread, json pkt)
     struct receiver *recv = new receiver;
     int rc = 0;
 
-    rc = sqlite3_open("../csv.db", &recv->db);
-    if(rc){
-        DEBUG_ERR(__func__, "failed to open database");
-        return ERR_DBOPEN;
-    }
     DEBUG_MSG(__func__, "init receiver");
     packet = pkt;
     recv->thread = thread;

@@ -11,7 +11,6 @@ using json = nlohmann::json;
 
 struct receiver {
     struct thread_pool *thread;
-    sqlite3 *db;
     json packet;
     int packetStatus;
     int receiverStatus;

@@ -4,8 +4,6 @@
 #include "../receiver_proc/debug_rp.hpp"
 
 struct algo_data *algoData;
-sqlite3 *db;
-
 int (*avial_algo[TOT_ALGO])() = {
     init_example_algo,
     init_example_algo2
@@ -21,12 +19,6 @@ int register_algo(void)
         if(rc == EXIT_FAILURE){
             DEBUG_ERR(__func__,"Failed to init algorithm_idx:",i);
         }
-    }
-    //needs to be nuked make that var global scope
-    rc = sqlite3_open("receiver_proc/csv.db", &db);
-    if(rc){
-        DEBUG_ERR(__func__,"DB open failed");
-        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
