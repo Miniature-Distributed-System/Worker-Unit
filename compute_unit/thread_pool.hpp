@@ -1,6 +1,7 @@
 #ifndef THREAD_H_
 #define THREAD_H_
 #include <semaphore.h>
+#include <stdint.h>
 
 //change this later lol
 #define MAX_POOL_SIZE 10
@@ -26,16 +27,14 @@ struct thread_pool_node {
     struct thread_pool_node *next;
 };
 
-extern struct thread_pool *threadPoolHead;
-extern unsigned int threadPoolCount;
-extern sem_t threadPool_mutex;
 struct thread_pool {
     struct thread_pool_node *headNode;
     uint8_t threadPoolCount;
     sem_t threadPool_mutex;
 };
 
-int init_thread_pool();
-void exit_thread_pool();
-int sched_task(struct process* , void *, int);
+struct thread_pool* init_thread_pool();
+void exit_thread_pool(struct thread_pool*);
+struct process_table* thread_pool_pop(struct thread_pool*);
+int sched_task(struct thread_pool *, struct process* , void *, int);
 #endif
