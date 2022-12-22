@@ -107,10 +107,13 @@ void *thread_task(void *ptr)
     {
     }
 }
-int init_sched(void){
+
+int init_sched(struct thread_pool *thread)
+{
     pthread_t sched_thread, *task_thread;
     struct thread_queue *queue;
-    int i, ret, pid;
+    struct thread_pool* threadPoolHead;
+    int i,j, ret, pid;
 
     for(i = 0; i < MAX_THREAD; i++)
     {
@@ -120,11 +123,17 @@ int init_sched(void){
             DEBUG_ERR(__func__,"queue alloc failed");
             return EXIT_FAILURE;
         }
-        memset(&queue, 0, sizeof(thread_queue));
+
         sem_init(&queue->threadResource, 0 ,1);
-        queue->queueHead[0] = NULL;
+        queue->threadShouldStop = 0;
+        for(j = 0; j < QUEUE_SIZE; j++){
+            queue->queueHead[j] = NULL;
+            queue->qSlotDone[j] = 1;
+        }
+        queue->totalJobsInQueue = 0;
+        queue->threadID = i;
         list[i] = queue;
-        
+        DEBUG_MSG(__func__, "thread queue:", i, " inited successfully");
         pthread_create(task_thread, NULL, thread_task, (void*)queue);
     }
     pthread_create(&sched_thread, NULL, sched_task, NULL);
