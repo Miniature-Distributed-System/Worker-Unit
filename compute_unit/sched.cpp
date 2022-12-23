@@ -8,16 +8,87 @@
 //this var needs refactor should make it local scope
 struct thread_queue *list[MAX_THREAD];
 bool sched_should_stop = 0;
+int get_cpu_slice(int prior)
+{   
+    int rc;
+    switch(prior)
+    {
+        case 0: rc = 0;break;
+        case 1: rc = 6 * NANOSECS;break;
+        case 2: rc = 4 * NANOSECS;break;
+        case 3: rc = 2 * NANOSECS;break;
+    }
+    return rc;
+}
 {
     }
 
+int get_total_empty_slots(void)
+{
+    struct thread_queue* queue;
+    int i, j, totalSlots = 0;
+
+    for(i = 0; i < MAX_THREAD; i++)
+    {
+        queue = list[i];
+        for(j = 0; j < QUEUE_SIZE; j++)
+        {
+            if(queue->qSlotDone[j])
+                totalSlots++;
         }
     }
+    DEBUG_MSG(__func__, "Total slots in queue:", totalSlots);
+    return totalSlots;
 }
 
+struct thread_queue* get_quickest_queue(void)
 {
-    }
+    struct thread_queue *queue;
+    int threadID = 0, totalWaitTime, lowestWaitTime = INT_MAX, waitTime;
+    int i,j;
 
+    for(i = 0; i < MAX_THREAD; i++)
+    {
+        queue = list[i];
+        totalWaitTime = waitTime = 0;
+        if(queue->totalJobsInQueue == QUEUE_SIZE)
+            continue;
+        
+        for(j = 0; j < MAX_THREAD; j++)
+        {
+            if(!queue->qSlotDone[i])
+            {
+                waitTime = queue->queueHead[i]->cpuSliceMs;
+                totalWaitTime += waitTime ? waitTime : 999;
+            }
+        }
+        if(lowestWaitTime > totalWaitTime)
+        {
+            lowestWaitTime = totalWaitTime;
+            threadID = i;
+        }
+    }
+    DEBUG_MSG(__func__, "Thread ID:", threadID, 
+                    " Total wait time:", lowestWaitTime);
+    return list[threadID];
+}
+
+struct queue_job* init_job(struct process_table* pTable)
+{
+    struct queue_job *job = new queue_job;
+    job->args = pTable->args;
+    job->proc = pTable->proc;
+    job->jobFinishPending = job->jobErrorHandle = 0;
+    job->cpuSliceMs = get_cpu_slice(pTable->priority);
+    DEBUG_MSG(__func__, "job inited with cts:",job->cpuSliceMs);
+    return job;
+}
+
+void dealloc_job(struct queue_job* job)
+{
+    delete job->args;
+    delete job->proc;
+    delete job;
 }
 void *sched_task(void *ptr)
 {
