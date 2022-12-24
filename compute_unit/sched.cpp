@@ -90,8 +90,14 @@ void dealloc_job(struct queue_job* job)
     delete job->proc;
     delete job;
 }
+
 void *sched_task(void *ptr)
 {
+    struct thread_pool* threadPoolHead = (struct thread_pool*)ptr;
+    struct thread_queue* queue;
+    struct process_table* proc;
+    struct queue_job* job;
+    int i, j, qSlots;
 
     if(threadPoolHead == NULL){
         DEBUG_ERR(__func__, "thread head is uninited cant procced any further!");
@@ -100,9 +106,37 @@ void *sched_task(void *ptr)
 
     while(!sched_should_stop)
     {
+        qSlots = get_total_empty_slots();
+        for(j = 0; j < qSlots; j++)
+        {
+            if(threadPoolHead->threadPoolCount > 0)
+            {
+                DEBUG_MSG(__func__, "scheulding jobs...");
+                queue = get_quickest_queue();
+                for(i = 0; i < QUEUE_SIZE; i++)
+                {
+                    //insert into first free slot
+                    if(queue->qSlotDone[i])
+                    {
+                        //first release memory
+                        if(queue->queueHead[i])
+                            dealloc_job(queue->queueHead[i]);
+                        
+                        proc = thread_pool_pop(threadPoolHead);
+                        job = init_job(proc);
+                        queue->queueHead[i] = job;
+                        queue->totalJobsInQueue++;
+                        DEBUG_MSG(__func__, "job inserted at slot:", j,
+                                "total pending jobs:", queue->totalJobsInQueue);
+                        break;
+                    }
                 }
             }
         }
+    }
+    return 0;
+}
+
 void *thread_task(void *ptr)
 {
     struct thread_queue *queue = (thread_queue*)ptr;
