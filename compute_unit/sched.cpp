@@ -20,8 +20,37 @@ int get_cpu_slice(int prior)
     }
     return rc;
 }
+void* start_job_timer(void *data)
 {
+    struct job_timer* jTimer = (struct job_timer*)data;
+    struct timespec tim;
+
+    tim.tv_nsec = jTimer->allowedCpuSlice;
+    tim.tv_sec = 0;
+    nanosleep(&tim, NULL);
+    jTimer->jobShouldPause = 0;
+
+    return 0;
+}
+
+struct job_timer* init_timer(struct queue_job* job)
+{
+    pthread_t timerThread;
+    struct job_timer* jTimer = new job_timer;
+    jTimer->jobShouldPause = 0;
+
+    if(!job->proc->pause_proc || job->jobFinishPending || job->jobErrorHandle){
+        DEBUG_MSG(__func__, "The job is non preemtable");  
+        return jTimer;   
     }
+
+    jTimer->allowedCpuSlice = job->cpuSliceMs;
+    pthread_create(&timerThread, NULL, start_job_timer, (void*)jTimer);
+    DEBUG_MSG(__func__,"job timer created with timer set for:",
+                jTimer->allowedCpuSlice,"ns");
+
+    return jTimer;
+}
 
 int get_total_empty_slots(void)
 {
