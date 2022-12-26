@@ -173,9 +173,53 @@ void *thread_task(void *ptr)
     struct job_timer *timer;
     int head = 0, ret;
     bool done;
-
-    while(!queue->thread_should_stop)
+    if(!queue)
     {
+        DEBUG_ERR(__func__, "Queue not initilized exiting");
+        return 0;
+    }
+    DEBUG_MSG(__func__, "ThreadID:", queue->threadID + 0, 
+            " started successfully");
+
+    while(!queue->threadShouldStop)
+    {
+        //Dry run when thread queue has no active jobs in it
+        if(queue->totalJobsInQueue < 1)
+            continue;
+
+        if(queue->qSlotDone[head] == 0)
+        {
+            job = queue->queueHead[head];
+            timer = init_timer(job);
+            DEBUG_MSG(__func__, "ThreadID:", queue->threadID + 0, 
+            " job slot in execution:", head);
+            while(!timer->jobShouldPause)
+            {
+                if(job->jobFinishPending)
+                {
+                    job->proc->end_proc(job->args);
+                    queue->qSlotDone[head] = 1;
+                    queue->totalJobsInQueue--;
+                    //signal scheduler to wake up
+                    pthread_cond_signal(&cond);  
+                    break;
+                }
+                ret = job->proc->start_proc(job->args);
+                if(ret == JOB_DONE){
+                    DEBUG_MSG(__func__, "Job done and awaiting to finish");
+                    job->jobFinishPending = 1;
+                    break;
+                }else if(ret == JOB_FAILED){
+                    //must also do process error handling
+                    DEBUG_MSG(__func__, "Error encountered set error handling");
+                    job->jobErrorHandle = 1;
+                    break;
+                }
+            }
+            if(job->proc->pause_proc && timer->jobShouldPause)
+                job->proc->pause_proc(job->args);
+        }
+        head = ++head % QUEUE_SIZE;
     }
 }
 
