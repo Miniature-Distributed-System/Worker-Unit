@@ -135,6 +135,8 @@ int sched_task(struct thread_pool *threadPoolHead, struct process *newProc,
     
     DEBUG_MSG(__func__,"insert node");
     rc = insert_node(threadPoolHead, newProcTab);
+    pthread_cond_signal(&cond);
+    
     return rc;
 }
 

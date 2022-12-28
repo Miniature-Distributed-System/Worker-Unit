@@ -8,6 +8,8 @@
 //this var needs refactor should make it local scope
 struct thread_queue *list[MAX_THREAD];
 bool sched_should_stop = 0;
+pthread_cond_t  cond  = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int get_cpu_slice(int prior)
 {   
     int rc;
@@ -162,6 +164,7 @@ void *sched_task(void *ptr)
                 }
             }
         }
+        pthread_cond_wait(&cond, &mutex);
     }
     return 0;
 }
