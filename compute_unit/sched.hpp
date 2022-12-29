@@ -11,6 +11,7 @@
 
 struct job_timer {
     uint64_t allowed_cpu_slice;
+    std::uint64_t allowedCpuSlice;
     bool jobShouldPause;
 };
 
@@ -19,9 +20,11 @@ struct queue_job {
     void *args;
     uint64_t cpu_slice_ns; 
     bool jobDone;
+    std::uint64_t cpuSliceMs;
 };
 
 struct thread_queue {
+    std::uint8_t threadID;
     sem_t threadResource;
     struct queue_job *queueHead[QUEUE_SIZE];
     bool qSlotDone[QUEUE_SIZE];
@@ -30,6 +33,7 @@ struct thread_queue {
     uint8_t headPointer;
     uint8_t tailPointer;
     uint8_t totalJobsInQueue;
+    std::uint8_t totalJobsInQueue;
 };
 
 extern struct thread_queue *list[MAX_THREAD];

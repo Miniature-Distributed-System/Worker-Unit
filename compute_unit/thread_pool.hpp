@@ -1,7 +1,7 @@
 #ifndef THREAD_H_
 #define THREAD_H_
 #include <semaphore.h>
-#include <stdint.h>
+#include <cstdint>
 
 //change this later lol
 #define MAX_POOL_SIZE 10
@@ -30,6 +30,7 @@ struct thread_pool_node {
 struct thread_pool {
     struct thread_pool_node *headNode;
     uint8_t threadPoolCount;
+    std::uint8_t threadPoolCount;
     sem_t threadPool_mutex;
 };
 
