@@ -3,40 +3,6 @@
 #include "../data_processing.hpp"
 #include "../receiver_proc/debug_rp.hpp"
 
-struct algo_data *algoData;
-int (*avial_algo[TOT_ALGO])() = {
-    init_example_algo,
-    init_example_algo2
-};
-
-int register_algo(void)
-{
-    algoData = (struct algo_data*)calloc(1, sizeof(struct algo_data));
-    int i, rc;
-    
-    for(i = 0; i < TOT_ALGO; i++){
-        rc = avial_algo[i]();
-        if(rc == EXIT_FAILURE){
-            DEBUG_ERR(__func__,"Failed to init algorithm_idx:",i);
-        }
-    }
-
-    return EXIT_SUCCESS;
-}
-
-int init_algo(struct algo_proc* aptr)
-{    
-    if(aptr == NULL){
-        return EXIT_FAILURE;
-    }
-    if(aptr->start_proc == NULL || aptr->pause_proc == NULL 
-                || aptr->end_proc == NULL){
-                    return EXIT_FAILURE;
-    }
-    algoData->algo_proc_ptrs[algoData->inited_algo++] = aptr;
-
-    return EXIT_SUCCESS;
-}
 
 int sched_algo(struct table *tData)
 {
