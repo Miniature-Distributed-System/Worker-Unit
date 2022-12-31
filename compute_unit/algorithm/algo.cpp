@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include "algo.hpp"
 #include "../data_processing.hpp"
-#include "../receiver_proc/debug_rp.hpp"
+#include "../include/debug_rp.hpp"
 
-
-int sched_algo(struct table *tData)
+int sched_algo(struct thread_pool *thread, struct table *tData)
 {
+    struct process* proc;
     short algoIndex;
 
     if(!tData){
@@ -14,36 +14,10 @@ int sched_algo(struct table *tData)
     }
 
     algoIndex = tData->algorithmType;
+    proc = avial_algo[algoIndex](tData);
+    sched_task(thread, proc, tData, tData->priority);
+
     DEBUG_MSG(__func__, "Sched algorihm type:",algoIndex);
 
     return EXIT_SUCCESS;
-}
-
-static int rowCallback(void *data, int argc, char **argv, char **azColName)
-{
-   int i;
-   std::string *mdata = (static_cast<std::string*>(data));
-   
-   for(i = 1; i < argc; i++){
-      mdata[i] =  argv[i];
-   }
-
-   return 0;
-}
-
-std::string* getRow(int rowNum, std::string tableID, unsigned int rows){
-    std::string rowCmd = "SELECT * FROM " + tableID;
-    std::string row;
-    std::string *feilds = new std::string[rows];
-    char* sqlErrMsg;
-    int rc;
-
-    rc = sqlite3_exec(db, rowCmd.c_str(),rowCallback , &row, &sqlErrMsg);
-    if(rc != SQLITE_OK){
-            DEBUG_ERR(__func__, *sqlErrMsg);
-            sqlite3_free(sqlErrMsg);
-            return NULL;
-    }
-    
-    return feilds;
 }
