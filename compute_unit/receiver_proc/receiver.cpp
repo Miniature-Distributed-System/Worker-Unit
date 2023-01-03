@@ -12,6 +12,12 @@
 json packet;
 std::string tableId = "";
 std::string insertCmd, createCmd, dropCmd;
+enum receive_stat{
+    SND_EMPTY_DAT = 0,
+    SND_RESET,
+    P_ERR,
+    P_SUCCESS,
+};
 
 int countCols(std::string data){
     int i = -1;
