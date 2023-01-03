@@ -12,6 +12,7 @@
 json packet;
 std::string tableId = "";
 std::string insertCmd, createCmd, dropCmd;
+struct data_proc_container *dataProcContainer;
 enum receive_stat{
     SND_EMPTY_DAT = 0,
     SND_RESET,
@@ -68,6 +69,7 @@ int insert_into_table(std::string data, int cols, int startIndex)
     int rc, i, end, start;
     std::string tempInsert;
 
+    dataProcContainer->rows = 0;
     end = start = startIndex;
     //construct table
     const char *sqlCmd = createCmd.c_str();
@@ -116,29 +118,44 @@ void drop_table()
 
 int process_packet(struct receiver *recv)
 {
-    struct table* tData;
-    std::string bodyData = packet["body"]["data"];
-    tableId = packet["body"]["id"];
-    int rc = 0, cols;
-    int bodyDataStart;
+    struct table *tData;
+    json packet = recv->packet;
+    std::string bodyData;
+    int cols;
+    int bodyDataStart, priority, algoType;
 
-    //Count the rows in csv
-    cols = countCols(bodyData);
+    //Even if one fails we flag error and not proceed further
+    try{
+        tableId = recv->tableID = packet["body"]["id"];
+        bodyData = packet["body"]["data"];
+        algoType = packet["body"]["type"];
+        priority = packet["body"]["priority"];
+    }catch(json::exception e){
+        DEBUG_ERR(__func__, e.what());
+        return P_ERR;
+    }
+
+    //initilize container
+    dataProcContainer = new data_proc_container;
+    recv->container = dataProcContainer;
+    dataProcContainer->cols =  cols = countCols(bodyData);    
     bodyDataStart = createSqlCmds(cols, bodyData);
 
     //create table and insert into table;
-    rc = insert_into_table(bodyData, cols, bodyDataStart);
-    if(rc == EXIT_FAILURE){
+    if(insert_into_table(bodyData, cols, bodyDataStart) == EXIT_FAILURE){
         //drop table before we fail
         drop_table();
         return EXIT_FAILURE;
     }
-
-    tData = new table;
+    tData = new table(dataProcContainer->rows, dataProcContainer->cols);
+    recv->container->tData = tData;
     tData->tableID = tableId;
-    recv->table = tData;
+    tData->algorithmType = algoType;
+    tData->priority = priority;
 
-    //Job done instead
+    return P_SUCCESS;
+}
+
     return 0;
 int identify_packet(struct receiver *recv)
 {
