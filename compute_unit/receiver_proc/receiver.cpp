@@ -1,18 +1,19 @@
-#include <iostream>
 #include <string>
-#include <thread>
 
+#include "receiver.hpp"
 #include "../socket/socket.hpp"
 #include "../sender_proc/sender.hpp"
 #include "../socket/packet.hpp"
 #include "../sql_access.hpp"
+#include "../data_processor.hpp"
+#include "../include/process.hpp"
+#include "../include/task.hpp"
 #include "../include/debug_rp.hpp"
-#include "receiver.hpp"
 
-json packet;
 std::string tableId = "";
 std::string insertCmd, createCmd, dropCmd;
 struct data_proc_container *dataProcContainer;
+
 enum receive_stat{
     SND_EMPTY_DAT = 0,
     SND_RESET,
@@ -32,10 +33,12 @@ int countCols(std::string data){
     return cols + 1;
 }
 
-int createSqlCmds(int cols, std::string body){
+int createSqlCmds(int cols, std::string body)
+{
     int i, start = 0, end = 0;
     createCmd = "CREATE TABLE " + tableId + " (";
     insertCmd = "INSERT INTO "+ tableId +" (";
+    std::string *colHeaders = new std::string[cols];
     
     for(i = 0; i < cols; i++)
     {
@@ -47,6 +50,7 @@ int createSqlCmds(int cols, std::string body){
         std::string colFeild = body.substr(start, end - start);
         createCmd.append(colFeild).append(" varchar(30) NOT NULL");
         insertCmd.append(colFeild);
+        colHeaders[i] = colFeild;
         createCmd.append(",");
         start = ++end;
     
@@ -58,15 +62,16 @@ int createSqlCmds(int cols, std::string body){
 
     createCmd.append("ID INTEGER PRIMARY KEY AUTOINCREMENT);");
     insertCmd.append(") VALUES (");
-    DEBUG_MSG(__func__, "sql createcmd:", createCmd);
-    DEBUG_MSG(__func__, "sql insertcmd:", insertCmd);
+    dataProcContainer->colHeaders = colHeaders;
+    //DEBUG_MSG(__func__, "sql createcmd:", createCmd);
+    //DEBUG_MSG(__func__, "sql insertcmd:", insertCmd);
 
     return end;
 }
 
 int insert_into_table(std::string data, int cols, int startIndex)
 {
-    int rc, i, end, start;
+    int rc, i, end, start, rows =0;
     std::string tempInsert;
 
     dataProcContainer->rows = 0;
@@ -156,7 +161,6 @@ int process_packet(struct receiver *recv)
     return P_SUCCESS;
 }
 
-    return 0;
 int identify_packet(struct receiver *recv)
 {
     int rc;
@@ -244,7 +248,7 @@ int init_receiver(struct thread_pool* thread, json pkt)
     int rc = 0;
 
     DEBUG_MSG(__func__, "init receiver");
-    packet = pkt;
+    recv->packet = pkt;
     recv->thread = thread;
     recv->packet = pkt;
     recv->packetStatus = 0;

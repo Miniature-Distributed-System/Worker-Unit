@@ -1,7 +1,6 @@
 #ifndef RECV_PORT_H_
 #define RECV_PORT_H_
 #include <iostream>
-#include <sqlite3.h> 
 #include "../socket/json.hpp"
 #include "../thread_pool.hpp"
 #include "../data_processing.hpp"
@@ -15,6 +14,7 @@ struct receiver {
     int packetStatus;
     int receiverStatus;
     struct table *table;
+    struct data_proc_container* container;
 };
 
 int init_receiver(struct thread_pool*, json);
