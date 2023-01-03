@@ -93,10 +93,13 @@ int insert_into_table(std::string data, int cols, int startIndex)
         }
         //finish insert command
         tempInsert.append(");");
-        DEBUG_MSG(__func__, "constructed insert cmd:", tempInsert);
-
+        //DEBUG_MSG(__func__, "constructed insert cmd:", tempInsert);
         const char *sqlInsert = tempInsert.c_str();
-        sql_write(sqlInsert);
+        rc = sql_write(sqlInsert);
+        if(rc == SQLITE_OK){
+            DEBUG_MSG(__func__, "nos rows into table:",dataProcContainer->rows);
+            dataProcContainer->rows++;
+        }
     }
 
     return 0;
@@ -104,14 +107,11 @@ int insert_into_table(std::string data, int cols, int startIndex)
 
 void drop_table()
 {
-    const char *sqlCmd;
-    char* sqlErrMsg;
     int rc;
 
     DEBUG_MSG(__func__, "dropping current table in database...");
     dropCmd = "DROP TABLE " + tableId + ";";
-    sqlCmd = dropCmd.c_str();
-    sqlite3_exec(db_ptr, sqlCmd,NULL , 0, &sqlErrMsg);
+    sql_write(dropCmd.c_str());
 }
 
 int process_packet(struct receiver *recv)
