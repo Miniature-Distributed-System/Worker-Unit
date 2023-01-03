@@ -134,6 +134,37 @@ int process_packet(struct receiver *recv)
 
     //Job done instead
     return 0;
+int identify_packet(struct receiver *recv)
+{
+    int rc;
+    int packetHead;
+
+    try{
+        packetHead = recv->packet["head"];
+    }catch(json::exception e){
+        DEBUG_ERR(__func__, e.what());
+        return P_ERR;
+    }
+    
+    switch(packetHead)
+    {
+        case P_HANDSHAKE:
+            computeID = recv->packet["id"];
+            if((packetHead & (P_HANDSHAKE | P_DATSENT))){
+                DEBUG_MSG(__func__, "only handshake done");
+                rc = SND_EMPTY_DAT;
+                break;
+            }
+        case P_DATSENT:
+            DEBUG_MSG(__func__, "process packet");
+            rc = process_packet(recv);
+            break;
+        case P_RESET:
+        default:
+            rc = SND_RESET;
+    }
+
+    return rc;
 }
 
 int receiver_proccess(void *data)
@@ -142,7 +173,6 @@ int receiver_proccess(void *data)
     int ret = 0;
 
     db = recv->db;
-    ret = process_packet(recv);
     if(ret == EXIT_FAILURE){
         //notify server to resend data
         DEBUG_ERR(__func__, "packet error encountered, resend packet");
@@ -156,6 +186,7 @@ int receiver_proccess(void *data)
     }   
 
     return 0;
+    recv->receiverStatus = identify_packet(recv);
 }
 
 int receiver_finalize(void *data)
