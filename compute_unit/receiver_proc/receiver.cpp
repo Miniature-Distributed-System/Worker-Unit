@@ -193,36 +193,44 @@ int identify_packet(struct receiver *recv)
 int receiver_proccess(void *data)
 {
     struct receiver *recv = (struct receiver*)data;
-    int ret = 0;
-
-    db = recv->db;
-    if(ret == EXIT_FAILURE){
-        //notify server to resend data
-        DEBUG_ERR(__func__, "packet error encountered, resend packet");
-        send_packet("", recv->table->tableID, PROC_ERR);
-        //job error instead
-        return -1;
-    } else {
-        //notify server data received successfully
-        DEBUG_MSG(__func__,"packet received successfully");
-        send_packet("", recv->table->tableID, NO_ERR);
-    }   
-
-    return 0;
     recv->receiverStatus = identify_packet(recv);
+    //if(recv->receiverStatus == EXIT_FAILURE){
+    //    return JOB_FAILED;
+    //}
+    return JOB_DONE;
 }
 
 int receiver_finalize(void *data)
 {
     struct receiver *recv = (struct receiver*) data;
     
-    init_data_processor(recv->thread, recv->table, recv->db);
+    if(recv->receiverStatus == SND_EMPTY_DAT)
+    {
+        DEBUG_MSG(__func__, "sending empty packet");
+        send_packet("","", 100);
+    } 
+    else if(recv->receiverStatus == P_ERR) {
+        //tableID itself is corrput or it was a status signal that was lost in transmission
+        if(recv->tableID.empty())
+        {
+            DEBUG_MSG(__func__, "packet corrupt");
+            send_packet("","", RECV_ERR);
+        } else {
+            //notify server to resend data
+            DEBUG_ERR(__func__, "packet error encountered, resend packet");
+            send_packet("", recv->tableID, PROC_ERR);
+        }
+        
+    } else {
+        //notify server data received successfully
+        DEBUG_MSG(__func__,"packet received successfully");
+        send_packet("", recv->tableID, NO_ERR);
+        //container should be derefrenced after this as its deleted by dataprocessor
+        init_data_processor(recv->thread, recv->container);
+    }
     delete recv;
     
-    DEBUG_MSG(__func__, "receiver proc ending waking up socket");
-    //singnal socket to wake up and notify server of successfull transaction
-    pthread_cond_signal(&socket_cond);
-    return 0;
+    return JOB_FINISHED;
 }
 
 struct process* receiver_proc = new process {
