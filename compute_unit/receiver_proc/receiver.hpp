@@ -13,7 +13,7 @@ struct receiver {
     json packet;
     int packetStatus;
     int receiverStatus;
-    struct table *table;
+    std::string tableID;
     struct data_proc_container* container;
 };
 
