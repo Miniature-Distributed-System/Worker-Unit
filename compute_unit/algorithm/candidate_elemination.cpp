@@ -3,17 +3,21 @@
 #include <array>
 #include "algo.hpp"
 #include "../sql_access.hpp"
-#include "../include/process.h"
-#include "../include/task.h"
+#include "../include/process.hpp"
+#include "../include/task.hpp"
+#include "../sender_proc/sender.hpp"
 #include "../include/debug_rp.hpp"
+//This needs nuking as dirs will change later
+#include "../socket/packet.hpp"
 #include "cand_elim.hpp"
 
 candidateElimination::candidateElimination(int n)
 {
-    cols = n - 1;
-    targetCol = n;
+    cols = n - 2;
+    targetCol = n - 1;
     s = new std::string[cols];
     g = new std::string[cols];
+    //DEBUG_MSG(__func__, "cols", cols, "target",targetCol);
     for(int i = 0; i < cols; i++){
         s[i] = "*";
         g[i] = "?";
@@ -25,6 +29,7 @@ void candidateElimination::compare(std::string *input)
     int i;
     
     //positive training examples
+    //DEBUG_MSG(__func__, input[targetCol]);
     if(input[targetCol] == True)
     {
         for(i = 0; i < cols; i++)
@@ -92,7 +97,7 @@ int candidate_elimination_start(void *data)
     struct table* tData = (struct table*)data;
     candidateElimination *ce = (candidateElimination*)tData->args;
     std::string *feild;
-
+    
     if(tData->metadata->curRow >= tData->metadata->rows)
         return JOB_DONE;
     feild = get_row(tData, tData->metadata->curRow);
@@ -113,6 +118,11 @@ int candidate_elimination_end(void *data)
     candidateElimination *ce = (candidateElimination*)tData->args;
     std::string s = ce->getS();
     std::string g = ce->getG();
+    std::string final = s + ";" + g;
+    send_packet(final, tData->tableID, RES_SEND);
+    //Deallocate both table data and whatever was allocated in this algo before
+    //winding up with the process, else we will leak memeory.
+    delete ce;
     
     DEBUG_MSG(__func__, "end process S:",s, " G:", g);
     return 0;
@@ -126,7 +136,7 @@ struct process *ce_algorithm = new process{
 
 struct process* init_ce_algorithm(struct table* tData)
 {
-    candidateElimination *ce = new candidateElimination(tData->metadata->cols - 2);
+    candidateElimination *ce = new candidateElimination(tData->metadata->cols);
     tData->args = ce;
     return ce_algorithm;
 }
