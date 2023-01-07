@@ -7,6 +7,7 @@
 #define TOT_ALGO 2
 
 int sched_algo(struct thread_pool*, struct table*);
+void dealloc_table_dat(struct table *tData);
 
 //add function prototypes below this
 struct process* init_example_algo(struct table*);

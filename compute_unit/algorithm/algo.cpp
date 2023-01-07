@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "algo.hpp"
 #include "../data_processing.hpp"
+#include "../sql_access.hpp"
 #include "../include/debug_rp.hpp"
 
 int sched_algo(struct thread_pool *thread, struct table *tData)
@@ -20,4 +21,12 @@ int sched_algo(struct thread_pool *thread, struct table *tData)
     DEBUG_MSG(__func__, "Sched algorihm type:",algoIndex);
 
     return EXIT_SUCCESS;
+}
+
+void dealloc_table_dat(struct table *tData)
+{
+    std::string dropTable = "DROP TABLE " + tData->tableID + ";";
+    //Don't care if it fails
+    //sql_write(dropTable.c_str());
+    delete tData;
 }
