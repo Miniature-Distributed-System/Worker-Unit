@@ -123,6 +123,7 @@ int candidate_elimination_end(void *data)
     //Deallocate both table data and whatever was allocated in this algo before
     //winding up with the process, else we will leak memeory.
     delete ce;
+    dealloc_table_dat(tData);
     
     DEBUG_MSG(__func__, "end process S:",s, " G:", g);
     return 0;
