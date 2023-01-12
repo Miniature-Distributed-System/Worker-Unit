@@ -1,6 +1,7 @@
 #ifndef ALGO_H
 #define ALGO_H
 #include <sqlite3.h>
+#include "../include/process.hpp"
 #include "cand_elim.hpp"
 #include "example.hpp"
 //bound to change once build root is made

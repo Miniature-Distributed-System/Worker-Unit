@@ -119,7 +119,7 @@ int candidate_elimination_end(void *data)
     std::string s = ce->getS();
     std::string g = ce->getG();
     std::string final = s + ";" + g;
-    send_packet(final, tData->tableID, RES_SEND);
+    send_packet(final, tData->tableID, FRES_SEND);
     //Deallocate both table data and whatever was allocated in this algo before
     //winding up with the process, else we will leak memeory.
     delete ce;
