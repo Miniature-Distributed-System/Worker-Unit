@@ -123,9 +123,11 @@ int sched_task(struct thread_pool *threadPoolHead, struct process *newProc,
     struct process_table *newProcTab;
     int rc = 0;
     
-    if(newProc == nullptr || args == nullptr){
+    if(newProc == NULL || args == NULL){
         return EXIT_FAILURE;
     }
+    if(newProc->start_proc == NULL || newProc->end_proc == NULL)
+        return EXIT_FAILURE;
 
     newProcTab = new process_table;
     newProcTab->proc = newProc;
