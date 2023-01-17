@@ -1,6 +1,10 @@
+#include <unistd.h>
 #include "thread_pool.hpp"
 #include "sched.hpp"
+#include "include/process.hpp"
 #include "include/debug_rp.hpp"
+#include "sender_proc/sender.hpp"
+#include "socket/packet.hpp"
 
 /* This function returns how much the process of a certain 
  * priority can be starved. 
