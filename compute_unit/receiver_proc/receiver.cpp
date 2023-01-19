@@ -22,6 +22,34 @@ enum receive_stat{
 };
 
 int countCols(std::string data){
+class Receiver 
+{
+    private:
+        std::string insertCmd;
+        std::string createCmd;
+        std::string dropCmd;
+        std::uint8_t packetStatus;
+        std::string *colHeaders;
+        json packet;
+        int columns;
+        int rows;
+        
+    public:
+        Receiver(struct thread_pool*, json);
+        std::string tableId;
+        std::uint8_t receiverStatus;
+        struct thread_pool *thread;
+        struct data_proc_container *dataProcContainer;
+
+        int validatePacket();
+        int countCols(std::string data);
+        int createSqlCmds(int cols, std::string body);
+        int insert_into_table(std::string data, int startIndex);
+        void drop_table();
+        int process_packet();
+        int identify_packet();
+        void construct_table(std::uint8_t priority, std::uint8_t algoType);
+};
     int i = -1;
     int cols = 0;
     while(data[i++] != '\n'){
