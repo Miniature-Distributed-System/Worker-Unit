@@ -50,6 +50,13 @@ class Receiver
         int identify_packet();
         void construct_table(std::uint8_t priority, std::uint8_t algoType);
 };
+Receiver::Receiver(struct thread_pool* thread, json packet)
+{
+    this->thread = thread;
+    this->packet = packet;
+    columns = 0;
+    rows = 0;
+}
     int i = -1;
     int cols = 0;
     while(data[i++] != '\n'){
@@ -61,12 +68,12 @@ class Receiver
     return cols + 1;
 }
 
-int createSqlCmds(int cols, std::string body)
+int Receiver::createSqlCmds(int cols, std::string body)
 {
     int i, start = 0, end = 0;
     createCmd = "CREATE TABLE " + tableId + " (";
     insertCmd = "INSERT INTO "+ tableId +" (";
-    std::string *colHeaders = new std::string[cols];
+    colHeaders = new std::string[cols];
     
     for(i = 0; i < cols; i++)
     {
@@ -90,19 +97,15 @@ int createSqlCmds(int cols, std::string body)
 
     createCmd.append("ID INTEGER PRIMARY KEY AUTOINCREMENT);");
     insertCmd.append(") VALUES (");
-    dataProcContainer->colHeaders = colHeaders;
-    //DEBUG_MSG(__func__, "sql createcmd:", createCmd);
-    //DEBUG_MSG(__func__, "sql insertcmd:", insertCmd);
 
     return end;
 }
 
-int insert_into_table(std::string data, int cols, int startIndex)
+int Receiver::insert_into_table(std::string data, int startIndex)
 {
-    int rc, i, end, start, rows =0;
+    int rc, i, end, start;
     std::string tempInsert;
 
-    dataProcContainer->rows = 0;
     end = start = startIndex;
     //construct table
     const char *sqlCmd = createCmd.c_str();
@@ -113,7 +116,7 @@ int insert_into_table(std::string data, int cols, int startIndex)
     {
         tempInsert = insertCmd;
         //iterate through one col at a time
-        for(i = 0; i < cols; i++)
+        for(i = 0; i < columns; i++)
         {
              while(end < data.length()){
                 if(data[end] == ',' || data[end] == '\n')
@@ -122,7 +125,7 @@ int insert_into_table(std::string data, int cols, int startIndex)
             }
             //get single row value at a time
             tempInsert.append("'" + data.substr(start, end - start) + "'");
-            if(i < cols - 1)
+            if(i < columns - 1)
                 tempInsert.append(",");
             start = ++end;
         }
@@ -153,15 +156,17 @@ int process_packet(struct receiver *recv)
 {
     struct table *tData;
     json packet = recv->packet;
+int Receiver::process_packet()
+{
     std::string bodyData;
-    int cols;
     int bodyDataStart, priority, algoType;
 
     //Even if one fails we flag error and not proceed further
     try{
         tableId = recv->tableID = packet["body"]["id"];
+        tableId = packet["body"]["tableid"];
         bodyData = packet["body"]["data"];
-        algoType = packet["body"]["type"];
+        algoType = packet["body"]["algotype"];
         priority = packet["body"]["priority"];
     }catch(json::exception e){
         DEBUG_ERR(__func__, e.what());
@@ -173,9 +178,11 @@ int process_packet(struct receiver *recv)
     recv->container = dataProcContainer;
     dataProcContainer->cols =  cols = countCols(bodyData);    
     bodyDataStart = createSqlCmds(cols, bodyData);
+    columns = countCols(bodyData);    
+    bodyDataStart = createSqlCmds(columns, bodyData);
 
     //create table and insert into table;
-    if(insert_into_table(bodyData, cols, bodyDataStart) == EXIT_FAILURE){
+    if(insert_into_table(bodyData, bodyDataStart) == EXIT_FAILURE){
         //drop table before we fail
         drop_table();
         return EXIT_FAILURE;
@@ -189,7 +196,7 @@ int process_packet(struct receiver *recv)
     return P_SUCCESS;
 }
 
-int identify_packet(struct receiver *recv)
+int Receiver::identify_packet()
 {
     int rc;
     int packetHead;
@@ -272,14 +279,10 @@ struct process* receiver_proc = new process {
 
 int init_receiver(struct thread_pool* thread, json pkt)
 {
-    struct receiver *recv = new receiver;
+    Receiver *recv = new Receiver(thread, pkt);
     int rc = 0;
 
     DEBUG_MSG(__func__, "init receiver");
-    recv->packet = pkt;
-    recv->thread = thread;
-    recv->packet = pkt;
-    recv->packetStatus = 0;
     //this task takes higher priority than all
     sched_task(thread, receiver_proc, (void*)recv, 0);
     return 0;
