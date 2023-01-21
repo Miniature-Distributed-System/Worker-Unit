@@ -143,19 +143,28 @@ int Receiver::insert_into_table(std::string data, int startIndex)
     return 0;
 }
 
-void drop_table()
+void Receiver::drop_table()
 {
     int rc;
 
     DEBUG_MSG(__func__, "dropping current table in database...");
     dropCmd = "DROP TABLE " + tableId + ";";
+    //We don't give a knock is it fails as we are already failing at this point
     sql_write(dropCmd.c_str());
 }
 
-int process_packet(struct receiver *recv)
+void Receiver::construct_table(std::uint8_t priority, std::uint8_t algoType)
 {
     struct table *tData;
-    json packet = recv->packet;
+    tData = new table(rows, columns);
+    tData->tableID = tableId;
+    tData->algorithmType = algoType;
+    tData->priority = priority;
+    dataProcContainer = new data_proc_container;
+    dataProcContainer->tData = tData;
+    dataProcContainer->colHeaders = colHeaders; 
+}
+
 int Receiver::process_packet()
 {
     std::string bodyData;
@@ -163,21 +172,15 @@ int Receiver::process_packet()
 
     //Even if one fails we flag error and not proceed further
     try{
-        tableId = recv->tableID = packet["body"]["id"];
         tableId = packet["body"]["tableid"];
         bodyData = packet["body"]["data"];
         algoType = packet["body"]["algotype"];
         priority = packet["body"]["priority"];
     }catch(json::exception e){
         DEBUG_ERR(__func__, e.what());
-        return P_ERR;
+        return P_ERROR;
     }
 
-    //initilize container
-    dataProcContainer = new data_proc_container;
-    recv->container = dataProcContainer;
-    dataProcContainer->cols =  cols = countCols(bodyData);    
-    bodyDataStart = createSqlCmds(cols, bodyData);
     columns = countCols(bodyData);    
     bodyDataStart = createSqlCmds(columns, bodyData);
 
@@ -187,11 +190,9 @@ int Receiver::process_packet()
         drop_table();
         return EXIT_FAILURE;
     }
-    tData = new table(dataProcContainer->rows, dataProcContainer->cols);
-    recv->container->tData = tData;
-    tData->tableID = tableId;
-    tData->algorithmType = algoType;
-    tData->priority = priority;
+
+    //initilze and construct table & data_processor bundle
+    construct_table(priority, algoType);
 
     return P_SUCCESS;
 }
@@ -207,8 +208,6 @@ int Receiver::identify_packet()
         DEBUG_ERR(__func__, e.what());
         return P_ERR;
     }
-    
-    switch(packetHead)
     {
         case P_HANDSHAKE:
             computeID = recv->packet["id"];
@@ -231,8 +230,8 @@ int Receiver::identify_packet()
 
 int receiver_proccess(void *data)
 {
-    struct receiver *recv = (struct receiver*)data;
-    recv->receiverStatus = identify_packet(recv);
+    Receiver *recv = (Receiver*)data;
+    recv->receiverStatus = recv->identify_packet();
     //if(recv->receiverStatus == EXIT_FAILURE){
     //    return JOB_FAILED;
     //}
