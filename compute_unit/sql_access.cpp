@@ -34,7 +34,7 @@ static int rowCallback(void *data, int argc, char **argv, char **azColName)
 std::string* get_row(struct table* tData, int rowNum)
 {
     std::string rowCmd = "SELECT * FROM " + tData->tableID + " where id=" 
-                        + std::to_string(rowNum);
+                        + std::to_string(rowNum) + ";";
     std::string *feilds = new std::string[tData->metadata->cols];
     char* sqlErrMsg;
     int rc;
