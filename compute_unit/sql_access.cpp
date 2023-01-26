@@ -76,17 +76,17 @@ static int read_callback(void *data, int argc, char **argv, char **azColName)
     return 0;
 }
 
-int sql_read_value(const char* sqlQuery, int* value)
+std::string* sql_read(const char* sqlQuery, int column)
 {
     char* sqlErrMsg;
     int rc = 0;
+    colNum = column;
+    std::string *str = new std::string;
 
-    rc = sqlite3_exec(db, sqlQuery,read_callback , (void*)value, &sqlErrMsg);
+    rc = sqlite3_exec(db, sqlQuery,read_callback , (void*)str, &sqlErrMsg);
     if(rc != SQLITE_OK){
         DEBUG_ERR(__func__, "db write command failed");
         DEBUG_ERR(__func__, sqlQuery);
         sqlite3_free(sqlErrMsg);
-        return EXIT_FAILURE;
+        return NULL;
     }
-    return 0;
-}

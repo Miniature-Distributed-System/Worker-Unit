@@ -10,6 +10,6 @@ extern sqlite3* db;
 sqlite3* init_db(void);
 int sql_write(const char * sqlQuery);
 std::string* get_row(struct table* tData, int rowNum);
-int sql_read_value(const char* sqlQuery, int* value);
+std::string* sql_read(const char* sqlQuery, int column);
 
 #endif
