@@ -1,64 +1,54 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sqlite3.h>
-#include <iostream> 
-#include "../data_processing.hpp"
+#include <iostream>
+#include "../sql_access.hpp"
+#include "../data_processor.hpp"
 #include "../algorithm/algo.hpp"
 #include "../thread_pool.hpp"
-#include "../receiver_proc/debug_rp.hpp"
+#include "../include/debug_rp.hpp"
+#include "../include/task.h"
 
-struct table *tData;
-
-void debug_data_proc_phase(int expected_cols, int expected_rows){
-   if(tData->metadata->cols == expected_cols && 
-            tData->metadata->rows == expected_rows){
-      DEBUG_MSG(__func__, "Metadata inited properly");
-   }
-   else {
-      if(tData->metadata->cols != expected_cols)
-         DEBUG_ERR(__func__, "Expected cols:", expected_cols,
-                  " Observed cols:", tData->metadata->cols);
-      else
-         DEBUG_ERR(__func__, "Expected rows:", expected_rows, 
-                  " Observed rows:", tData->metadata->rows);
-   }
+int sched_task(struct thread_pool *threadPoolHead, struct process *newProc, 
+                void *args, int prior)
+{
+   int ret = JOB_PENDING;
+   while(ret == JOB_PENDING)
+      ret = newProc->start_proc(args);
+   newProc->end_proc(args);
+   return 0;
 }
 
-void debug_thread_pool(){
-   DEBUG_MSG(__func__,"Number of process in table:", threadPoolCount);
+//Dummy methods
+int send_packet(std::string data, std::string tableID, int statusCode)
+{
+    return 0;
 }
 
-int init_test(){
-   int rc = 0;
-   rc = register_algo();
-   rc = init_thread_pool();
-   return rc;
+int sched_algo(struct thread_pool *thread, struct table *tData)
+{
+   return 0;
 }
-int main(int argc, char* argv[]) {
+
+
+int main(int argc, char* argv[])
+{
+   struct data_proc_container* container = new data_proc_container;
+   struct table *tData = new table;
+   struct thread_pool *thread;
    int rc;
-   int expected_rows = 3, expected_cols = 5;
-   tData = new table;
    
-
-   DEBUG_MSG(__func__, "Starting dataprocessing unit test...\n");
-
-   rc = init_test();
-   if(rc == EXIT_FAILURE){
-      DEBUG_ERR(__func__, "initilization failed");
-      return 0;
-   }
-
-   DEBUG_MSG(__func__, "Available algorithms:", TOT_ALGO);
-   tData->tableID = "myTable"; //data-base-schema: sky|airtemp|humidity|wind|ID
-   tData->algorithmType = 1;
+   init_db();
+   container->cols = 7;
+   container->rows = 12;
+   container->colHeaders = new std::string[7]{"sky", "airtemp", "humidity", "wind", "water", "forecast", "enjoysport"};
+   tData->tableID = "mytable1";
    tData->priority = 1;
-   //this needs refactor bad practise
-   tData->firstColName = "sky";
-   processData(tData);
+   tData->algorithmType = 1;
+   container->tData = tData;
 
-   debug_data_proc_phase(expected_cols, expected_rows);
-   debug_thread_pool();
-   exit_thread_pool();
+   init_data_processor(thread, container);
+   
    DEBUG_MSG(__func__, "dataprocessing unit test ended");
    return 0;
 }
