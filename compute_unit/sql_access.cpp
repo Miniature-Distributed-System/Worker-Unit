@@ -4,12 +4,14 @@
 
 sqlite3 *db;
 sem_t db_lock;
+sqlite3_mutex *db_mutex;
 
 sqlite3* init_db(void)
 {
     int i, rc;
-    sem_init(&db_lock, 0, 1);
+    //sem_init(&db_lock, 0, 1);
     //needs to be nuked make that var global scope
+    db_mutex = sqlite3_mutex_alloc(SQLITE_MUTEX_FAST);
     rc = sqlite3_open("csv.db", &db);
     if(rc){
         DEBUG_ERR(__func__,"DB open failed");
@@ -55,6 +57,7 @@ int sql_write(const char * sqlQuery)
     int rc = 0;
     
     sem_wait(&db_lock);
+    sqlite3_mutex_enter(db_mutex);
     rc = sqlite3_exec(db, sqlQuery,NULL , 0, &sqlErrMsg);
     if(rc != SQLITE_OK){
         DEBUG_ERR(__func__, "db write command failed");
@@ -62,6 +65,7 @@ int sql_write(const char * sqlQuery)
         sqlite3_free(sqlErrMsg);
     }
     sem_post(&db_lock);
+    sqlite3_mutex_leave(db_mutex);
 
     return rc;
 }

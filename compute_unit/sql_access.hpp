@@ -6,7 +6,7 @@
 
 extern sem_t db_lock;
 
-extern sqlite3* db;
+extern sqlite3_mutex *db_mutex;
 sqlite3* init_db(void);
 int sql_write(const char * sqlQuery);
 std::string* get_row(struct table* tData, int rowNum);
