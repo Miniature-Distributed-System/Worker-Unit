@@ -94,3 +94,31 @@ std::string* sql_read(const char* sqlQuery, int column)
         sqlite3_free(sqlErrMsg);
         return NULL;
     }
+static int column_head_callback(void *data, int argc, char **argv, 
+                char **azColName){
+   int i;
+   std::string *mdata = (static_cast<std::string*>(data));
+
+   for(i = 1; i<argc; i++){
+      mdata[i] = azColName[i];
+   }
+   return 0;
+}
+
+std::string* sql_get_column_names(std::string tableID, int cols)
+{
+    char* sqlErrMsg;
+    int rc = 0;
+    std::string *colNames = new std::string[cols];
+    std::string sqlQuery = "select * from " + tableID + " where ID=1;";
+
+    rc = sqlite3_exec(db, sqlQuery.c_str(),column_head_callback , 
+                    (void*)colNames, &sqlErrMsg);
+    if(rc != SQLITE_OK){
+        DEBUG_ERR(__func__, "db get command failed");
+        DEBUG_ERR(__func__, sqlQuery);
+        sqlite3_free(sqlErrMsg);
+        return NULL;
+    }
+    return colNames;
+}
