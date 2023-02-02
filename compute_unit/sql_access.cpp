@@ -1,3 +1,4 @@
+#include <cassert>
 #include "sql_access.hpp"
 #include "include/debug_rp.hpp"
 #include "data_processor.hpp"
@@ -11,6 +12,7 @@ sqlite3* init_db(void)
     int i, rc;
     //sem_init(&db_lock, 0, 1);
     //needs to be nuked make that var global scope
+    assert(sqlite3_config(SQLITE_CONFIG_MULTITHREAD) == SQLITE_OK);
     db_mutex = sqlite3_mutex_alloc(SQLITE_MUTEX_FAST);
     rc = sqlite3_open("csv.db", &db);
     if(rc){
