@@ -74,11 +74,20 @@ int sql_write(const char * sqlQuery)
 
 static int read_callback(void *data, int argc, char **argv, char **azColName) 
 {
+    std::string *mdata = (static_cast<std::string*>(data));
     int i;
-    int *metdata = (int*)data;
 
-    *metdata = atoi(argv[0]);
-   
+    if(colNum < 0){
+        for(i = 0; i < argc; i++){
+            *mdata += argv[i];
+            if(i < argc - 1)
+                *mdata +=  ",";
+        }
+        *mdata += ";";
+    } else if(colNum >= argc)
+        mdata = NULL;
+    else
+        *mdata = argv[colNum];
     return 0;
 }
 
