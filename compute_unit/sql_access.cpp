@@ -4,8 +4,8 @@
 #include "data_processor.hpp"
 
 sqlite3 *db;
-sem_t db_lock;
 sqlite3_mutex *db_mutex;
+static int colNum;
 
 sqlite3* init_db(void)
 {
@@ -14,12 +14,13 @@ sqlite3* init_db(void)
     //needs to be nuked make that var global scope
     assert(sqlite3_config(SQLITE_CONFIG_MULTITHREAD) == SQLITE_OK);
     db_mutex = sqlite3_mutex_alloc(SQLITE_MUTEX_FAST);
+    
     rc = sqlite3_open("csv.db", &db);
     if(rc){
         DEBUG_ERR(__func__,"DB open failed");
         return NULL;
     }
-
+    
     return db;
 }
 
@@ -42,12 +43,12 @@ std::string* get_row(struct table* tData, int rowNum)
     std::string *feilds = new std::string[tData->metadata->cols];
     char* sqlErrMsg;
     int rc;
-
+    
     rc = sqlite3_exec(db, rowCmd.c_str(),rowCallback , feilds, &sqlErrMsg);
     if(rc != SQLITE_OK){
-            DEBUG_ERR(__func__, *sqlErrMsg);
-            sqlite3_free(sqlErrMsg);
-            return NULL;
+        DEBUG_ERR(__func__, *sqlErrMsg);
+        sqlite3_free(sqlErrMsg);
+        return NULL;
     }
 
     return feilds;
@@ -55,18 +56,16 @@ std::string* get_row(struct table* tData, int rowNum)
 
 int sql_write(const char * sqlQuery)
 {
-    char* sqlErrMsg;
+    char* sqlErrMsg = NULL;
     int rc = 0;
     
-    sem_wait(&db_lock);
     sqlite3_mutex_enter(db_mutex);
     rc = sqlite3_exec(db, sqlQuery,NULL , 0, &sqlErrMsg);
     if(rc != SQLITE_OK){
         DEBUG_ERR(__func__, "db write command failed");
-        DEBUG_ERR(__func__, sqlQuery);
+        DEBUG_ERR(__func__, sqlQuery," reason:" ,*sqlErrMsg);
         sqlite3_free(sqlErrMsg);
     }
-    sem_post(&db_lock);
     sqlite3_mutex_leave(db_mutex);
 
     return rc;
@@ -105,6 +104,10 @@ std::string* sql_read(const char* sqlQuery, int column)
         sqlite3_free(sqlErrMsg);
         return NULL;
     }
+
+    return str;
+}
+
 static int column_head_callback(void *data, int argc, char **argv, 
                 char **azColName){
    int i;
