@@ -10,6 +10,10 @@ pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 std::string computeID;
 
 int validatePacket(json packet)
+struct socket_container {
+    json packet;
+    struct socket *soc;
+};
 {
     DEBUG_MSG(__func__, "Validate message");
     if(!packet.empty()){
@@ -23,9 +27,11 @@ int validatePacket(json packet)
 void* socket_task(void *data)
 {
     struct socket *soc = (struct socket*)data;
+    struct socket_container *cont = new socket_container;
     json packet;
     int err;
 
+    cont->soc = soc;
     DEBUG_MSG(__func__, "socket thread running");
     while(!soc->socketShouldStop)
     {
@@ -42,6 +48,8 @@ void* socket_task(void *data)
         } else {
             DEBUG_MSG(__func__, "sleeping until  processing is done");
             pthread_cond_wait(&socket_cond, &lock);
+        cont->packet = packet;
+        DEBUG_MSG(__func__, "packet:",  cont->packet.dump());
         }
     }
     return 0;
