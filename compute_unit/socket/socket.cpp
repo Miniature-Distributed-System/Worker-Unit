@@ -9,19 +9,18 @@ pthread_cond_t socket_cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 std::string computeID;
 
-int validatePacket(json packet)
 struct socket_container {
     json packet;
     struct socket *soc;
 };
+
+void *launch_client_socket(void *data)
 {
-    DEBUG_MSG(__func__, "Validate message");
-    if(!packet.empty()){
-        if(packet.contains("head") && packet.contains("body")){
-            return 0;
-        }
-    }
-    return -1;
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+    struct socket_container* cont = (struct socket_container*)data;
+    cont->packet = ws_client_launch(cont->soc, cont->packet);
+
+    return 0;
 }
 
 void* socket_task(void *data)
