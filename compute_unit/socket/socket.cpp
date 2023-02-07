@@ -8,6 +8,9 @@
 pthread_cond_t socket_cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 std::string computeID;
+pthread_t wsClientThread;
+bool quickSendMode = false;
+bool seizeMode = false;
 
 struct socket_container {
     json packet;
@@ -46,11 +49,17 @@ void* socket_task(void *data)
             send_packet("","", RECV_ERR);
         } else {
             DEBUG_MSG(__func__, "sleeping until  processing is done");
-            pthread_cond_wait(&socket_cond, &lock);
         cont->packet = packet;
         DEBUG_MSG(__func__, "packet:",  cont->packet.dump());
+        //create thread and wait for results
+        pthread_create(&wsClientThread, NULL, launch_client_socket, (void*)cont);
+        pthread_join(wsClientThread, &res);
+        if(res == PTHREAD_CANCELED){
+            DEBUG_MSG(__func__, "sender cancelled the socket thread");
+            continue;
         }
     }
+    DEBUG_MSG(__func__, "Shutting down socket");
     return 0;
 }
 
