@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <unistd.h>
 #include "socket.hpp"
 #include "ws_client.hpp"
 #include "../receiver_proc/receiver.hpp"
@@ -32,6 +33,7 @@ void* socket_task(void *data)
     struct socket_container *cont = new socket_container;
     json packet;
     int err;
+    void *res;
 
     cont->soc = soc;
     DEBUG_MSG(__func__, "socket thread running");
@@ -40,15 +42,6 @@ void* socket_task(void *data)
         err = 0;
         //get the latest packet to be sent to the server
         packet = getPacket();
-        DEBUG_MSG(__func__, "packet:", packet.dump());
-        //send forward port packets and recive incoming packets
-        packet = ws_client_launch(soc, packet);
-        err = validatePacket(packet) ? -1 : init_receiver(soc->thread, packet);
-        if(err){
-            DEBUG_ERR(__func__, "pushing error signal to fwd stack");
-            send_packet("","", RECV_ERR);
-        } else {
-            DEBUG_MSG(__func__, "sleeping until  processing is done");
         cont->packet = packet;
         DEBUG_MSG(__func__, "packet:",  cont->packet.dump());
         //create thread and wait for results
@@ -58,6 +51,8 @@ void* socket_task(void *data)
             DEBUG_MSG(__func__, "sender cancelled the socket thread");
             continue;
         }
+        //validate the received packets and process them
+        init_receiver(cont->soc->thread, cont->packet);
     }
     DEBUG_MSG(__func__, "Shutting down socket");
     return 0;
