@@ -77,6 +77,9 @@ struct socket* init_socket(struct thread_pool *thread, std::string args[])
 
 void exit_socket(struct socket *soc)
 {
+    while(fwdStack.get_fwdstack_size()){
+        sleep(2);
+    }
     soc->socketShouldStop = 1;
-    delete soc;
+    pthread_cancel(wsClientThread);
 }
