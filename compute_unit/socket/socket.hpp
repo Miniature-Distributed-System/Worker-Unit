@@ -5,6 +5,9 @@
 
 extern pthread_cond_t socket_cond;
 extern std::string computeID;
+extern pthread_t wsClientThread;
+extern bool quickSendMode;
+extern bool seizeMode;
 
 struct socket{
     struct thread_pool *thread;
@@ -14,5 +17,6 @@ struct socket{
 };
 
 struct socket* init_socket(struct thread_pool *, std::string *);
+void exit_socket(struct socket *soc);
 
 #endif
