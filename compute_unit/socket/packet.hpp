@@ -20,6 +20,12 @@ enum packet_code {
     PROC_ERR,
     RECV_ERR,
     RES_SEND,
+enum server_packet_status {
+    SP_HANDSHAKE    = 1 << 0,   //Server handshake packet
+    SP_DATA_SENT    = 1 << 1,   //Server sent csv data
+    SP_INTR_ACK     = 1 << 2,   //Server received the intermediate data
+    SP_FRES_ACK     = 1 << 3,   //Server received the result(includes res tableID)
+    SP_ERR          = 1 << 4    //Server received packet was corrupt
 };
 
 #endif
