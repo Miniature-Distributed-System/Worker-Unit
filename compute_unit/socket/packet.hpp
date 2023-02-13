@@ -1,9 +1,6 @@
 #ifndef PACKET_H
 #define PACKET_H
 
-#include "json.hpp"
-using json = nlohmann::json;
-
 enum compute_packet_status {
     P_RESET     = 1 << 0, //Empty packet essentially
     P_HANDSHAKE = 1 << 1, //Handshake snd,ack packet
@@ -16,10 +13,13 @@ enum compute_packet_status {
 };
 
 enum packet_code {
-    NO_ERR = 0,
-    PROC_ERR,
-    RECV_ERR,
-    RES_SEND,
+    RECV_ERR = 0,   //Receiver error
+    DAT_RECVD,       //Received csv data
+    INTR_SEND,      //Sending intermidiate data
+    FRES_SEND,      //Sending result data
+    SEIZE,          //Sender is seizing accepting any new csv for processing
+};
+
 enum server_packet_status {
     SP_HANDSHAKE    = 1 << 0,   //Server handshake packet
     SP_DATA_SENT    = 1 << 1,   //Server sent csv data
