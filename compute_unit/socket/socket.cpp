@@ -16,6 +16,11 @@ bool seizeMode = false;
 struct socket_container {
     json packet;
     struct socket *soc;
+    socket_container *copyObject(){
+        socket_container *soc = new socket_container();
+        soc->soc = this->soc;
+        return soc;
+    }
 };
 
 void *launch_client_socket(void *data)
