@@ -12,6 +12,7 @@ std::string computeID;
 pthread_t wsClientThread;
 bool quickSendMode = false;
 bool seizeMode = false;
+sem_t wsClientThreadLock;
 
 struct socket_container {
     json packet;
@@ -39,6 +40,7 @@ void* socket_task(void *data)
     json packet;
     int err;
     void *res;
+    bool fastSendMode = false;
 
     cont->soc = soc;
     DEBUG_MSG(__func__, "socket thread running");
@@ -46,18 +48,29 @@ void* socket_task(void *data)
     {
         err = 0;
         //get the latest packet to be sent to the server
-        packet = getPacket();
-        cont->packet = packet;
-        DEBUG_MSG(__func__, "packet:",  cont->packet.dump());
-        //create thread and wait for results
-        pthread_create(&wsClientThread, NULL, launch_client_socket, (void*)cont);
-        pthread_join(wsClientThread, &res);
-        if(res == PTHREAD_CANCELED){
-            DEBUG_MSG(__func__, "sender cancelled the socket thread");
-            continue;
+        if(!sem_trywait(&wsClientThreadLock)){
+            packet = getPacket();
+            cont->packet = packet;
+            DEBUG_MSG(__func__, "packet:",  cont->packet.dump());
+            //create thread and wait for results
+            pthread_create(&wsClientThread, NULL, launch_client_socket, (void*)cont);
+
+            //validate the received packets and process them
+            init_receiver(cont->soc->thread, cont->packet);
+            sem_post(&wsClientThreadLock);
+            if(quickSendMode)
+                fastSendMode = false;
+        }else if(quickSendMode && !fastSendMode){
+            socket_container *soc = cont->copyObject();
+            packet = getPacket();
+            soc->packet = packet;
+            DEBUG_MSG(__func__, "packet:",  soc->packet.dump());
+            //create thread and wait for results
+            pthread_create(&wsClientThread, NULL, launch_client_socket, (void*)soc);
+            //validate the received packets and process them
+            init_receiver(soc->soc->thread, soc->packet);
+            delete soc;
         }
-        //validate the received packets and process them
-        init_receiver(cont->soc->thread, cont->packet);
     }
     DEBUG_MSG(__func__, "Shutting down socket");
     return 0;
@@ -70,6 +83,7 @@ struct socket* init_socket(struct thread_pool *thread, std::string args[])
     std::string hostname = args[0];
     std::string port = args[1];
 
+    sem_init(&wsClientThreadLock, 0,0);
     soc->thread = thread;
     soc->hostname = hostname;
     soc->port = port;
