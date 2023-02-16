@@ -58,15 +58,17 @@ void* socket_task(void *data)
             //validate the received packets and process them
             init_receiver(cont->soc->thread, cont->packet);
             sem_post(&wsClientThreadLock);
-            if(quickSendMode)
+            if(!quickSendMode)
                 fastSendMode = false;
         }else if(quickSendMode && !fastSendMode){
+            fastSendMode = true;
             socket_container *soc = cont->copyObject();
             packet = getPacket();
             soc->packet = packet;
             DEBUG_MSG(__func__, "packet:",  soc->packet.dump());
             //create thread and wait for results
             pthread_create(&wsClientThread, NULL, launch_client_socket, (void*)soc);
+
             //validate the received packets and process them
             init_receiver(soc->soc->thread, soc->packet);
             delete soc;
