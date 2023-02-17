@@ -117,9 +117,8 @@ struct queue_job* init_job(struct process_table* pTable)
 
 void dealloc_job(struct queue_job* job)
 {
-    delete job->args;
-    delete job->proc;
     delete job;
+    DEBUG_MSG(__func__, "deallocated job");
 }
 
 void *sched_task(void *ptr)
