@@ -7,7 +7,8 @@
 #define MAX_THREAD 2
 #define QUEUE_ISFREE 1
 #define QUEUE_FULL 0
-#define MILLISECS 1000000
+#define NANOSECS 1000000
+#define NS_TO_MS (a)  a * 1000000
 
 struct job_timer {
     uint64_t allowed_cpu_slice;
