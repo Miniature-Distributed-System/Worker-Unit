@@ -22,6 +22,12 @@ struct queue_job {
     uint64_t cpu_slice_ns; 
     bool jobDone;
     std::uint64_t cpuSliceMs;
+    bool jobFinishPending;
+    bool jobErrorHandle;
+    queue_job(struct process* proc, void* args){
+        this->proc = proc;
+        this->args = args;
+    }
 };
 
 struct thread_queue {
