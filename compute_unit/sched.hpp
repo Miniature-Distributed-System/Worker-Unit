@@ -10,6 +10,9 @@
 #define NANOSECS 1000000
 #define NS_TO_MS (a)  a * 1000000
 
+extern pthread_cond_t  cond;
+extern pthread_mutex_t mutex;
+
 struct job_timer {
     uint64_t allowed_cpu_slice;
     std::uint64_t allowedCpuSlice;
