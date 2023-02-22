@@ -4,7 +4,7 @@
 #include "thread_pool.hpp"
 
 #define QUEUE_SIZE 4
-#define MAX_THREAD 2
+#define MAX_THREAD 10
 #define QUEUE_ISFREE 1
 #define QUEUE_FULL 0
 #define NANOSECS 1000000
