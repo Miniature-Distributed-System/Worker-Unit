@@ -22,8 +22,6 @@ struct job_timer {
 struct queue_job {
     struct process *proc;
     void *args;
-    uint64_t cpu_slice_ns; 
-    bool jobDone;
     std::uint64_t cpuSliceMs;
     bool jobFinishPending;
     bool jobErrorHandle;
@@ -38,11 +36,7 @@ struct thread_queue {
     sem_t threadResource;
     struct queue_job *queueHead[QUEUE_SIZE];
     bool qSlotDone[QUEUE_SIZE];
-    bool needsReorder;
-    bool thread_should_stop;
-    uint8_t headPointer;
-    uint8_t tailPointer;
-    uint8_t totalJobsInQueue;
+    bool threadShouldStop;
     std::uint8_t totalJobsInQueue;
 };
 
