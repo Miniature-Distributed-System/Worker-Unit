@@ -14,7 +14,6 @@ extern pthread_cond_t  cond;
 extern pthread_mutex_t mutex;
 
 struct job_timer {
-    uint64_t allowed_cpu_slice;
     std::uint64_t allowedCpuSlice;
     bool jobShouldPause;
 };
