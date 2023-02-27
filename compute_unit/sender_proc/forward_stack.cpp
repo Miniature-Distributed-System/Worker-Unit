@@ -1,4 +1,5 @@
 #include "forward_stack.hpp"
+#include "../include/packet.hpp"
 #include "../include/debug_rp.hpp"
 
 std::list<fwd_stack*> senderStack;

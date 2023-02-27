@@ -8,7 +8,7 @@
 #include "../sender_proc/sender.hpp"
 #include "../include/debug_rp.hpp"
 //This needs nuking as dirs will change later
-#include "../socket/packet.hpp"
+#include "../include/packet.hpp"
 #include "cand_elim.hpp"
 
 candidateElimination::candidateElimination(int n)

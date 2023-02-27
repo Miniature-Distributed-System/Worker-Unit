@@ -3,11 +3,11 @@
 #include "algorithm/algo.hpp"
 #include "data_processor.hpp"
 #include "sql_access.hpp"
+#include "include/packet.hpp"
 #include "include/process.hpp"
 #include "include/debug_rp.hpp"
 #include "include/task.hpp"
 #include "sender_proc/sender.hpp"
-#include "socket/packet.hpp"
 
 class dataProcessor{
     private:
