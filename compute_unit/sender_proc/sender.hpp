@@ -1,6 +1,7 @@
 #ifndef FORWD_H_
 #define FORWD_H_
-#include "../socket/json.hpp"
+#include "forward_stack.hpp"
+#include "../lib/nlohmann/json-schema.hpp"
 
 using json = nlohmann::json;
 
