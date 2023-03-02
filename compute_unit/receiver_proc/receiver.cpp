@@ -13,6 +13,7 @@
 std::string tableId = "";
 std::string insertCmd, createCmd, dropCmd;
 struct data_proc_container *dataProcContainer;
+using nlohmann::json_schema::json_validator;
 
 enum receive_stat{
     SND_EMPTY_DAT = 0,
@@ -50,12 +51,71 @@ class Receiver
         int identify_packet();
         void construct_table(std::uint8_t priority, std::uint8_t algoType);
 };
+
+static json packetSchema = R"(
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "A person",
+    "properties": {
+      "head": {
+          "description": "packet status",
+          "type": "number"
+      },
+      "id": {
+          "description": "CU identification number",
+          "type": "string"
+      },
+      "body":{
+        "type": "object",
+        "properties":{
+          "tableid":{
+            "type": "string"
+          },
+          "priority":{
+            "type": "number",
+            "minimum": 0,
+            "maximum": 6
+          },
+          "algotype":{
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10
+          },
+          "data":{
+            "type": "string"
+          }
+        }
+      }
+    },
+    "required": [
+                 "head",
+                 "id"
+                 ],
+    "type": "object"
+}
+)"_json;
+
 Receiver::Receiver(struct thread_pool* thread, json packet)
 {
     this->thread = thread;
     this->packet = packet;
     columns = 0;
     rows = 0;
+}
+
+int Receiver::validatePacket()
+{
+    json_validator validator;
+    validator.set_root_schema(packetSchema);
+
+    try {
+        auto defaultPatch = validator.validate(packet);
+        DEBUG_MSG(__func__, "packet validation success!");
+        return P_VALID;
+    } catch (const std::exception &e) {
+        DEBUG_ERR(__func__, "packet invalid, ", e.what());
+        return P_ERROR;
+    }
 }
     int i = -1;
     int cols = 0;
