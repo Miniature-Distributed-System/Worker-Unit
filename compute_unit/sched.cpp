@@ -106,9 +106,7 @@ struct thread_queue* get_quickest_queue(void)
 
 struct queue_job* init_job(struct process_table* pTable)
 {
-    struct queue_job *job = new queue_job;
-    job->args = pTable->args;
-    job->proc = pTable->proc;
+    struct queue_job *job = new queue_job(pTable->proc, pTable->args);
     job->jobFinishPending = job->jobErrorHandle = 0;
     job->cpuSliceMs = get_cpu_slice(pTable->priority);
     DEBUG_MSG(__func__, "job inited with cts:",job->cpuSliceMs);
