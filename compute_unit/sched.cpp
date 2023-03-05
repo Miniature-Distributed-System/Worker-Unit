@@ -223,14 +223,15 @@ void *thread_task(void *ptr)
     }
 }
 
-int init_sched(struct thread_pool *thread)
+int init_sched(struct thread_pool *thread, std::uint8_t max_thread)
 {
     pthread_t sched_thread, *task_thread;
     struct thread_queue *queue;
     struct thread_pool* threadPoolHead;
     int i,j, ret, pid;
 
-    for(i = 0; i < MAX_THREAD; i++)
+    allocatedThreads = max_thread;
+    for(i = 0; i < allocatedThreads; i++)
     {
         task_thread = new pthread_t;
         queue = new thread_queue;
