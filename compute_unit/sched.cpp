@@ -252,7 +252,7 @@ int init_sched(struct thread_pool *thread, std::uint8_t max_thread)
         DEBUG_MSG(__func__, "thread queue:", i, " inited successfully");
         pthread_create(task_thread, NULL, thread_task, (void*)queue);
     }
-    pthread_create(&sched_thread, NULL, sched_task, NULL);
+    pthread_create(&sched_thread, NULL, sched_task, (void*)thread);
 
     return 0;
 }
