@@ -183,11 +183,7 @@ void *thread_task(void *ptr)
 
     while(!queue->threadShouldStop)
     {
-        //Dry run when thread queue has no active jobs in it
-        if(queue->totalJobsInQueue < 1)
-            continue;
-
-        if(queue->qSlotDone[head] == 0)
+        if(!queue->qSlotDone[head] && queue->totalJobsInQueue)
         {
             job = queue->queueHead[head];
             timer = init_timer(job);
