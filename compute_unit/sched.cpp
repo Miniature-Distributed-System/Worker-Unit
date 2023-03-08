@@ -146,16 +146,17 @@ void *sched_task(void *ptr)
                     //insert into first free slot
                     if(queue->qSlotDone[i])
                     {
-                        //first release memory
-                        if(queue->queueHead[i])
+                        //first dealloc memory
+                        if(queue->queueHead[i] && queue->qSlotDone[i])
                             dealloc_job(queue->queueHead[i]);
                         
                         proc = thread_pool_pop(threadPoolHead);
                         job = init_job(proc);
                         queue->queueHead[i] = job;
+                        queue->qSlotDone[i] = 0;
                         queue->totalJobsInQueue++;
                         DEBUG_MSG(__func__, "job inserted at slot:", j,
-                                "total pending jobs:", queue->totalJobsInQueue);
+                            " total pending jobs:", queue->totalJobsInQueue + 0);
                         break;
                     }
                 }
