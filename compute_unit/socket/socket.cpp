@@ -5,6 +5,7 @@
 #include "../receiver_proc/receiver.hpp"
 #include "../sender_proc/sender.hpp"
 #include "../include/debug_rp.hpp"
+#include "../include/flag.h"
 
 pthread_cond_t socket_cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
@@ -12,7 +13,8 @@ std::string computeID;
 pthread_t wsClientThread;
 bool quickSendMode = false;
 bool seizeMode = false;
-sem_t wsClientThreadLock;
+Flag fastSendMode;
+Flag wsLock;
 
 struct socket_container {
     json packet;
@@ -30,6 +32,7 @@ void *launch_client_socket(void *data)
     struct socket_container* cont = (struct socket_container*)data;
     cont->packet = ws_client_launch(cont->soc, cont->packet);
 
+    wsLock.resetFlag();
     return 0;
 }
 
@@ -49,6 +52,9 @@ void* socket_task(void *data)
         err = 0;
         //get the latest packet to be sent to the server
         if(!sem_trywait(&wsClientThreadLock)){
+        if(!wsLock.checkFlag())
+        {
+            wsLock.setFlag(); 
             packet = getPacket();
             cont->packet = packet;
             DEBUG_MSG(__func__, "packet:",  cont->packet.dump());
@@ -60,9 +66,10 @@ void* socket_task(void *data)
             sem_post(&wsClientThreadLock);
             if(!quickSendMode)
                 fastSendMode = false;
-        }else if(quickSendMode && !fastSendMode){
-            fastSendMode = true;
             socket_container *soc = cont->copyObject();
+        else if(quickSendMode && !fastSendMode.checkFlag())
+        {
+            fastSendMode.setFlag();
             packet = getPacket();
             soc->packet = packet;
             DEBUG_MSG(__func__, "packet:",  soc->packet.dump());
@@ -86,6 +93,7 @@ struct socket* init_socket(struct thread_pool *thread, std::string args[])
     std::string port = args[1];
 
     sem_init(&wsClientThreadLock, 0,0);
+    wsLock.initFlag();
     soc->thread = thread;
     soc->hostname = hostname;
     soc->port = port;
