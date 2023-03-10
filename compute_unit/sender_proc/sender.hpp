@@ -5,6 +5,6 @@
 
 using json = nlohmann::json;
 
-int send_packet(std::string, std::string, int);
+int send_packet(std::string, std::string, int, int);
 json getPacket(void);
 #endif

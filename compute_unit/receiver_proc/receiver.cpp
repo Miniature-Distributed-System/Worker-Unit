@@ -312,19 +312,20 @@ int receiver_finalize(void *data)
         if(recv->tableID.empty())
         {
             DEBUG_MSG(__func__, "packet corrupt");
-            send_packet("","", RECV_ERR);
+            send_packet("","", RECV_ERR, HEAVY_LOAD);
         } else {
             //notify server to resend data
             DEBUG_ERR(__func__, "packet error encountered, resend packet");
             send_packet("", recv->tableID, PROC_ERR);
+            send_packet("", recv->tableId, RECV_ERR, HEAVY_LOAD);
         }
         
     } else {
         //notify server data received successfully
         DEBUG_MSG(__func__,"packet received successfully");
-        send_packet("", recv->tableID, NO_ERR);
         //container should be derefrenced after this as its deleted by dataprocessor
         init_data_processor(recv->thread, recv->container);
+        send_packet("", recv->tableId, DAT_RECVD, DEFAULT_LOAD);
     }
     delete recv;
     

@@ -2,72 +2,128 @@
 #include "../include/debug_rp.hpp"
 #include "../include/debug_rp.hpp"
 #include "../socket/socket.hpp"
-#include "forward_stack.hpp"
+#include "sender.hpp"
 
-int send_packet(std::string data, std::string tableID, int statusCode)
+/* send_packet(): sends the data passed as arguments to the forward port/ sender stack.
+ * This queuded data is eventually converted into packet and sent out to the server. We can send various types of
+ * packets refer packet.hpp for more details.
+*/
+int send_packet(std::string data, std::string tableID, int statusCode, 
+            int priority)
 {
-    push_forward_stk(data, tableID, statusCode);
+    //We want to immidiatly tell server that node processing service is suspended
+    if(statusCode == SEIZE)
+        fwdStack.pushFrontForwardStack(data, tableID, statusCode, priority);
+    else
+        fwdStack.pushToForwardStack(data, tableID, statusCode, priority);
+    if(!quickSendMode){
+        DEBUG_MSG(__func__, "switching to quick send mode");
+        quickSendMode = true;
+    }
+
+    return 0;
 }
 
-json create_packet(json packet, struct fwd_stack* item)
+/* getPacketHead(): internal method for getting packet head status codes which shall be used for represeting the packet
+ * type at the server and help diffrentiate between the data being sent to the server. out[uts value of type enum.
+*/
+compute_packet_status getPacketHead(int status)
 {
-    std::string body;
-    switch(item->statusCode)
+    switch(status)
     {
-        case PROC_ERR: //data not received correctly
-            packet["head"] = P_RSEND_DATA;
-            if(!item->data.empty())
-                body = item->data;
-            //aggrigate all failed tableIDs
-            while(show_front()->statusCode == -1){
-                item = pop_forward_stk();
-                if(!item->data.empty())
-                    body += "," + item->data;
-            }
-            packet["id"] = computeID.c_str();
-            packet["body"]["id"] = body.c_str();
+        case RECV_ERR: 
+            //packet was corrupt on arrival
+            return P_ERR;
+        case DAT_RECVD: 
+            //all data received correctly
+            return P_DATA_ACK;
+        case INTR_SEND: 
+            //intermediate result data is sent over by next fwd packet
+            return P_INTR_RES;
+        case FRES_SEND: 
+            //final result data is being sent over by next fwd packet
+            return P_FINAL_RES;
+        case SEIZE:
+            //let the server know there is a curfew in the compute node
+            seizeMode = true;
+            return P_SEIZE;
+        default:
+            return P_RESET;
+    }
+}
+
+/* create_packet(): internal method which is used to create packets from fwd_stack_bundle() items.
+ * it creates the packets structure with the appropriate body, head and id fields. it creates default packets if the
+ * item passed is found to be null.
+*/
+json create_packet(struct fwd_stack_bundle item)
+{
+    json packet;
+    int statusCode;
+
+    statusCode = item.statusCode;
+
+    //Here we onlt append head to the packet
+    if(seizeMode){
+         /* curfew isnt lifted unless seizeMode is explicitly unset by core 
+           processes. This may be set due to either node being overloaded or
+           the node shutdown sequence being singnalled by the user. */
+        packet["head"] = getPacketHead(statusCode) | P_SEIZE;
+    } else if(!fwdStack.isForwardStackEmpty()){
+        // In the stack there are more than one items so procceed to quick send mode
+        packet["head"] = getPacketHead(statusCode) | P_QSEND;
+        quickSendMode = true;
+    } else {
+        packet["head"] = getPacketHead(statusCode);
+        quickSendMode = false;
+    }
+
+    packet["id"] = computeID.c_str();
+    //Here we append rest of the fields to packet
+    switch(statusCode)
+    {
+        case RECV_ERR:
+            packet["body"]["id"] = item.tableID.c_str();
             break;
-        case RECV_ERR: //packet was corrupt on arrival
-            packet["head"] = P_RSEND_DATA;
-            packet["id"] = computeID.c_str();
-            break;
-        case P_RECV_DATA: //all data received correctly
-            packet["head"] = P_RECV_DATA;
-            packet["id"] = computeID.c_str();
-            packet["body"]["id"] = item->tableID.c_str();
-            if(!item->data.empty()){
-                packet["head"] = P_RECV_DATA & P_DATSENT;
-                packet["body"]["data"] = item->data.c_str();
-            }
-            break;
-        case RES_SEND: //result data is being sent over by next fwd packet
-            packet["head"] = P_DATSENT;
-            packet["id"] = computeID.c_str();
-            packet["body"]["id"] = item->tableID.c_str(); 
-            packet["body"]["data"] = item->data.c_str();
+        case INTR_SEND:
+        case FRES_SEND:
+            packet["body"]["id"] = item.tableID.c_str();
+            packet["body"]["data"] = item.data.c_str();
+            //Only user generated data has priority
+            packet["body"]["priority"] = item.priority;
+            quickSendMode = false;
             break;
         default:
-            packet["head"] = P_RESET;
-            packet["id"] = computeID.c_str();
+            //this should exit from spitfire mode and slow down the up/down data send rate between server and node.
+            quickSendMode = false;
     }
+    
+    DEBUG_MSG(__func__, "packet created body: ", packet.dump(), " status code: ", statusCode);
+
     return packet;
 }
 
+/* getPacket(): This is used to get the next packet to the socket.
+* It calls various methods to create a packet with appropriate fields using the ForwardStack which have the queued
+* items that are to be sent to the server. sends default packet if the computeID variable is empty, this is done 
+* because without a an allocated name we cant procceed further. We need a name to identify ourself and tell server
+* that a certain packet came from this node and the packet needs to be acknowledged to that node only.
+*/
 json getPacket(void)
 {
     json packet;
-    struct fwd_stack* item;
     std::string body;
-    item = pop_forward_stk();
 
     //If there are no items it must be the first time we are starting out
-    if(!item && computeID.empty())
+    if(computeID.empty())
     {
         DEBUG_MSG(__func__, "initial handshake packet");
         packet["head"] = P_HANDSHAKE;
     } else {
-        packet = create_packet(packet, item);
+        //Get packet to be sent to the server
+        packet = create_packet(fwdStack.popForwardStack());
     }
     DEBUG_MSG(__func__, "sender packet ready");
+
     return packet;
 }
