@@ -2,7 +2,6 @@
 
 #include "receiver.hpp"
 #include "../socket/socket.hpp"
-#include "../sender_proc/sender.hpp"
 #include "../sql_access.hpp"
 #include "../data_processor.hpp"
 #include "../include/packet.hpp"
@@ -10,19 +9,18 @@
 #include "../include/task.hpp"
 #include "../include/debug_rp.hpp"
 
-std::string tableId = "";
-std::string insertCmd, createCmd, dropCmd;
-struct data_proc_container *dataProcContainer;
 using nlohmann::json_schema::json_validator;
 
+//These are local status codes
 enum receive_stat{
-    SND_EMPTY_DAT = 0,
+    P_EMPTY = 0,
     SND_RESET,
-    P_ERR,
+    P_ERROR,
+    P_DAT_ERR,
     P_SUCCESS,
+    P_VALID,
 };
 
-int countCols(std::string data){
 class Receiver 
 {
     private:
@@ -117,6 +115,8 @@ int Receiver::validatePacket()
         return P_ERROR;
     }
 }
+
+int Receiver::countCols(std::string data){
     int i = -1;
     int cols = 0;
     while(data[i++] != '\n'){
@@ -194,9 +194,15 @@ int Receiver::insert_into_table(std::string data, int startIndex)
         //DEBUG_MSG(__func__, "constructed insert cmd:", tempInsert);
         const char *sqlInsert = tempInsert.c_str();
         rc = sql_write(sqlInsert);
-        if(rc == SQLITE_OK){
-            DEBUG_MSG(__func__, "nos rows into table:",dataProcContainer->rows);
-            dataProcContainer->rows++;
+        if(rc != SQLITE_OK){
+            rc = sql_write(sqlInsert);
+                if(rc == SQLITE_OK){
+                DEBUG_MSG(__func__, "nos rows into table:",rows);
+                rows++;
+            }
+        }else {
+            DEBUG_MSG(__func__, "nos rows into table:",rows);
+            rows++;
         }
     }
 
@@ -262,29 +268,31 @@ int Receiver::identify_packet()
     int rc;
     int packetHead;
 
-    try{
-        packetHead = recv->packet["head"];
-    }catch(json::exception e){
-        DEBUG_ERR(__func__, e.what());
-        return P_ERR;
+    if(validatePacket() == P_VALID){
+        packetHead = packet["head"];
+        if(packetHead & SP_HANDSHAKE){
+            DEBUG_MSG(__func__, "Handshake");
+            computeID = packet["id"];
+            rc = P_EMPTY;
+        }
+        if(packetHead & SP_DATA_SENT){
+            rc = process_packet();
+        }
+        if(packetHead & SP_INTR_ACK){
+            rc = awaitStack.matchItemWithAwaitStack(SP_INTR_ACK, packet["id"]);
+            rc = P_EMPTY;
+        }else if(packetHead & SP_FRES_ACK){
+            rc = awaitStack.matchItemWithAwaitStack(SP_FRES_ACK, packet["id"]);
+            rc = P_EMPTY;
+        }
+        if(rc == P_VALID){
+            /*If rc value did not change since entering this block then the 
+              header code does not match any of the above and is unknown so drop 
+              that packet. */
+            DEBUG_ERR(__func__,"invalid packet header code");
+            rc = P_ERROR;
+        }
     }
-    {
-        case P_HANDSHAKE:
-            computeID = recv->packet["id"];
-            if((packetHead & (P_HANDSHAKE | P_DATSENT))){
-                DEBUG_MSG(__func__, "only handshake done");
-                rc = SND_EMPTY_DAT;
-                break;
-            }
-        case P_DATSENT:
-            DEBUG_MSG(__func__, "process packet");
-            rc = process_packet(recv);
-            break;
-        case P_RESET:
-        default:
-            rc = SND_RESET;
-    }
-
     return rc;
 }
 
@@ -300,33 +308,29 @@ int receiver_proccess(void *data)
 
 int receiver_finalize(void *data)
 {
-    struct receiver *recv = (struct receiver*) data;
+    struct Receiver *recv = (struct Receiver*) data;
     
-    if(recv->receiverStatus == SND_EMPTY_DAT)
-    {
-        DEBUG_MSG(__func__, "sending empty packet");
-        send_packet("","", 100);
-    } 
-    else if(recv->receiverStatus == P_ERR) {
-        //tableID itself is corrput or it was a status signal that was lost in transmission
-        if(recv->tableID.empty())
-        {
-            DEBUG_MSG(__func__, "packet corrupt");
+    if(recv->receiverStatus == P_ERROR){
+        /* tableID itself is corrupt or it was a status signal that was lost 
+           in transmission */
+        if(recv->tableId.empty()){
+            DEBUG_ERR(__func__, "packet data fields corrupted, resend packet");
             send_packet("","", RECV_ERR, HEAVY_LOAD);
         } else {
-            //notify server to resend data
-            DEBUG_ERR(__func__, "packet error encountered, resend packet");
-            send_packet("", recv->tableID, PROC_ERR);
+            DEBUG_ERR(__func__, "packet corrupted, resend packet");
             send_packet("", recv->tableId, RECV_ERR, HEAVY_LOAD);
         }
-        
-    } else {
+    } else if(recv->receiverStatus == P_SUCCESS){
         //notify server data received successfully
         DEBUG_MSG(__func__,"packet received successfully");
-        //container should be derefrenced after this as its deleted by dataprocessor
-        init_data_processor(recv->thread, recv->container);
         send_packet("", recv->tableId, DAT_RECVD, DEFAULT_LOAD);
+        /*container should not be derefrenced after this as its dellocated 
+          by dataprocessor */
+        init_data_processor(recv->thread, recv->dataProcContainer);
     }
+    /* if neither of the cases where true then no need to send any respone to
+       server. empty packet is sent by default if fwd stack is empty else
+       queued packets are sent out to server. */
     delete recv;
     
     return JOB_FINISHED;
@@ -344,6 +348,6 @@ int init_receiver(struct thread_pool* thread, json pkt)
 
     DEBUG_MSG(__func__, "init receiver");
     //this task takes higher priority than all
-    sched_task(thread, receiver_proc, (void*)recv, 0);
+    scheduleTask(thread, receiver_proc, (void*)recv, 0);
     return 0;
 }
