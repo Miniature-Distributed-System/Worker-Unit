@@ -1,29 +1,29 @@
-#ifndef BITS_H
-#define BITS_H
+#ifndef FLAG_H
+#define FLAG_H
 
 class Flag{
     std::uint8_t bit;
     public:
-    void initFlag(bool);
-    void setFlag();
-    void resetFlag();
-    bool checkFlag();
+    inline void initFlag(bool);
+    inline void setFlag();
+    inline void resetFlag();
+    inline bool isFlagSet();
 };
-void Flag::initFlag(bool state = false){
+inline void Flag::initFlag(bool state = false){
     if(state)
         bit = 1;
     else 
         bit = 0;
 }
-void Flag::setFlag(){
+inline void Flag::setFlag(){
     bit = 1;
 }
 
-void Flag::resetFlag(){
+inline void Flag::resetFlag(){
     bit = 0;
 }
 
-bool Flag::checkFlag(){
+inline bool Flag::isFlagSet(){
     if(bit)
         return true;
     return false;
