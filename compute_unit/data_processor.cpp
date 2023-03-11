@@ -220,7 +220,7 @@ int init_data_processor(struct thread_pool* thread,
                 struct data_proc_container* container)
 {
     dataProcessor *dpContainer = new dataProcessor(thread, container);
-    sched_task(thread, data_proc, (void*)dpContainer, container->tData->priority);
+    scheduleTask(thread, data_proc, (void*)dpContainer, container->tData->priority);
     DEBUG_MSG(__func__, "initilized data processor");
 
     return 0;

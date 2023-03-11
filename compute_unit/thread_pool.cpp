@@ -121,7 +121,7 @@ void delete_node(struct thread_pool* threadPoolHead)
  * is pushed into the thread_pool.
  * In case of failure it returns EXIT_FAILURE macro else 0.
  */
-int sched_task(struct thread_pool *threadPoolHead, struct process *newProc, 
+int scheduleTask(struct thread_pool *threadPoolHead, struct process *newProc, 
                 void *args, int prior)
 {
     struct process_table *newProcTab;

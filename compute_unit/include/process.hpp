@@ -43,7 +43,7 @@ struct table {
     }
 };
 
-int sched_task(struct thread_pool *thread, struct process* proc, 
+int scheduleTask(struct thread_pool *thread, struct process* proc, 
                 void *args, int priority);
 
 #endif

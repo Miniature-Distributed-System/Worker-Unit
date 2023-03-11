@@ -17,7 +17,7 @@ int sched_algo(struct thread_pool *thread, struct table *tData)
 
     algoIndex = tData->algorithmType;
     proc = avial_algo[algoIndex](tData);
-    sched_task(thread, proc, tData, tData->priority);
+    scheduleTask(thread, proc, tData, tData->priority);
 
     DEBUG_MSG(__func__, "rows:", tData->metadata->rows, " Cols:",tData->metadata->cols);
     DEBUG_MSG(__func__, "Sched algorihm type:",algoIndex);
