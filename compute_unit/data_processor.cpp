@@ -200,7 +200,7 @@ int process_data_finalize(void *data)
 
     //Send the cleaned data back to server via fwd stack
     getCleanedTable = sql_read(selectAll.c_str(), -1);
-    send_packet(*getCleanedTable, tData->tableID, INTR_SEND);
+    send_packet(*getCleanedTable, tData->tableID, INTR_SEND, tData->priority);
 
     //Schedule the algorithm to process our cleaned data
     sched_algo(dataProc->thread, tData);

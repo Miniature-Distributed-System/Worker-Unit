@@ -9,7 +9,7 @@
  * packets refer packet.hpp for more details.
 */
 int send_packet(std::string data, std::string tableID, int statusCode, 
-            int priority)
+            TaskPriority priority)
 {
     //We want to immidiatly tell server that node processing service is suspended
     if(statusCode == SEIZE)

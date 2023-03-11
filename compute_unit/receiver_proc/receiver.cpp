@@ -33,6 +33,7 @@ class Receiver
         int columns;
         int rows;
         
+        TaskPriority indexOfTaskPriority(int i) { return static_cast<TaskPriority>(i);}
     public:
         Receiver(struct thread_pool*, json);
         std::string tableId;
@@ -225,7 +226,7 @@ void Receiver::construct_table(std::uint8_t priority, std::uint8_t algoType)
     tData = new table(rows, columns);
     tData->tableID = tableId;
     tData->algorithmType = algoType;
-    tData->priority = priority;
+    tData->priority = indexOfTaskPriority(priority);
     dataProcContainer = new data_proc_container;
     dataProcContainer->tData = tData;
     dataProcContainer->colHeaders = colHeaders; 
@@ -315,15 +316,15 @@ int receiver_finalize(void *data)
            in transmission */
         if(recv->tableId.empty()){
             DEBUG_ERR(__func__, "packet data fields corrupted, resend packet");
-            send_packet("","", RECV_ERR, HEAVY_LOAD);
+            send_packet("","", RECV_ERR, HIGH_PRIORITY);
         } else {
             DEBUG_ERR(__func__, "packet corrupted, resend packet");
-            send_packet("", recv->tableId, RECV_ERR, HEAVY_LOAD);
+            send_packet("", recv->tableId, RECV_ERR, HIGH_PRIORITY);
         }
     } else if(recv->receiverStatus == P_SUCCESS){
         //notify server data received successfully
         DEBUG_MSG(__func__,"packet received successfully");
-        send_packet("", recv->tableId, DAT_RECVD, DEFAULT_LOAD);
+        send_packet("", recv->tableId, DAT_RECVD, DEFAULT_PRIORITY);
         /*container should not be derefrenced after this as its dellocated 
           by dataprocessor */
         init_data_processor(recv->thread, recv->dataProcContainer);

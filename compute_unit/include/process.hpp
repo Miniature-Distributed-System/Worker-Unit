@@ -27,7 +27,7 @@ struct table {
     void* args;
     std::string tableID;
     unsigned int dataLen;
-    std::uint8_t priority;
+    TaskPriority priority;
     std::uint8_t algorithmType;
 
     table(std::uint64_t row, std::uint64_t col){

@@ -8,11 +8,11 @@ enum job_status {
     JOB_FINISHED,
 };
 
-enum task_priority {
-    HIGH_PRIOR = 0,
-    MED_PRIOR,
-    LOW_PRIOR,
-    DEFAULT_PRIOR = LOW_PRIOR,
+enum TaskPriority {
+    HIGH_PRIORITY = 0,
+    MEDIUM_PRIORITY,
+    LOW_PRIORITY,
+    DEFAULT_PRIORITY = LOW_PRIORITY,
 };
 
 #endif
