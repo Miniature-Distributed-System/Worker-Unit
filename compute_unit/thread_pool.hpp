@@ -10,7 +10,7 @@
 #define PRIOR_3_STRVLMT 8
 
 struct thread_pool_node {
-    struct process_table *pData;
+    struct taskStruct *pData;
     struct thread_pool_node *next;
 };
 

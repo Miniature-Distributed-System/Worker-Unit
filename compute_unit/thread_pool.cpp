@@ -30,7 +30,7 @@ int get_starve_limit(int prior)
  * process is pushed back until we hit a non starved process, and then inserted.
  */
 int insert_node(struct thread_pool* threadPoolHead, 
-                struct process_table* procTable)
+                struct taskStruct* procTable)
 {
     struct thread_pool_node *node, *curHead, *shiftNode;
     
@@ -124,7 +124,7 @@ void delete_node(struct thread_pool* threadPoolHead)
 int scheduleTask(struct thread_pool *threadPoolHead, struct process *newProc, 
                 void *args, int prior)
 {
-    struct process_table *newProcTab;
+    struct taskStruct *newProcTab;
     int rc = 0;
     
     if(newProc == NULL || args == NULL){
@@ -133,7 +133,7 @@ int scheduleTask(struct thread_pool *threadPoolHead, struct process *newProc,
     if(newProc->start_proc == NULL || newProc->end_proc == NULL)
         return EXIT_FAILURE;
 
-    newProcTab = new process_table;
+    newProcTab = new taskStruct;
     newProcTab->proc = newProc;
     newProcTab->args = args;
     newProcTab->priority = prior;
@@ -160,6 +160,7 @@ struct process_table* thread_pool_pop(struct thread_pool* threadPoolHead)
     temp = tempHead->pData;
     threadPoolHead->headNode = tempHead->next;
     threadPoolHead->threadPoolCount--;
+    delete tempHead->pData;
     delete tempHead;
     DEBUG_MSG(__func__, "popping job from pool pcnt:", 
                 threadPoolHead->threadPoolCount + 0);

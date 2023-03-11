@@ -8,11 +8,15 @@ struct process {
     int (*end_proc)(void*);
 };
 
-struct process_table {
+struct taskStruct {
     struct process *proc;
     void *args;
     std::uint8_t priority;
     std::uint16_t starveCounter;
+    taskStruct(){
+        proc = NULL;
+        args = NULL;
+    };
 };
 
 struct table_metadata {
