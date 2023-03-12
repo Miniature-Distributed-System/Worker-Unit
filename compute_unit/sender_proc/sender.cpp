@@ -16,10 +16,6 @@ int send_packet(std::string data, std::string tableID, int statusCode,
         fwdStack.pushFrontForwardStack(data, tableID, statusCode, priority);
     else
         fwdStack.pushToForwardStack(data, tableID, statusCode, priority);
-    if(!quickSendMode){
-        DEBUG_MSG(__func__, "switching to quick send mode");
-        quickSendMode = true;
-    }
 
     return 0;
 }
@@ -45,7 +41,7 @@ compute_packet_status getPacketHead(int status)
             return P_FINAL_RES;
         case SEIZE:
             //let the server know there is a curfew in the compute node
-            seizeMode = true;
+            seizeMode.setFlag();
             return P_SEIZE;
         default:
             return P_RESET;
@@ -64,18 +60,18 @@ json create_packet(struct fwd_stack_bundle item)
     statusCode = item.statusCode;
 
     //Here we onlt append head to the packet
-    if(seizeMode){
+    if(seizeMode.isFlagSet()){
          /* curfew isnt lifted unless seizeMode is explicitly unset by core 
            processes. This may be set due to either node being overloaded or
            the node shutdown sequence being singnalled by the user. */
         packet["head"] = getPacketHead(statusCode) | P_SEIZE;
     } else if(!fwdStack.isForwardStackEmpty()){
-        // In the stack there are more than one items so procceed to quick send mode
+        // stack is not empty that means there is one more item behind this current item, so proceed to quicksend mode
         packet["head"] = getPacketHead(statusCode) | P_QSEND;
-        quickSendMode = true;
+        quickSendMode.setFlag();
     } else {
         packet["head"] = getPacketHead(statusCode);
-        quickSendMode = false;
+        quickSendMode.resetFlag();
     }
 
     packet["id"] = computeID.c_str();
@@ -91,11 +87,10 @@ json create_packet(struct fwd_stack_bundle item)
             packet["body"]["data"] = item.data.c_str();
             //Only user generated data has priority
             packet["body"]["priority"] = item.priority;
-            quickSendMode = false;
             break;
         default:
             //this should exit from spitfire mode and slow down the up/down data send rate between server and node.
-            quickSendMode = false;
+            quickSendMode.resetFlag();
     }
     
     DEBUG_MSG(__func__, "packet created body: ", packet.dump(), " status code: ", statusCode);
