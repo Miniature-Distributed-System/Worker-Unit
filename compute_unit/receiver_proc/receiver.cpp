@@ -12,8 +12,9 @@
 using nlohmann::json_schema::json_validator;
 
 //These are local status codes
-enum receive_stat{
+enum ReceiverStatus{
     P_EMPTY = 0,
+    P_OK,
     SND_RESET,
     P_ERROR,
     P_DAT_ERR,
@@ -32,22 +33,21 @@ class Receiver
         json packet;
         int columns;
         int rows;
-        
         TaskPriority indexOfTaskPriority(int i) { return static_cast<TaskPriority>(i);}
     public:
         Receiver(struct thread_pool*, json);
         std::string tableId;
-        std::uint8_t receiverStatus;
+        ReceiverStatus receiverStatus;
         struct thread_pool *thread;
         struct data_proc_container *dataProcContainer;
 
-        int validatePacket();
+        ReceiverStatus validatePacket();
         int countCols(std::string data);
         int createSqlCmds(int cols, std::string body);
         int insert_into_table(std::string data, int startIndex);
         void drop_table();
-        int process_packet();
-        int identify_packet();
+        ReceiverStatus process_packet();
+        ReceiverStatus identify_packet();
         void construct_table(std::uint8_t priority, std::uint8_t algoType);
 };
 
@@ -102,7 +102,6 @@ Receiver::Receiver(struct thread_pool* thread, json packet)
     rows = 0;
 }
 
-int Receiver::validatePacket()
 {
     json_validator validator;
     validator.set_root_schema(packetSchema);
@@ -232,7 +231,6 @@ void Receiver::construct_table(std::uint8_t priority, std::uint8_t algoType)
     dataProcContainer->colHeaders = colHeaders; 
 }
 
-int Receiver::process_packet()
 {
     std::string bodyData;
     int bodyDataStart, priority, algoType;
@@ -255,7 +253,7 @@ int Receiver::process_packet()
     if(insert_into_table(bodyData, bodyDataStart) == EXIT_FAILURE){
         //drop table before we fail
         drop_table();
-        return EXIT_FAILURE;
+        return P_ERROR;
     }
 
     //initilze and construct table & data_processor bundle
@@ -264,9 +262,9 @@ int Receiver::process_packet()
     return P_SUCCESS;
 }
 
-int Receiver::identify_packet()
+ReceiverStatus Receiver::identify_packet()
 {
-    int rc;
+    ReceiverStatus rc;
     int packetHead;
 
     if(validatePacket() == P_VALID){
@@ -280,16 +278,20 @@ int Receiver::identify_packet()
             rc = process_packet();
         }
         if(packetHead & SP_INTR_ACK){
-            rc = awaitStack.matchItemWithAwaitStack(SP_INTR_ACK, packet["id"]);
-            rc = P_EMPTY;
+            if(awaitStack.matchItemWithAwaitStack(SP_INTR_ACK, packet["id"]))
+                rc = P_OK;
+            else rc = P_EMPTY;
         }else if(packetHead & SP_FRES_ACK){
-            rc = awaitStack.matchItemWithAwaitStack(SP_FRES_ACK, packet["id"]);
-            rc = P_EMPTY;
+            if(awaitStack.matchItemWithAwaitStack(SP_FRES_ACK, packet["id"]))
+                rc = P_OK;
+            else rc = P_EMPTY;
         }
         if(rc == P_VALID){
             /*If rc value did not change since entering this block then the 
               header code does not match any of the above and is unknown so drop 
               that packet. */
+
+            //TO-DO: This needs reimplimentaion at server level
             DEBUG_ERR(__func__,"invalid packet header code");
             rc = P_ERROR;
         }
