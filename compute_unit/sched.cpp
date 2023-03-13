@@ -151,6 +151,8 @@ void *sched_task(void *ptr)
                             dealloc_job(queue->queueHead[i]);
                         
                         proc = thread_pool_pop(threadPoolHead);
+                        if(proc.args == NULL || proc.proc == NULL)
+                            break;
                         job = init_job(proc);
                         queue->queueHead[i] = job;
                         queue->qSlotDone[i] = 0;
