@@ -3,6 +3,8 @@
 #include <semaphore.h>
 #include <cstdint>
 
+#include "include/process.hpp"
+
 //change this later lol
 #define MAX_POOL_SIZE 10
 #define PRIOR_1_STRVLMT 4
@@ -20,7 +22,15 @@ struct thread_pool {
     sem_t threadPool_mutex;
 };
 
+class ThreadStructExport {
+        taskStruct *thread; 
+    public:
+        explicit ThreadStructExport(taskStruct *thread = NULL) { this->thread = thread;}
+        ~ThreadStructExport(){ delete thread; }
+        taskStruct& operator*(){ return *thread; } 
+};
+
 struct thread_pool* init_thread_pool();
 void exit_thread_pool(struct thread_pool*);
-struct process_table* thread_pool_pop(struct thread_pool*);
+taskStruct thread_pool_pop(struct thread_pool*);
 #endif

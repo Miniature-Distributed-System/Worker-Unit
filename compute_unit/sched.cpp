@@ -104,11 +104,11 @@ struct thread_queue* get_quickest_queue(void)
     return list[threadID];
 }
 
-struct queue_job* init_job(struct process_table* pTable)
+struct queue_job* init_job(struct taskStruct pTable)
 {
-    struct queue_job *job = new queue_job(pTable->proc, pTable->args);
+    struct queue_job *job = new queue_job(pTable.proc, pTable.args);
     job->jobFinishPending = job->jobErrorHandle = 0;
-    job->cpuSliceMs = get_cpu_slice(pTable->priority);
+    job->cpuSliceMs = get_cpu_slice(pTable.priority);
     DEBUG_MSG(__func__, "job inited with cts:",job->cpuSliceMs);
     return job;
 }
@@ -123,7 +123,7 @@ void *sched_task(void *ptr)
 {
     struct thread_pool* threadPoolHead = (struct thread_pool*)ptr;
     struct thread_queue* queue;
-    struct process_table* proc;
+    struct taskStruct proc;
     struct queue_job* job;
     int i, j, qSlots;
 

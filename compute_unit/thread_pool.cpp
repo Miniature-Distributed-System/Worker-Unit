@@ -2,7 +2,6 @@
 #include "thread_pool.hpp"
 #include "sched.hpp"
 #include "include/packet.hpp"
-#include "include/process.hpp"
 #include "include/debug_rp.hpp"
 #include "sender_proc/sender.hpp"
 
@@ -146,18 +145,19 @@ int scheduleTask(struct thread_pool *threadPoolHead, struct process *newProc,
     return rc;
 }
 
-struct process_table* thread_pool_pop(struct thread_pool* threadPoolHead)
+taskStruct thread_pool_pop(struct thread_pool* threadPoolHead)
 {   
-    struct process_table *temp = nullptr; 
+    taskStruct temp; 
     struct thread_pool_node *tempHead;
     
     if(!threadPoolHead->headNode){
         DEBUG_ERR(__func__, "list is empty");
-        return NULL;
+        return temp;
     }
     
     tempHead = threadPoolHead->headNode;
-    temp = tempHead->pData;
+    temp.proc = tempHead->pData->proc;
+    temp.args = tempHead->pData->args;
     threadPoolHead->headNode = tempHead->next;
     threadPoolHead->threadPoolCount--;
     delete tempHead->pData;
