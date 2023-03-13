@@ -6,6 +6,7 @@
 #include "thread_pool.hpp"
 #include "receiver_proc/debug_rp.hpp"
 //this var needs refactor should make it local scope
+std::uint8_t allocatedThreads;
 struct thread_queue *list[MAX_THREAD];
 bool sched_should_stop = 0;
 pthread_cond_t  cond  = PTHREAD_COND_INITIALIZER;
@@ -75,28 +76,30 @@ int get_total_empty_slots(void)
 struct thread_queue* get_quickest_queue(void)
 {
     struct thread_queue *queue;
-    int threadID = 0, totalWaitTime, lowestWaitTime = INT_MAX, waitTime;
+    int threadID = 0;
+    std::uint64_t totalWaitTime, lowestWaitTime = INT_MAX, waitTime;
     int i,j;
 
-    for(i = 0; i < MAX_THREAD; i++)
+    for(i = 0; i < allocatedThreads; i++)
     {
         queue = list[i];
         totalWaitTime = waitTime = 0;
-        if(queue->totalJobsInQueue == QUEUE_SIZE)
+
+        if(queue->totalJobsInQueue >= QUEUE_SIZE)
             continue;
         
-        for(j = 0; j < MAX_THREAD; j++)
+        for(j = 0; j < allocatedThreads; j++)
         {
             if(!queue->qSlotDone[i])
             {
-                waitTime = queue->queueHead[i]->cpuSliceMs;
+                waitTime = (int)queue->queueHead[i]->cpuSliceMs;
                 totalWaitTime += waitTime ? waitTime : 999;
             }
         }
         if(lowestWaitTime > totalWaitTime)
         {
-            lowestWaitTime = totalWaitTime;
             threadID = i;
+            lowestWaitTime = totalWaitTime;
         }
     }
     DEBUG_MSG(__func__, "Thread ID:", threadID, 
