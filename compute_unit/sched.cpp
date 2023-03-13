@@ -2,15 +2,19 @@
 #include <pthread.h>
 #include <cstring>
 #include <unistd.h>
+#include <bits/stdc++.h>
 #include "sched.hpp"
-#include "thread_pool.hpp"
-#include "receiver_proc/debug_rp.hpp"
+#include "include/process.hpp"
+#include "include/debug_rp.hpp"
+#include "include/task.hpp"
+
 //this var needs refactor should make it local scope
 std::uint8_t allocatedThreads;
 struct thread_queue *list[MAX_THREAD];
 bool sched_should_stop = 0;
 pthread_cond_t  cond  = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
 int get_cpu_slice(int prior)
 {   
     int rc;
@@ -23,6 +27,7 @@ int get_cpu_slice(int prior)
     }
     return rc;
 }
+
 void* start_job_timer(void *data)
 {
     struct job_timer* jTimer = (struct job_timer*)data;
@@ -132,7 +137,7 @@ void *sched_task(void *ptr)
 
     if(threadPoolHead == NULL){
         DEBUG_ERR(__func__, "thread head is uninited cant procced any further!");
-        return;
+        return 0;
     }
 
     while(!sched_should_stop)
@@ -211,8 +216,9 @@ void *thread_task(void *ptr)
                     DEBUG_MSG(__func__, "Job done and awaiting to finish");
                     job->jobFinishPending = 1;
                     break;
-                }else if(ret == JOB_FAILED){
+                } else if (ret == JOB_FAILED){
                     //must also do process error handling
+                    //at the moment not implimented
                     DEBUG_MSG(__func__, "Error encountered set error handling");
                     job->jobErrorHandle = 1;
                     break;
@@ -223,6 +229,8 @@ void *thread_task(void *ptr)
         }
         head = ++head % QUEUE_SIZE;
     }
+
+    return 0;
 }
 
 int init_sched(struct thread_pool *thread, std::uint8_t max_thread)
