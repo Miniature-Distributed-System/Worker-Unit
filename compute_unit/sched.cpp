@@ -60,7 +60,7 @@ int get_total_empty_slots(void)
     struct thread_queue* queue;
     int i, j, totalSlots = 0;
 
-    for(i = 0; i < MAX_THREAD; i++)
+    for(i = 0; i < allocatedThreads; i++)
     {
         queue = list[i];
         for(j = 0; j < QUEUE_SIZE; j++)
