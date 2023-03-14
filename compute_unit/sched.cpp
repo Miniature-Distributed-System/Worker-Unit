@@ -202,7 +202,7 @@ void *thread_task(void *ptr)
             " job slot in execution:", head);
             while(!timer->jobShouldPause)
             {
-                if(job->jobStatus == JOB_DONE)
+                if(job->jobStatus == JOB_DONE || job->jobStatus == JOB_FAILED)
                 {
                     job->jobStatus = job->proc->end_proc(job->args, job->jobStatus);
                     queue->qSlotDone[head] = 1;
@@ -218,7 +218,6 @@ void *thread_task(void *ptr)
                 } else if (job->jobStatus == JOB_FAILED){
                     //must also do process error handling at the moment not implimented
                     DEBUG_MSG(__func__, "Error encountered set error handling");
-                    job->proc->end_proc(job->args, job->jobStatus);
                     job->jobErrorHandle = 1;
                     break;
                 }
