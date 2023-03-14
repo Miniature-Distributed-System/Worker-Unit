@@ -100,7 +100,7 @@ int candidate_elimination_start(void *data)
     
     if(tData->metadata->curRow >= tData->metadata->rows)
         return JOB_DONE;
-    feild = get_row(tData, tData->metadata->curRow);
+    feild = get_row_values(tData, tData->metadata->curRow);
     if(feild)
         ce->compare(feild);
     tData->metadata->curRow++;
