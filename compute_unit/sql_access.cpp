@@ -72,16 +72,16 @@ std::string* get_column_values(std::string tableName, std::string columnName, in
 {
     std::string colCmd = "SELECT " + columnName + " FROM " + tableName + ";"; 
     std::string *feilds = new std::string[rows];
-    std::list<std::string> *data = new std::list<std::string>;
+    std::list<std::string> data;
     char* sqlErrMsg;
     int rc, j = 0;
     
-    rc = sqlite3_exec(db, colCmd.c_str(),colCallback , data, &sqlErrMsg);
+    rc = sqlite3_exec(db, colCmd.c_str(),colCallback , &data, &sqlErrMsg);
     if(rc != SQLITE_OK){
         sqlite3_free(sqlErrMsg);
         return NULL;
     }
-    for(auto i = data->begin(); i != data->end(); i++, j++)
+    for(auto i = data.begin(); i != data.end(); i++, j++)
       feilds[j] = *i;
     return feilds;
 }
