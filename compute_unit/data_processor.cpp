@@ -1,6 +1,8 @@
 #include <string>
 #include <algorithm>
+#include <vector>
 #include "algorithm/algo.hpp"
+#include "algorithm/instance.hpp"
 #include "data_processor.hpp"
 #include "sql_access.hpp"
 #include "include/packet.hpp"
@@ -9,6 +11,43 @@
 #include "include/task.hpp"
 #include "sender_proc/sender.hpp"
 
+class InstanceData {
+        std::uint8_t cols;
+        std::uint64_t rows;
+        std::vector<std::string*> instanceDataMatrix;
+        std::string instanceId;
+    public:
+        InstanceData(std::string, std::uint8_t ,std::uint64_t);
+        void initlizeData();
+        std::string* getPossibleFields(int column);
+        std::uint64_t getTotalRows() { return rows; }
+};
+
+InstanceData::InstanceData(std::string id, std::uint8_t columns,std::uint64_t rows)
+{
+    cols = columns;
+    instanceId = id;
+    this->rows = rows;
+    // DEBUG_MSG(__func__, "TableId:", instanceId, " totoalCols:", cols + 0);
+}
+
+void InstanceData::initlizeData()
+{
+    std::string *str;
+    std::string *columnName = sql_get_column_names(instanceId, cols);
+    for(int i = 0; i < cols; i++){
+        // DEBUG_MSG(__func__, "TableId:", instanceId, " ColName:", columnName[i]);
+        str = get_column_values(instanceId, columnName[i], rows);
+        if(str != NULL)
+            instanceDataMatrix.push_back(str);
+    }
+}
+
+std::string* InstanceData::getPossibleFields(int column)
+{
+    return instanceDataMatrix.at(column);
+}
+
 class dataProcessor{
     private:
         std::uint64_t curCol;
@@ -16,6 +55,7 @@ class dataProcessor{
         std::string *colHeaders;
         std::string selectCmd;
         std::string deleteCmd;
+        InstanceData *instanceData;
     public:
         bool dataCleanPhase = false;
         std::uint64_t curRow = 1;
@@ -41,6 +81,10 @@ dataProcessor::dataProcessor(struct thread_pool* thread,
     //Sql IDs dont start with 0
     this->curRow = 1;
 
+    Instance instance = globalInstanceList.getInstanceFromId(tData->instanceType);
+    instanceData = new InstanceData(instance.getId(), instance.getTotalColumns(), instance.getTotalRows());
+    instanceData->initlizeData();
+
     colHeaders = container->colHeaders;
 
     deleteCmd = "DELETE FROM " + tData->tableID + " WHERE ID=";
@@ -51,14 +95,17 @@ dataProcessor::dataProcessor(struct thread_pool* thread,
 std::string dataProcessor::validateFeild(std::string feild)
 {
     std::string* temp;
-    int i ,aviCols;
+    int i ,totalColumns;
     
-    Base* base = makers[tData->algorithmType]();
-    aviCols = base->getColCount();
-    temp = base->getPossibleFeilds(curCol);
-    delete base;
+    // Base* base = makers[tData->instanceType]();
+    // aviCols = base->getColCount();
+    // temp = base->getPossibleFeilds(curCol);
+    // delete base;
+    temp = instanceData->getPossibleFields(curCol);
+    totalColumns = instanceData->getTotalRows();
+
     //iterate through possible values of current column
-    for(i = 0; i < aviCols; i++){
+    for(i = 0; i < totalColumns; i++){
         if(temp[i] == feild){
             return feild;
         }
