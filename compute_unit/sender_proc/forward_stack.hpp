@@ -8,14 +8,14 @@
 #define TOTAL_DIFFRED_PACKETS 6
 
 struct fwd_stack_bundle {
-    int statusCode;
+    packet_code statusCode;
     int priority;
     std::string tableID;
     std::string data;
 
     fwd_stack_bundle(){
-        statusCode = 100;
-        priority = DEFAULT_LOAD;
+        statusCode = DAT_NULL;
+        priority = DEFAULT_PRIORITY;
         tableID = "";
         data = "";
     }

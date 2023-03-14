@@ -6,7 +6,6 @@
 #include "sched.hpp"
 #include "include/process.hpp"
 #include "include/debug_rp.hpp"
-#include "include/task.hpp"
 
 //this var needs refactor should make it local scope
 std::uint8_t allocatedThreads;
@@ -47,7 +46,7 @@ struct job_timer* init_timer(struct queue_job* job)
     struct job_timer* jTimer = new job_timer;
     jTimer->jobShouldPause = 0;
 
-    if(!job->proc->pause_proc || job->jobFinishPending || job->jobErrorHandle){
+    if(!job->proc->pause_proc){
         DEBUG_MSG(__func__, "The job is non preemtable");  
         return jTimer;   
     }
@@ -115,7 +114,8 @@ struct thread_queue* get_quickest_queue(void)
 struct queue_job* init_job(struct taskStruct pTable)
 {
     struct queue_job *job = new queue_job(pTable.proc, pTable.args);
-    job->jobFinishPending = job->jobErrorHandle = 0;
+    job->jobStatus = JOB_PENDING;
+    job->jobErrorHandle = 0;
     job->cpuSliceMs = get_cpu_slice(pTable.priority);
     DEBUG_MSG(__func__, "job inited with cts:",job->cpuSliceMs);
     return job;
@@ -182,15 +182,15 @@ void *thread_task(void *ptr)
     struct thread_queue *queue = (thread_queue*)ptr;
     struct queue_job *job;
     struct job_timer *timer;
-    int head = 0, ret;
+    int head = 0;
     bool done;
+
     if(!queue)
     {
         DEBUG_ERR(__func__, "Queue not initilized exiting");
         return 0;
     }
-    DEBUG_MSG(__func__, "ThreadID:", queue->threadID + 0, 
-            " started successfully");
+    DEBUG_MSG(__func__, "ThreadID:", queue->threadID + 0, " started successfully");
 
     while(!queue->threadShouldStop)
     {
@@ -202,24 +202,23 @@ void *thread_task(void *ptr)
             " job slot in execution:", head);
             while(!timer->jobShouldPause)
             {
-                if(job->jobFinishPending)
+                if(job->jobStatus == JOB_DONE)
                 {
-                    job->proc->end_proc(job->args);
+                    job->jobStatus = job->proc->end_proc(job->args, job->jobStatus);
                     queue->qSlotDone[head] = 1;
                     queue->totalJobsInQueue--;
                     //signal scheduler to wake up
                     pthread_cond_signal(&cond);  
                     break;
                 }
-                ret = job->proc->start_proc(job->args);
-                if(ret == JOB_DONE){
+                job->jobStatus = job->proc->start_proc(job->args);
+                if(job->jobStatus == JOB_DONE){
                     DEBUG_MSG(__func__, "Job done and awaiting to finish");
-                    job->jobFinishPending = 1;
                     break;
-                } else if (ret == JOB_FAILED){
-                    //must also do process error handling
-                    //at the moment not implimented
+                } else if (job->jobStatus == JOB_FAILED){
+                    //must also do process error handling at the moment not implimented
                     DEBUG_MSG(__func__, "Error encountered set error handling");
+                    job->proc->end_proc(job->args, job->jobStatus);
                     job->jobErrorHandle = 1;
                     break;
                 }

@@ -5,6 +5,6 @@
 
 using json = nlohmann::json;
 
-int send_packet(std::string, std::string, int, TaskPriority);
+int send_packet(std::string data, std::string tableID, packet_code statusCode, TaskPriority priority);
 json getPacket(void);
 #endif

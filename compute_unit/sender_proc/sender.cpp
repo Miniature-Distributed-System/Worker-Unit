@@ -8,8 +8,7 @@
  * This queuded data is eventually converted into packet and sent out to the server. We can send various types of
  * packets refer packet.hpp for more details.
 */
-int send_packet(std::string data, std::string tableID, int statusCode, 
-            TaskPriority priority)
+int send_packet(std::string data, std::string tableID, packet_code statusCode, TaskPriority priority)
 {
     //We want to immidiatly tell server that node processing service is suspended
     if(statusCode == SEIZE)
@@ -23,7 +22,7 @@ int send_packet(std::string data, std::string tableID, int statusCode,
 /* getPacketHead(): internal method for getting packet head status codes which shall be used for represeting the packet
  * type at the server and help diffrentiate between the data being sent to the server. out[uts value of type enum.
 */
-compute_packet_status getPacketHead(int status)
+compute_packet_status getPacketHead(packet_code status)
 {
     switch(status)
     {
@@ -55,7 +54,7 @@ compute_packet_status getPacketHead(int status)
 json create_packet(struct fwd_stack_bundle item)
 {
     json packet;
-    int statusCode;
+    packet_code statusCode;
 
     statusCode = item.statusCode;
 

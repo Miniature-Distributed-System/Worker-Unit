@@ -1,6 +1,7 @@
 #ifndef SCHED_H
 #define SCHED_H
 #include <semaphore.h>
+#include "include/task.hpp"
 #include "thread_pool.hpp"
 
 #define QUEUE_SIZE 4
@@ -22,7 +23,7 @@ struct queue_job {
     struct process *proc;
     void *args;
     std::uint64_t cpuSliceMs;
-    bool jobFinishPending;
+    JobStatus jobStatus;
     bool jobErrorHandle;
     queue_job(struct process* proc, void* args){
         this->proc = proc;

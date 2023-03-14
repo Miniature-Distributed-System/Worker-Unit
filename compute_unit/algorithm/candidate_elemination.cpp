@@ -92,7 +92,7 @@ std::string *candidateElimination::getValidationRow(int row)
     return temp;
 }
 
-int candidate_elimination_start(void *data)
+JobStatus candidate_elimination_start(void *data)
 {
     struct table* tData = (struct table*)data;
     candidateElimination *ce = (candidateElimination*)tData->args;
@@ -107,12 +107,12 @@ int candidate_elimination_start(void *data)
     return JOB_PENDING;
 }
 
-int candidate_elimination_pause(void *data){
+JobStatus candidate_elimination_pause(void *data){
     DEBUG_MSG(__func__, "pause process");
     return JOB_PENDING;
 }
 
-int candidate_elimination_end(void *data)
+JobStatus candidate_elimination_end(void *data, JobStatus status)
 {
     struct table* tData = (struct table*)data;
     candidateElimination *ce = (candidateElimination*)tData->args;
@@ -126,7 +126,7 @@ int candidate_elimination_end(void *data)
     dealloc_table_dat(tData);
     
     DEBUG_MSG(__func__, "end process S:",s, " G:", g);
-    return 0;
+    return JOB_FINISHED;
 }
 
 struct process *ce_algorithm = new process{
