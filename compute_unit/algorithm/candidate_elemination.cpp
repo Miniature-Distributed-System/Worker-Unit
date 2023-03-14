@@ -56,14 +56,13 @@ void candidateElimination::compare(std::string *input)
 std::string candidateElimination::getS()
 {
     int i;
-    std::string finalStr = "<";
+    std::string finalStr;
     
     for(i = 0; i < cols; i++){
         finalStr += s[i];
         if(i < cols -1)
             finalStr += ",";
     }
-    finalStr += ">";
 
     return finalStr;
 }
@@ -71,14 +70,13 @@ std::string candidateElimination::getS()
 std::string candidateElimination::getG()
 {
     int i;
-    std::string finalStr = "<";
+    std::string finalStr;
     
     for(i = 0; i < cols; i++){
         finalStr += g[i];
         if(i < cols -1)
             finalStr += ",";
     }
-    finalStr += ">";
 
     return finalStr;
 }
@@ -118,7 +116,7 @@ JobStatus candidate_elimination_end(void *data, JobStatus status)
     candidateElimination *ce = (candidateElimination*)tData->args;
     std::string s = ce->getS();
     std::string g = ce->getG();
-    std::string final = s + ";" + g;
+    std::string final = s + "\n" + g;
     send_packet(final, tData->tableID, FRES_SEND, tData->priority);
     //Deallocate both table data and whatever was allocated in this algo before
     //winding up with the process, else we will leak memeory.
