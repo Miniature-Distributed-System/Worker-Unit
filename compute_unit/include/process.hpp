@@ -1,11 +1,12 @@
 #ifndef PROC_H
 #define PROC_H
 #include <string>
+#include "task.hpp"
 
 struct process {
-    int (*start_proc)(void*);
-    int (*pause_proc)(void*);
-    int (*end_proc)(void*);
+    JobStatus (*start_proc)(void*);
+    JobStatus (*pause_proc)(void*);
+    JobStatus (*end_proc)(void*, JobStatus);
 };
 
 struct taskStruct {

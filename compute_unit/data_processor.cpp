@@ -209,7 +209,7 @@ int dataProcessor::deleteDuplicateRecords()
         return 1; 
 }
 
-int process_data_start(void *data)
+JobStatus process_data_start(void *data)
 {
     dataProcessor *dataProc = (dataProcessor*)data;
     struct table *tData = dataProc->tData;
@@ -238,7 +238,7 @@ int process_data_start(void *data)
     return JOB_PENDING;
 }
 
-int process_data_finalize(void *data)
+JobStatus process_data_finalize(void *data, JobStatus status)
 {
     dataProcessor *dataProc = (dataProcessor*)data;
     struct table *tData = dataProc->tData;

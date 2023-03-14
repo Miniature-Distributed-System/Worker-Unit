@@ -299,7 +299,7 @@ ReceiverStatus Receiver::identify_packet()
     return rc;
 }
 
-int receiver_proccess(void *data)
+JobStatus receiver_proccess(void *data)
 {
     Receiver *recv = (Receiver*)data;
     recv->receiverStatus = recv->identify_packet();
@@ -309,7 +309,7 @@ int receiver_proccess(void *data)
     return JOB_DONE;
 }
 
-int receiver_finalize(void *data)
+JobStatus receiver_finalize(void *data, JobStatus signal)
 {
     struct Receiver *recv = (struct Receiver*) data;
     
