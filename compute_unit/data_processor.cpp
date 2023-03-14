@@ -181,7 +181,7 @@ int process_data_start(void *data)
         if(dataProc->curRow >= tData->metadata->rows)
             dataProc->dataCleanPhase = true;
 
-        feild = get_row(tData, dataProc->curRow);
+        feild = get_row_values(tData, dataProc->curRow);
         if(feild){
             dataProc->processSql(feild);
             dataProc->curRow++;
