@@ -37,7 +37,7 @@ static int rowCallback(void *data, int argc, char **argv, char **azColName)
    return 0;
 }
 
-std::string* get_row(struct table* tData, int rowNum)
+std::string* get_row_values(struct table* tData, int rowNum)
 {
     std::string rowCmd = "SELECT * FROM " + tData->tableID + " where id=" 
                         + std::to_string(rowNum) + ";";
