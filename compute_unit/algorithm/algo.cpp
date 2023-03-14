@@ -1,9 +1,12 @@
 #include <stdlib.h>
 #include "algo.hpp"
+#include "instance.hpp"
 #include "../data_processor.hpp"
 #include "../include/process.hpp"
 #include "../sql_access.hpp"
 #include "../include/debug_rp.hpp"
+
+InstanceList globalInstanceList;
 
 int sched_algo(struct thread_pool *thread, struct table *tData)
 {
@@ -15,7 +18,7 @@ int sched_algo(struct thread_pool *thread, struct table *tData)
         return EXIT_FAILURE;
     }
 
-    algoIndex = tData->algorithmType;
+    algoIndex = globalInstanceList.getInstanceFromId(tData->instanceType).getLinkedAlgorithm();
     proc = avial_algo[algoIndex](tData);
     scheduleTask(thread, proc, tData, tData->priority);
 
