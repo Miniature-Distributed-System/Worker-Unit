@@ -1,4 +1,5 @@
 #include <cassert>
+#include <list>
 #include "sql_access.hpp"
 #include "include/debug_rp.hpp"
 #include "data_processor.hpp"
@@ -51,6 +52,37 @@ std::string* get_row(struct table* tData, int rowNum)
         return NULL;
     }
 
+    return feilds;
+}
+
+static int colCallback(void *data, int argc, char **argv, char **azColName)
+{
+   int i;
+   std::list<std::string> *mdata = (static_cast<std::list<std::string>*>(data));
+   
+   for(i = 0; i < argc; i++){
+      if(argv[i])
+         mdata->push_back(argv[i]);
+   }
+
+   return 0;
+}
+
+std::string* get_column_values(std::string tableName, std::string columnName, int rows)
+{
+    std::string colCmd = "SELECT " + columnName + " FROM " + tableName + ";"; 
+    std::string *feilds = new std::string[rows];
+    std::list<std::string> *data = new std::list<std::string>;
+    char* sqlErrMsg;
+    int rc, j = 0;
+    
+    rc = sqlite3_exec(db, colCmd.c_str(),colCallback , data, &sqlErrMsg);
+    if(rc != SQLITE_OK){
+        sqlite3_free(sqlErrMsg);
+        return NULL;
+    }
+    for(auto i = data->begin(); i != data->end(); i++, j++)
+      feilds[j] = *i;
     return feilds;
 }
 
