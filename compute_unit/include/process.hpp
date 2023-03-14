@@ -33,7 +33,7 @@ struct table {
     std::string tableID;
     unsigned int dataLen;
     TaskPriority priority;
-    std::uint8_t algorithmType;
+    std::string instanceType;
 
     table(std::uint64_t row, std::uint64_t col){
         metadata = new table_metadata;
