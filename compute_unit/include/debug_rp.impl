@@ -24,13 +24,13 @@ inline const std::string currentDateTime() {
 
 template<typename... Args>
 void DEBUG_MSG(std::string fun_name, Args... args){
-    std::cout << currentDateTime() << " I " << fun_name << " :"; 
+    std::cout << currentDateTime() << " I " << fun_name << ": "; 
     DEBUG(args...); 
 }
 
 
 template<typename... Args>
 void DEBUG_ERR(std::string fun_name, Args... args){
-    std::cout << currentDateTime() << " E " << fun_name << " :";
+    std::cout << currentDateTime() << " E " << fun_name << ": ";
     DEBUG(args...);
 }
