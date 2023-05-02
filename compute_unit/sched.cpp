@@ -269,12 +269,18 @@ void exit_sched(void)
 {
     struct thread_queue *queue;
     int i;
-    
-    for(i = 0; i < MAX_THREAD; i++){
+
+    //wait for already queued tasks to complete and empty
+    while(get_total_empty_slots() - (allocatedThreads * QUEUE_SIZE)){
+        sleep(2);
+    }
+
+    for(i = 0; i < allocatedThreads; i++){
         queue = list[i];
         if(queue != NULL){
+            queue->threadShouldStop = 1;
             sem_destroy(&queue->threadResource);
-            queue->thread_should_stop = 1;
+            delete queue;
         }
         sched_should_stop = 1;
     }
