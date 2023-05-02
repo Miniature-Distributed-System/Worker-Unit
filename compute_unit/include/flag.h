@@ -1,8 +1,9 @@
 #ifndef FLAG_H
 #define FLAG_H
+#include <atomic>
 
 class Flag{
-    std::uint8_t bit;
+    std::atomic_bool bit;
     public:
     inline void initFlag(bool);
     inline void setFlag();
