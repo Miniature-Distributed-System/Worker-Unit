@@ -128,11 +128,12 @@ int AwaitStack::pushToAwaitStack(struct fwd_stack_bundle *item)
     struct await_stack_bundle *awtItem;
     if(index >= TOTAL_DIFFRED_PACKETS)
         return -1;
-    
+    sem_wait(&stackLock);
     awtItem = new await_stack_bundle;
     awtItem->fwd_element = item;
     awaitStack[index] = awtItem;
     index++;
+    sem_post(&stackLock);
 
     return 0;
 }
@@ -144,6 +145,7 @@ int AwaitStack::pushToAwaitStack(struct fwd_stack_bundle *item)
 int AwaitStack::matchItemWithAwaitStack(int statusCode, std::string tableID)
 {
     int i;
+    sem_wait(&stackLock);
     for(i = 0; i < TOTAL_DIFFRED_PACKETS; i++){
         if(awaitStack[i]){
             if(awaitStack[i]->fwd_element->tableID == tableID)
@@ -160,11 +162,13 @@ int AwaitStack::matchItemWithAwaitStack(int statusCode, std::string tableID)
                         break;
                     default:
                         DEBUG_ERR(__func__,"unknown statuscode:", statusCode);
+                        sem_post(&stackLock);
                         return -1;
                 }
             }
         }
     }
+    sem_post(&stackLock);
     DEBUG_MSG(__func__, "duplicate packet received");
     return -1;
 
@@ -173,12 +177,14 @@ ack_packet:
     ackedPackets++;
     if(ackedPackets == TOTAL_DIFFRED_PACKETS)
         cleanupAwaitStack();
+    sem_post(&stackLock);
     return 0;
 }
 
 // cleanupAwaitStack(): Internal method which cleanups the await stack and resets the flags 
 void AwaitStack::cleanupAwaitStack()
 {
+    sem_wait(&stackLock);
     for(int i = 0; i <= TOTAL_DIFFRED_PACKETS; i++)
     {
         delete awaitStack[i]->fwd_element;
@@ -186,6 +192,7 @@ void AwaitStack::cleanupAwaitStack()
         ackedPackets = 0;
         index = 0;
     }
+    sem_post(&stackLock);
 }
 
 // isAwaitStackFree(): checks if await stack is free or not and returns bool true if it still has space.
