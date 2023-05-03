@@ -16,7 +16,9 @@ int ForwardStack::pushToForwardStack(std::string data, std::string tableID,
     item->priority = priority;
     item->data = data;
     item->tableID = tableID;
+    sem_wait(&stackLock);
     senderStack.push_back(item);
+    sem_post(&stackLock);
     DEBUG_MSG(__func__, "fwd stack current count:", senderStack.size());
     return 0;
 }
@@ -34,7 +36,9 @@ int ForwardStack::pushFrontForwardStack(std::string data, std::string tableID,
     item->priority = priority;
     item->data = data;
     item->tableID = tableID;
+    sem_wait(&stackLock);
     senderStack.push_front(item);
+    sem_post(&stackLock);
     DEBUG_MSG(__func__, "fwd stack current count:", senderStack.size());
     return 0;
 }
@@ -53,6 +57,7 @@ fwd_stack_bundle ForwardStack::popForwardStack(void)
         return exportItem;
     }
 
+    sem_wait(&stackLock);
     item = senderStack.front();
     if(item->statusCode == INTR_SEND || item->statusCode == FRES_SEND)
     {
@@ -74,7 +79,7 @@ fwd_stack_bundle ForwardStack::popForwardStack(void)
         senderStack.pop_front();
     }
     DEBUG_MSG(__func__, "Forward stack current count:", senderStack.size());
-    
+    sem_post(&stackLock);
     return exportItem;
 }
 
@@ -101,13 +106,16 @@ int ForwardStack::isForwardStackEmpty()
 */
 fwd_stack_bundle* ForwardStack::getNonackableItem()
 {
+    sem_wait(&stackLock);
     for(auto i = senderStack.begin(); i != senderStack.end(); i++){
         struct fwd_stack_bundle* item = *i;
         if(item->statusCode != INTR_SEND || item->statusCode != FRES_SEND){
             senderStack.remove(item);
+            sem_post(&stackLock);
             return item;
         }
     }
+    sem_post(&stackLock);
     return NULL;
 }
 

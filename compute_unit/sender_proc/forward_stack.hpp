@@ -2,6 +2,7 @@
 #define FWDSTK_H
 
 #include <iostream>
+#include <semaphore.h>
 #include <list>
 #include "../include/task.hpp"
 
@@ -38,8 +39,12 @@ struct await_stack_bundle {
 
 class ForwardStack {
     private:
+        sem_t stackLock;
         std::list<fwd_stack_bundle*> senderStack;
     public:
+        ForwardStack(){
+            sem_init(&stackLock, 0, 1);
+        }
         int pushToForwardStack(std::string data, std::string tableID, packet_code statusCode, int priority);
         int pushFrontForwardStack(std::string data, std::string tableID, packet_code statusCode, int priority);
         fwd_stack_bundle popForwardStack(void);
