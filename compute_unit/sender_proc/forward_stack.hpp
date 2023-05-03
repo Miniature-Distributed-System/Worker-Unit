@@ -40,8 +40,8 @@ class ForwardStack {
     private:
         std::list<fwd_stack_bundle*> senderStack;
     public:
-        int pushToForwardStack(std::string, std::string, int, int);
-        int pushFrontForwardStack(std::string, std::string, int, int);
+        int pushToForwardStack(std::string data, std::string tableID, packet_code statusCode, int priority);
+        int pushFrontForwardStack(std::string data, std::string tableID, packet_code statusCode, int priority);
         fwd_stack_bundle popForwardStack(void);
         int getForwardStackSize(void);
         int isForwardStackEmpty();

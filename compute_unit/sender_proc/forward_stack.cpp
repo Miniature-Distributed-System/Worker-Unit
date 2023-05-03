@@ -9,7 +9,7 @@ AwaitStack awaitStack;
  * to the rear or end of stack. This item wil be popped out last. This is used for all normal packets.
 */
 int ForwardStack::pushToForwardStack(std::string data, std::string tableID, 
-                int statusCode, int priority)
+                packet_code statusCode, int priority)
 {
     struct fwd_stack_bundle *item = new fwd_stack_bundle;
     item->statusCode = statusCode;
@@ -27,7 +27,7 @@ int ForwardStack::pushToForwardStack(std::string data, std::string tableID,
  * sending highest priority items to server.
 */
 int ForwardStack::pushFrontForwardStack(std::string data, std::string tableID,
-                int statusCode, int priority)
+                packet_code statusCode, int priority)
 {
     struct fwd_stack_bundle *item = new fwd_stack_bundle;
     item->statusCode = statusCode;
