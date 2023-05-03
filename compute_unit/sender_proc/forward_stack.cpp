@@ -92,9 +92,7 @@ int ForwardStack::getForwardStackSize(void)
 // isForwardStackEmpty(): returns bool true if forward stack is empty, else false.
 int ForwardStack::isForwardStackEmpty()
 {
-    struct fwd_stack_bundle *item;
-    item = senderStack.front();
-    if(item)
+    if(senderStack.size() < 0)
         return 0;
     return 1;
 }
