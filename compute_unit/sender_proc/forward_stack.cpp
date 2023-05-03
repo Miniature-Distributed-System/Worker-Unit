@@ -54,6 +54,7 @@ fwd_stack_bundle ForwardStack::popForwardStack(void)
     struct fwd_stack_bundle *item, exportItem;
 
     if(senderStack.empty()){
+        DEBUG_MSG(__func__, "Sender sink is empty");
         return exportItem;
     }
 
@@ -68,15 +69,16 @@ fwd_stack_bundle ForwardStack::popForwardStack(void)
             awaitStack.pushToAwaitStack(item);
             exportItem.copyPointerObject(item);
         } else {
-            /* if above can't be achived then just send non ackable 
-                packets to server */
+            /* if above can't be achived then just send non ackable packets to server */
             item = fwdStack.getNonackableItem();
             exportItem.copyPointerObject(item);
             delete item;
         }
     } else {
-
+        //These are ack packets addressed to the server
+        exportItem.copyPointerObject(item);
         senderStack.pop_front();
+        delete item;
     }
     DEBUG_MSG(__func__, "Forward stack current count:", senderStack.size());
     sem_post(&stackLock);
