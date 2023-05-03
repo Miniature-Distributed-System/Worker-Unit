@@ -9,6 +9,7 @@ extern std::string computeID;
 extern pthread_t wsClientThread;
 extern Flag quickSendMode;
 extern Flag seizeMode;
+extern Flag initSender;
 
 struct socket{
     struct thread_pool *thread;
