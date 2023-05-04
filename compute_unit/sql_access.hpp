@@ -2,12 +2,11 @@
 #define SQL_ACC_H
 #include <sqlite3.h>
 #include <string>
-#include <semaphore.h>
 
 class DatabaseAccess {
-        sem_t dataBaseLock;
         sqlite3 *db;
     public:
+        ~DatabaseAccess();
         int initDatabase();
         std::string* getRowValues(struct table* tData, int rowNumber);
         std::string* readValue(const char* sqlQuery, int column);

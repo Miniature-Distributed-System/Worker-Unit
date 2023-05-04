@@ -8,14 +8,22 @@ static int colNum;
 int DatabaseAccess::initDatabase()
 {
     int i, rc;
-    sem_init(&dataBaseLock, 0, 1);
     
     rc = sqlite3_open("csv.db", &db);
-    if(rc){
+    if(rc != SQLITE_OK){
         DEBUG_ERR(__func__,"DB open failed");
         return 1;
     }
     return 0;
+}
+
+DatabaseAccess::~DatabaseAccess()
+{
+    int rc;
+    rc = sqlite3_close(db);
+    if(rc != SQLITE_OK){
+        DEBUG_ERR(__func__,"DB open failed");
+    }
 }
 
 static int rowCallback(void *data, int argc, char **argv, char **azColName)
@@ -35,19 +43,18 @@ std::string* DatabaseAccess::getRowValues(struct table* tData, int rowNum)
     std::string rowCmd = "SELECT * FROM " + tData->tableID + " where id=" 
                         + std::to_string(rowNum) + ";";
     std::string *feilds = new std::string[tData->metadata->cols];
-    char* sqlErrMsg;
+    char* sqlErrMsg = NULL;
     int rc;
     
-    sem_wait(&dataBaseLock);
-    rc = sqlite3_exec(db, rowCmd.c_str(),rowCallback , feilds, &sqlErrMsg);
+    rc = sqlite3_exec(db, rowCmd.c_str(), rowCallback, feilds, &sqlErrMsg);
     if(rc != SQLITE_OK){
-        DEBUG_ERR(__func__, *sqlErrMsg);
-        sqlite3_free(sqlErrMsg);
-        sem_post(&dataBaseLock);
+        DEBUG_ERR(__func__, "failed to fetch values");
+        //DEBUG_ERR(__func__, *sqlErrMsg);
+        if(sqlErrMsg)
+            sqlite3_free(sqlErrMsg);
         return NULL;
     }
 
-    sem_post(&dataBaseLock);
     return feilds;
 }
 
@@ -69,19 +76,16 @@ std::string* DatabaseAccess::getColumnValues(std::string tableName, std::string 
     std::string colCmd = "SELECT " + columnName + " FROM " + tableName + ";"; 
     std::string *feilds = new std::string[rows];
     std::list<std::string> data;
-    char* sqlErrMsg;
+    char* sqlErrMsg = NULL;
     int rc, j = 0;
     
-    sem_wait(&dataBaseLock);
     rc = sqlite3_exec(db, colCmd.c_str(),colCallback , &data, &sqlErrMsg);
     if(rc != SQLITE_OK){
         sqlite3_free(sqlErrMsg);
-        sem_post(&dataBaseLock);
         return NULL;
     }
     for(auto i = data.begin(); i != data.end(); i++, j++)
       feilds[j] = *i;
-    sem_post(&dataBaseLock);
     return feilds;
 }
 
@@ -90,14 +94,11 @@ int DatabaseAccess::writeValue(const char * sqlQuery)
     char* sqlErrMsg = NULL;
     int rc = 0;
     
-    sem_wait(&dataBaseLock);
     rc = sqlite3_exec(db, sqlQuery,NULL , 0, &sqlErrMsg);
     if(rc != SQLITE_OK){
-        DEBUG_ERR(__func__, "db write command failed");
-        DEBUG_ERR(__func__, sqlQuery," reason:" ,*sqlErrMsg);
+        DEBUG_ERR(__func__, sqlQuery," :db write command failed reason:" );
         sqlite3_free(sqlErrMsg);
     }
-    sem_post(&dataBaseLock);
 
     return rc;
 }
@@ -123,21 +124,18 @@ static int read_callback(void *data, int argc, char **argv, char **azColName)
 
 std::string* DatabaseAccess::readValue(const char* sqlQuery, int column)
 {
-    char* sqlErrMsg;
+    char* sqlErrMsg = NULL;
     int rc = 0;
     std::string *str = new std::string;
 
-    sem_wait(&dataBaseLock);
     colNum = column;
     rc = sqlite3_exec(db, sqlQuery,read_callback , (void*)str, &sqlErrMsg);
     if(rc != SQLITE_OK){
-        DEBUG_ERR(__func__, "db write command failed");
-        DEBUG_ERR(__func__, sqlQuery);
+        DEBUG_ERR(__func__, "db write command failed:");
+        //DEBUG_ERR(__func__, sqlQuery);
         sqlite3_free(sqlErrMsg);
-        sem_post(&dataBaseLock);
         return NULL;
     }
-    sem_post(&dataBaseLock);
 
     return str;
 }
@@ -155,21 +153,18 @@ static int column_head_callback(void *data, int argc, char **argv,
 
 std::string* DatabaseAccess::getColumnNames(std::string tableID, int cols)
 {
-    char* sqlErrMsg;
+    char* sqlErrMsg = NULL;
     int rc = 0;
     std::string *colNames = new std::string[cols];
     std::string sqlQuery = "SELECT * FROM " + tableID + " WHERE ID=1;";
 
-    sem_post(&dataBaseLock);
-    rc = sqlite3_exec(db, sqlQuery.c_str(), column_head_callback, colNames, &sqlErrMsg);
+    rc = sqlite3_exec(db, sqlQuery.c_str(), column_head_callback, colNames, NULL);
     if(rc != SQLITE_OK){
-        DEBUG_ERR(__func__, "db get command failed");
-        DEBUG_ERR(__func__, sqlQuery);
+        DEBUG_ERR(__func__, "db get command failed:");
+        //DEBUG_ERR(__func__, sqlQuery);
         sqlite3_free(sqlErrMsg);
-        sem_post(&dataBaseLock);
         return NULL;
     }
-    sem_post(&dataBaseLock);
 
     return colNames;
-} 
+}
