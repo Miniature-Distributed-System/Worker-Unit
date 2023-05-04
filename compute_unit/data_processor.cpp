@@ -1,46 +1,107 @@
+#include <boost/algorithm/string.hpp>
 #include <string>
 #include <algorithm>
 #include <vector>
 #include "algorithm/algo.hpp"
 #include "algorithm/instance.hpp"
+#include "instance/instance_list.hpp"
 #include "data_processor.hpp"
 #include "sql_access.hpp"
 #include "include/packet.hpp"
 #include "include/process.hpp"
 #include "include/debug_rp.hpp"
 #include "include/task.hpp"
+#include "include/flag.h"
 #include "sender_proc/sender.hpp"
 
 class InstanceData {
-        std::uint8_t cols;
-        std::uint64_t rows;
+        Instance instance;
         std::vector<std::string*> instanceDataMatrix;
-        std::string instanceId;
+        std::string userTableName;
+        int userTableTotalColumns;
+        std::string errorString;
+        //DatabaseAccess *dataBaseAccess;
     public:
-        InstanceData(std::string, std::uint8_t ,std::uint64_t);
-        void initlizeData();
+        InstanceData(Instance, int, std::string);
+        ~InstanceData();
+        int initlizeData();
+        std::string* validateColumns();
         std::string* getPossibleFields(int column);
-        std::uint64_t getTotalRows() { return rows; }
+        std::uint64_t getTotalRows() { return instance.getTotalRows(); }
+        std::string getErrorString() { return errorString;}
 };
 
-InstanceData::InstanceData(std::string id, std::uint8_t columns,std::uint64_t rows)
+InstanceData::InstanceData(Instance instance, int cols, std::string userTableId)
 {
-    cols = columns;
-    instanceId = id;
-    this->rows = rows;
-    // DEBUG_MSG(__func__, "TableId:", instanceId, " totoalCols:", cols + 0);
+    this->instance = instance;
+    userTableTotalColumns = cols;
+    userTableName = userTableId;
 }
 
-void InstanceData::initlizeData()
+InstanceData::~InstanceData()
 {
-    std::string *str;
-    std::string *columnName = sql_get_column_names(instanceId, cols);
-    for(int i = 0; i < cols; i++){
-        // DEBUG_MSG(__func__, "TableId:", instanceId, " ColName:", columnName[i]);
-        str = get_column_values(instanceId, columnName[i], rows);
-        if(str != NULL)
-            instanceDataMatrix.push_back(str);
+    //delete dataBaseAccess;
+}
+
+std::string* InstanceData::validateColumns()
+{
+    int k = 0, cols = instance.getTotalColumns();
+
+    if(cols != userTableTotalColumns){
+        errorString = "columns dont match user: " + userTableTotalColumns;
+        errorString += " instance: " + cols + 0;
+        DEBUG_ERR(__func__, errorString);
+        return NULL;
     }
+
+    std::string *result = new std::string[cols];
+    std::string *instanceColumnNames = dataBaseAccess->getColumnNames(instance.getId(), cols);
+    std::string *userTableColumnNames = dataBaseAccess->getColumnNames(userTableName, userTableTotalColumns);
+
+    if(instanceColumnNames == NULL || userTableColumnNames == NULL){
+        errorString = "column data retrevial failed";
+        DEBUG_ERR(__func__,errorString);
+        return NULL;
+    }
+
+    //Match all columns else its an error
+    for(int i = 0; i < cols; i++){
+        for(int j = 0; j < cols; j++){
+            if(!userTableColumnNames[i].compare(instanceColumnNames[j])){
+                result[k++] = instanceColumnNames[j];
+                break;
+            }
+        }
+    }
+
+    if(k != cols){
+        errorString = "Instance table and User table columns did not match";
+        DEBUG_ERR(__func__, errorString);
+        return NULL;
+    }
+
+    DEBUG_MSG(__func__, "Columns validation successfull!");
+    return result;
+}
+
+int InstanceData::initlizeData()
+{
+    std::string *str, *columnNames;
+    // dataBaseAccess = new DatabaseAccess();
+    // dataBaseAccess->initDatabase();
+
+    columnNames = validateColumns();
+    if(columnNames == NULL)
+        return -1;
+    for(int i = 0; i < instance.getTotalColumns(); i++){
+        //DEBUG_MSG(__func__, "TableId:", instance.getId(), " ColName:", columnNames[i]);
+        //Any failures here would be unfortunate and not correctable
+        str = dataBaseAccess->getColumnValues(instance.getId(), columnNames[i], instance.getTotalRows());
+        instanceDataMatrix.push_back(str);
+    }
+
+    DEBUG_MSG(__func__, "data initilize success!");
+    return 0;
 }
 
 std::string* InstanceData::getPossibleFields(int column)
@@ -55,20 +116,26 @@ class dataProcessor{
         std::string *colHeaders;
         std::string selectCmd;
         std::string deleteCmd;
+        std::string errorString;
         InstanceData *instanceData;
     public:
-        bool dataCleanPhase = false;
+        Flag initDone;
+        Flag dataCleanPhase;
         std::uint64_t curRow = 1;
         struct table *tData;
         struct thread_pool *thread;
-
+        //DatabaseAccess *dataBaseAccess;
+        
         dataProcessor(struct thread_pool* ,
                         struct data_proc_container *);
+        ~dataProcessor();
+        int initlize();
         int processSql(std::string *);
         std::string cleanData(std::string);
         std::string buildUpdateCmd(std::string *);
         void buildSelectCmd();
         std::string validateFeild(std::string feild);
+        std::string getErrorString() {return errorString;}
         int deleteDuplicateRecords();
 
 };
@@ -81,17 +148,41 @@ dataProcessor::dataProcessor(struct thread_pool* thread,
     //Sql IDs dont start with 0
     this->curRow = 1;
 
-    Instance instance = globalInstanceList.getInstanceFromId(tData->instanceType);
-    instanceData = new InstanceData(instance.getId(), instance.getTotalColumns(), instance.getTotalRows());
-    instanceData->initlizeData();
-
     colHeaders = container->colHeaders;
-
+    initDone.initFlag(false);
+    dataCleanPhase.initFlag(false);
     deleteCmd = "DELETE FROM " + tData->tableID + " WHERE ID=";
     //dealloc container bundle
-    delete container;
+    //dataBaseAccess = new DatabaseAccess();
 }
 
+dataProcessor::~dataProcessor()
+{
+    //delete dataBaseAccess;
+}
+
+int dataProcessor::initlize()
+{
+    Instance instance = globalInstanceList.getInstanceFromId(tData->instanceType);
+    if(instance.getId().empty()){
+        errorString = "Invalid instance choosen index: ",tData->instanceType;
+        DEBUG_ERR(__func__, errorString);
+        return -1;
+    }
+
+    instanceData = new InstanceData(instance, tData->metadata->cols, tData->tableID);
+    if(instanceData->initlizeData()){
+        errorString = instanceData->getErrorString();
+        return -1;
+    }
+    initDone.setFlag();
+    //dataBaseAccess->initDatabase();
+
+    DEBUG_MSG(__func__, "Data processor setup and ready for validtaion/processing");
+    return 0;
+}
+
+// validateFeild(): This is used by cleanData() to valdiate each field with the possible set of values.
 std::string dataProcessor::validateFeild(std::string feild)
 {
     std::string* temp;
@@ -102,11 +193,15 @@ std::string dataProcessor::validateFeild(std::string feild)
     // temp = base->getPossibleFeilds(curCol);
     // delete base;
     temp = instanceData->getPossibleFields(curCol);
+    if(temp == NULL){
+        DEBUG_ERR(__func__, "Instance data for instance column index: ", curCol);
+        return feild;
+    }
     totalColumns = instanceData->getTotalRows();
 
     //iterate through possible values of current column
     for(i = 0; i < totalColumns; i++){
-        if(temp[i] == feild){
+        if(boost::iequals(temp[i], feild)){
             return feild;
         }
     }
@@ -116,6 +211,7 @@ std::string dataProcessor::validateFeild(std::string feild)
     return "NaN";
 }
 
+// cleanData(): This method is used by the processSql() to replace invalid data fields with NaN.
 std::string dataProcessor::cleanData(std::string feild)
 {
     //check if empty
@@ -123,8 +219,6 @@ std::string dataProcessor::cleanData(std::string feild)
         feild = "NaN";
     else {
         //transform to lower case
-        std::transform(feild.begin(), feild.end(), feild.begin(), 
-        [](unsigned char c){ return std::tolower(c); });
         //check if valid feild present
         feild = validateFeild(feild);
     }
@@ -132,6 +226,7 @@ std::string dataProcessor::cleanData(std::string feild)
     return feild;
 }
 
+// buildUpdateCmd(): This method is used by the below method to build sql query to update selecte row.
 std::string dataProcessor::buildUpdateCmd(std::string *newFeilds)
 {
     std::string updateCmd = "UPDATE " + tData->tableID + " SET ";
@@ -143,10 +238,14 @@ std::string dataProcessor::buildUpdateCmd(std::string *newFeilds)
             updateCmd += ",";
     }
     updateCmd += " WHERE ID=" + std::to_string(curRow + 0) + ";";
-    DEBUG_MSG(__func__, "build update command for row ID:", curRow + 0);
+    //DEBUG_MSG(__func__, "build update command for row ID:", curRow + 0);
     return updateCmd;
 }
 
+/* processSql(): This method cleans the attribute data in the sqlite database.
+ * This method fetches the possible values from the algorithm and proceeds to check the sqlite database for inconsistent
+ * data which it substitues with NaN which will be an invalid data.
+*/
 int dataProcessor::processSql(std::string *feild)
 {
     int i, cols = tData->metadata->cols;
@@ -162,13 +261,14 @@ int dataProcessor::processSql(std::string *feild)
     }
     if(modified){
         sqlUpdateCmd = buildUpdateCmd(temp);
-        sql_write(sqlUpdateCmd.c_str());
-        DEBUG_MSG(__func__, "record ID:",curRow + 0," cleaned");
+        dataBaseAccess->writeValue(sqlUpdateCmd.c_str());
+        //DEBUG_MSG(__func__, "record ID:",curRow + 0," cleaned");
     }
 
     return 0;
 }
 
+// buildSelectCmd(): This method builds the sql query for selecting of rows for deleting purposes
 void dataProcessor::buildSelectCmd()
 {
     selectCmd = "SELECT ID,";
@@ -186,6 +286,7 @@ void dataProcessor::buildSelectCmd()
     selectCmd += " having count(*) > 1;";
 }
 
+// deleteDuplicateRecords(): This method cycles through the db and finds duplicate records and deletes them.
 int dataProcessor::deleteDuplicateRecords()
 {
     std::string *rowID;
@@ -193,22 +294,26 @@ int dataProcessor::deleteDuplicateRecords()
 
     if(selectCmd.empty())
         buildSelectCmd();
-    rowID = sql_read(selectCmd.c_str(),0);
+    rowID = dataBaseAccess->readValue(selectCmd.c_str(), 0);
     if(!rowID){
         DEBUG_ERR(__func__, "select command read error");
         return 0;
     }
     if(!rowID->empty())
     {
-        DEBUG_MSG(__func__, "cleaning up duplicate record ID:", *rowID);
+        //DEBUG_MSG(__func__, "cleaning up duplicate record ID:", *rowID);
         temp = deleteCmd + *rowID + ";";
-        sql_write(temp.c_str());
+        dataBaseAccess->writeValue(temp.c_str());
         return 0;
     }
     else
         return 1; 
 }
 
+/* process_data_start(): This method is called by scheduler, It processes the data before algorithms work on it.
+ * This method has two phases processSql phase where the sql is processed to look for invalid values in all columns, in 
+ * second phase the data is cleaned and duplicate records are deleted from db.
+*/
 JobStatus process_data_start(void *data)
 {
     dataProcessor *dataProc = (dataProcessor*)data;
@@ -216,7 +321,13 @@ JobStatus process_data_start(void *data)
     std::string *feild;
     int rc;
 
-    if(dataProc->dataCleanPhase)
+    if(!dataProc->initDone.isFlagSet()){
+        rc = dataProc->initlize();
+        if(rc)
+            return JOB_FAILED;
+    }
+
+    if(dataProc->dataCleanPhase.isFlagSet())
     {
         rc = dataProc->deleteDuplicateRecords();
         if(rc){
@@ -226,9 +337,9 @@ JobStatus process_data_start(void *data)
         }
     } else {
         if(dataProc->curRow >= tData->metadata->rows)
-            dataProc->dataCleanPhase = true;
-
-        feild = get_row_values(tData, dataProc->curRow);
+            dataProc->dataCleanPhase.setFlag();
+        feild = dataBaseAccess->getRowValues(tData, dataProc->curRow);
+        //feild = get_row_values(tData, dataProc->curRow);
         if(feild){
             dataProc->processSql(feild);
             dataProc->curRow++;
@@ -245,8 +356,19 @@ JobStatus process_data_finalize(void *data, JobStatus status)
     std::string selectAll = "SELECT * FROM " + tData->tableID + ";";
     std::string *getCleanedTable;
 
+    if(status == JOB_FAILED){
+        send_packet(dataProc->getErrorString(),tData->tableID, 
+                        DAT_ERR, tData->priority);
+        return JOB_FINISHED;
+    }
+
     //Send the cleaned data back to server via fwd stack
-    getCleanedTable = sql_read(selectAll.c_str(), -1);
+    // DatabaseAccess *dataBaseAccess = new DatabaseAccess();
+    // dataBaseAccess->initDatabase();
+    getCleanedTable = dataBaseAccess->readValue(selectAll.c_str(), -1);
+    std::replace(getCleanedTable->begin(), getCleanedTable->end(), ';', '\n');
+    //delete dataBaseAccess;
+    //getCleanedTable = sql_read(selectAll.c_str(), -1);
     send_packet(*getCleanedTable, tData->tableID, INTR_SEND, tData->priority);
 
     //Schedule the algorithm to process our cleaned data
@@ -267,7 +389,14 @@ int init_data_processor(struct thread_pool* thread,
                 struct data_proc_container* container)
 {
     dataProcessor *dpContainer = new dataProcessor(thread, container);
-    scheduleTask(thread, data_proc, (void*)dpContainer, container->tData->priority);
+    if(!thread) DEBUG_ERR(__func__, "error1");
+    if(!data_proc) DEBUG_ERR(__func__, "error2");
+    if(!dpContainer) DEBUG_ERR(__func__, "error3");
+    if(!container) DEBUG_ERR(__func__, "error4");
+    if(!container->tData) DEBUG_ERR(__func__, "error5");
+    if(!container->tData->priority) DEBUG_ERR(__func__, "error6");
+    scheduleTask(thread, data_proc, dpContainer, container->tData->priority);
+    delete container;
     DEBUG_MSG(__func__, "initilized data processor");
 
     return 0;
