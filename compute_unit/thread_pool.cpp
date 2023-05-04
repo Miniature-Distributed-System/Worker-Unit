@@ -187,6 +187,14 @@ struct thread_pool* init_thread_pool()
 void exit_thread_pool(struct thread_pool* threadPoolHead){
     struct thread_pool_node *temp, *temp_head;
 
+    /* send the seize packet which will let server know that node is about to 
+       shutdown and no more csv data should be sent to node for processing. */
+    send_packet("", "", SEIZE, HIGH_PRIORITY);
+    //wait for task queue to empty itself before teardown
+    while(threadPoolHead->threadPoolCount){
+        sleep(2);
+    }
+
     temp = temp_head = threadPoolHead->headNode;
     while(temp_head != NULL){
         temp = temp_head;
