@@ -5,6 +5,7 @@
 #include <semaphore.h>
 #include <list>
 #include "../include/task.hpp"
+#include "../include/packet.hpp"
 
 #define TOTAL_DIFFRED_PACKETS 6
 
@@ -60,7 +61,7 @@ class AwaitStack {
         std::uint8_t index = 0;
         std::uint8_t ackedPackets = 0;
         void cleanupAwaitStack();
-    public:    
+    public:
         AwaitStack(){
             sem_init(&stackLock, 0 ,1);
         }  
