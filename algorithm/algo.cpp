@@ -7,9 +7,9 @@
 
 InstanceList globalInstanceList;
 
-int sched_algo(struct thread_pool *thread, struct table *tData)
+int sched_algo(struct thread_pool *thread, TableData *tData)
 {
-    struct process* proc;
+    ProcessStates* proc;
     short algoIndex;
 
     if(!tData){
@@ -21,13 +21,13 @@ int sched_algo(struct thread_pool *thread, struct table *tData)
     proc = avial_algo[algoIndex](tData);
     scheduleTask(thread, proc, tData, tData->priority);
 
-    DEBUG_MSG(__func__, "rows:", tData->metadata->rows, " Cols:",tData->metadata->cols);
+    DEBUG_MSG(__func__, "rows:", tData->metadata->rows, " Cols:",tData->metadata->columns);
     DEBUG_MSG(__func__, "Sched algorihm type:",algoIndex);
 
     return EXIT_SUCCESS;
 }
 
-void dealloc_table_dat(struct table *tData)
+void dealloc_table_dat(struct TableData *tData)
 {
     std::string dropTable = "DROP TABLE " + tData->tableID + ";";
     //Don't care if it fails

@@ -9,14 +9,14 @@
 //bound to change once build root is made
 #define TOT_ALGO 2
 
-int sched_algo(struct thread_pool*, struct TableData*);
-void dealloc_table_dat(struct TableData *tData);
+int sched_algo(thread_pool* threadPool,TableData* tableData);
+void dealloc_table_dat(TableData *tData);
 
 //add function prototypes below this
-struct ProcessStates* init_example_algo(struct TableData*);
-struct ProcessStates* init_ce_algorithm(struct TableData*);
+ProcessStates* init_example_algo(struct TableData*);
+ProcessStates* init_ce_algorithm(struct TableData*);
 
-static struct ProcessStates* (*avial_algo[TOT_ALGO])(struct TableData*) = {
+static struct ProcessStates* (*avial_algo[TOT_ALGO])(TableData*) = {
     init_example_algo,
     init_ce_algorithm
 };

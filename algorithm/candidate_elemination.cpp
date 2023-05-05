@@ -95,16 +95,16 @@ std::string *candidateElimination::getValidationRow(int row)
 
 JobStatus candidate_elimination_start(void *data)
 {
-    struct table* tData = (struct table*)data;
+    TableData* tData = (TableData*)data;
     candidateElimination *ce = (candidateElimination*)tData->args;
     std::string *feild;
     
-    if(tData->metadata->curRow >= tData->metadata->rows)
+    if(tData->metadata->currentRow >= tData->metadata->rows)
         return JOB_DONE;
-    feild = dataBaseAccess->getRowValues(tData, tData->metadata->curRow);
+    feild = dataBaseAccess->getRowValues(tData, tData->metadata->currentRow);
     if(feild)
         ce->compare(feild);
-    tData->metadata->curRow++;
+    tData->metadata->currentRow++;
     return JOB_PENDING;
 }
 
@@ -115,7 +115,7 @@ JobStatus candidate_elimination_pause(void *data){
 
 JobStatus candidate_elimination_end(void *data, JobStatus status)
 {
-    struct table* tData = (struct table*)data;
+    TableData* tData = (TableData*)data;
     candidateElimination *ce = (candidateElimination*)tData->args;
     std::string s = ce->getS();
     std::string g = ce->getG();
@@ -131,15 +131,15 @@ JobStatus candidate_elimination_end(void *data, JobStatus status)
     return JOB_FINISHED;
 }
 
-struct process *ce_algorithm = new process{
+struct ProcessStates *ce_algorithm = new ProcessStates{
     .start_proc = candidate_elimination_start,
     .pause_proc = candidate_elimination_pause,
     .end_proc = candidate_elimination_end
 };
 
-struct process* init_ce_algorithm(struct table* tData)
+ProcessStates* init_ce_algorithm(TableData* tData)
 {
-    candidateElimination *ce = new candidateElimination(tData->metadata->cols);
+    candidateElimination *ce = new candidateElimination(tData->metadata->columns);
     tData->args = ce;
     return ce_algorithm;
 }
