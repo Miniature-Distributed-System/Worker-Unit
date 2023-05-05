@@ -112,8 +112,19 @@ json getPacket(void)
     //If there are no items it must be the first time we are starting out
     if(computeID.empty())
     {
+        if(initSender.isFlagSet()){
+            DEBUG_MSG(__func__,"worker ID not set yet");
+            while(computeID.empty());
+            if(!computeID.empty()){
+                initSender.resetFlag();
+                packet = create_packet(fwdStack.popForwardStack());
+            }
+        } else {
         DEBUG_MSG(__func__, "initial handshake packet");
         packet["head"] = P_HANDSHAKE;
+            packet["id"] = "";
+            initSender.setFlag();
+        }
     } else {
         //Get packet to be sent to the server
         packet = create_packet(fwdStack.popForwardStack());
