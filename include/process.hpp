@@ -9,12 +9,12 @@ struct ProcessStates {
     JobStatus (*end_proc)(void*, JobStatus);
 };
 
-struct taskStruct {
+struct TaskData {
     struct ProcessStates *proc;
     void *args;
     std::uint8_t priority;
     std::uint16_t starveCounter;
-    taskStruct(){
+    TaskData(){
         proc = NULL;
         args = NULL;
     };

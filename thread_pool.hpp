@@ -12,7 +12,7 @@
 #define PRIOR_3_STRVLMT 8
 
 struct thread_pool_node {
-    struct taskStruct *pData;
+    struct TaskData *pData;
     struct thread_pool_node *next;
 };
 
@@ -23,14 +23,14 @@ struct thread_pool {
 };
 
 class ThreadStructExport {
-        taskStruct *thread; 
+        TaskData *thread; 
     public:
-        explicit ThreadStructExport(taskStruct *thread = NULL) { this->thread = thread;}
+        explicit ThreadStructExport(TaskData *thread = NULL) { this->thread = thread;}
         ~ThreadStructExport(){ delete thread; }
-        taskStruct& operator*(){ return *thread; } 
+        TaskData& operator*(){ return *thread; } 
 };
 
 struct thread_pool* init_thread_pool();
 void exit_thread_pool(struct thread_pool*);
-taskStruct thread_pool_pop(struct thread_pool*);
+TaskData thread_pool_pop(struct thread_pool*);
 #endif
