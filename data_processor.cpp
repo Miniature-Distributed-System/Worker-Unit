@@ -380,7 +380,7 @@ JobStatus process_data_finalize(void *data, JobStatus status)
     return JOB_FINISHED;
 }
 
-struct process* data_proc = new process {
+struct ProcessStates* data_proc = new ProcessStates {
     .start_proc = process_data_start,
     .end_proc = process_data_finalize
 };

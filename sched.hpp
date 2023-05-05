@@ -20,12 +20,12 @@ struct job_timer {
 };
 
 struct queue_job {
-    struct process *proc;
+    struct ProcessStates *proc;
     void *args;
     std::uint64_t cpuSliceMs;
     JobStatus jobStatus;
     bool jobErrorHandle;
-    queue_job(struct process* proc, void* args){
+    queue_job(struct ProcessStates* proc, void* args){
         this->proc = proc;
         this->args = args;
     }

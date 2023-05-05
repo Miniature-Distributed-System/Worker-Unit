@@ -13,10 +13,10 @@ int sched_algo(struct thread_pool*, struct table*);
 void dealloc_table_dat(struct table *tData);
 
 //add function prototypes below this
-struct process* init_example_algo(struct table*);
-struct process* init_ce_algorithm(struct table*);
+struct ProcessStates* init_example_algo(struct table*);
+struct ProcessStates* init_ce_algorithm(struct table*);
 
-static struct process* (*avial_algo[TOT_ALGO])(struct table*) = {
+static struct ProcessStates* (*avial_algo[TOT_ALGO])(struct table*) = {
     init_example_algo,
     init_ce_algorithm
 };

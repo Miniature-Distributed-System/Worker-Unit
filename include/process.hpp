@@ -3,14 +3,14 @@
 #include <string>
 #include "task.hpp"
 
-struct process {
+struct ProcessStates {
     JobStatus (*start_proc)(void*);
     JobStatus (*pause_proc)(void*);
     JobStatus (*end_proc)(void*, JobStatus);
 };
 
 struct taskStruct {
-    struct process *proc;
+    struct ProcessStates *proc;
     void *args;
     std::uint8_t priority;
     std::uint16_t starveCounter;
@@ -48,7 +48,7 @@ struct table {
     }
 };
 
-int scheduleTask(struct thread_pool *thread, struct process* proc, 
+int scheduleTask(struct thread_pool *thread, struct ProcessStates* proc, 
                 void *args, int priority);
 
 #endif

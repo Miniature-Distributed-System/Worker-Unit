@@ -518,7 +518,7 @@ JobStatus receiver_finalize(void *data, JobStatus signal)
     return JOB_FINISHED;
 }
 
-struct process* receiver_proc = new process {
+struct ProcessStates* receiver_proc = new ProcessStates {
     .start_proc = receiver_proccess,
     .end_proc = receiver_finalize
 };
