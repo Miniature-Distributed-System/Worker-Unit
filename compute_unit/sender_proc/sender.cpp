@@ -13,9 +13,10 @@ int send_packet(std::string data, std::string tableID, packet_code statusCode, T
     //We want to immidiatly tell server that node processing service is suspended
     if(statusCode == SEIZE)
         fwdStack.pushFrontForwardStack(data, tableID, statusCode, priority);
-    else
+    else {
         fwdStack.pushToForwardStack(data, tableID, statusCode, priority);
-
+        quickSendMode.setFlag();
+    }
     return 0;
 }
 
@@ -64,13 +65,13 @@ json create_packet(struct fwd_stack_bundle item)
            processes. This may be set due to either node being overloaded or
            the node shutdown sequence being singnalled by the user. */
         packet["head"] = getPacketHead(statusCode) | P_SEIZE;
-    } else if(!fwdStack.isForwardStackEmpty()){
+    } else if(quickSendMode.isFlagSet()){
         // stack is not empty that means there is one more item behind this current item, so proceed to quicksend mode
         packet["head"] = getPacketHead(statusCode) | P_QSEND;
-        quickSendMode.setFlag();
+        if(fwdStack.isForwardStackEmpty())
+            quickSendMode.resetFlag();
     } else {
         packet["head"] = getPacketHead(statusCode);
-        quickSendMode.resetFlag();
     }
 
     packet["id"] = computeID.c_str();
