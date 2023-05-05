@@ -20,7 +20,7 @@ struct TaskData {
     };
 };
 
-struct table_metadata {
+struct TableMetadata {
     std::uint64_t rows;
     std::uint64_t cols;
     std::uint64_t curRow;
@@ -28,7 +28,7 @@ struct table_metadata {
 };
 
 struct table {
-    struct table_metadata *metadata;
+    struct TableMetadata *metadata;
     void* args;
     std::string tableID;
     unsigned int dataLen;
@@ -36,7 +36,7 @@ struct table {
     std::string instanceType;
 
     table(std::uint64_t row, std::uint64_t col){
-        metadata = new table_metadata;
+        metadata = new TableMetadata;
         metadata->cols = col;
         metadata->rows = row;
         metadata->curCol = 0;
