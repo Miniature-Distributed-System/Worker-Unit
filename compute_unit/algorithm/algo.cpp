@@ -3,7 +3,6 @@
 #include "instance.hpp"
 #include "../data_processor.hpp"
 #include "../include/process.hpp"
-#include "../sql_access.hpp"
 #include "../include/debug_rp.hpp"
 
 InstanceList globalInstanceList;
@@ -32,6 +31,8 @@ void dealloc_table_dat(struct table *tData)
 {
     std::string dropTable = "DROP TABLE " + tData->tableID + ";";
     //Don't care if it fails
-    sql_write(dropTable.c_str());
+    if(dataBaseAccess){
+        dataBaseAccess->writeValue(dropTable.c_str());
+    }
     delete tData;
 }

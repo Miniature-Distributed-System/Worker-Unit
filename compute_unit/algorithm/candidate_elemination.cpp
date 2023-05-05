@@ -98,7 +98,7 @@ JobStatus candidate_elimination_start(void *data)
     
     if(tData->metadata->curRow >= tData->metadata->rows)
         return JOB_DONE;
-    feild = get_row_values(tData, tData->metadata->curRow);
+    feild = dataBaseAccess->getRowValues(tData, tData->metadata->curRow);
     if(feild)
         ce->compare(feild);
     tData->metadata->curRow++;
@@ -118,12 +118,13 @@ JobStatus candidate_elimination_end(void *data, JobStatus status)
     std::string g = ce->getG();
     std::string final = s + "\n" + g;
     send_packet(final, tData->tableID, FRES_SEND, tData->priority);
+    DEBUG_MSG(__func__, "end process S:",s, " G:", g, " for table:", tData->tableID);
+    instanceList.dereferenceInstance(tData->tableID);
+    dealloc_table_dat(tData);
     //Deallocate both table data and whatever was allocated in this algo before
     //winding up with the process, else we will leak memeory.
     delete ce;
-    dealloc_table_dat(tData);
     
-    DEBUG_MSG(__func__, "end process S:",s, " G:", g);
     return JOB_FINISHED;
 }
 

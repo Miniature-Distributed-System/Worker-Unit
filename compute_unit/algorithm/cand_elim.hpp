@@ -1,6 +1,7 @@
 #ifndef CE_ALGO_C
 #define CE_ALGO_C
 #include "base_class.hpp"
+#include "../sql_access.hpp"
 
 class candidateElimination : public Base {
     private:
@@ -28,6 +29,7 @@ class candidateElimination : public Base {
         }
 
     public:
+        //DatabaseAccess *dataBaseAccess;
         candidateElimination(){};
         candidateElimination(int n);
         void compare(std::string *input);
