@@ -8,7 +8,7 @@ class DatabaseAccess {
     public:
         ~DatabaseAccess();
         int initDatabase();
-        std::string* getRowValues(struct table* tData, int rowNumber);
+        std::string* getRowValues(struct TableData* tData, int rowNumber);
         std::string* readValue(const char* sqlQuery, int column);
         std::string* getColumnNames(std::string tableID, int cols);
         std::string* getColumnValues(std::string tableName, std::string columnName, int rows);

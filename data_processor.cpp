@@ -122,7 +122,7 @@ class dataProcessor{
         Flag initDone;
         Flag dataCleanPhase;
         std::uint64_t curRow = 1;
-        struct table *tData;
+        struct TableData *tData;
         struct thread_pool *thread;
         //DatabaseAccess *dataBaseAccess;
         
@@ -317,7 +317,7 @@ int dataProcessor::deleteDuplicateRecords()
 JobStatus process_data_start(void *data)
 {
     dataProcessor *dataProc = (dataProcessor*)data;
-    struct table *tData = dataProc->tData;
+    struct TableData *tData = dataProc->tData;
     std::string *feild;
     int rc;
 
@@ -352,7 +352,7 @@ JobStatus process_data_start(void *data)
 JobStatus process_data_finalize(void *data, JobStatus status)
 {
     dataProcessor *dataProc = (dataProcessor*)data;
-    struct table *tData = dataProc->tData;
+    struct TableData *tData = dataProc->tData;
     std::string selectAll = "SELECT * FROM " + tData->tableID + ";";
     std::string *getCleanedTable;
 

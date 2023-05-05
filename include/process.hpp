@@ -27,7 +27,7 @@ struct TableMetadata {
     std::uint64_t curCol;
 };
 
-struct table {
+struct TableData {
     struct TableMetadata *metadata;
     void* args;
     std::string tableID;
@@ -35,7 +35,7 @@ struct table {
     TaskPriority priority;
     std::string instanceType;
 
-    table(std::uint64_t row, std::uint64_t col){
+    TableData(std::uint64_t row, std::uint64_t col){
         metadata = new TableMetadata;
         metadata->cols = col;
         metadata->rows = row;
@@ -43,7 +43,7 @@ struct table {
         metadata->curRow = 0;
     }
 
-    ~table(){
+    ~TableData(){
         delete metadata;
     }
 };
