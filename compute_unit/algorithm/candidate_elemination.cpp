@@ -1,12 +1,13 @@
+#include <boost/algorithm/string.hpp>
 #include <string>
 #include <vector>
 #include <array>
 #include "algo.hpp"
-#include "../sql_access.hpp"
 #include "../include/process.hpp"
 #include "../include/task.hpp"
 #include "../sender_proc/sender.hpp"
 #include "../include/debug_rp.hpp"
+#include "../instance/instance_list.hpp"
 //This needs nuking as dirs will change later
 #include "../include/packet.hpp"
 #include "cand_elim.hpp"
@@ -22,6 +23,8 @@ candidateElimination::candidateElimination(int n)
         s[i] = "*";
         g[i] = "?";
     }
+    // dataBaseAccess = new DatabaseAccess();
+    // dataBaseAccess->initDatabase();
 }
 
 void candidateElimination::compare(std::string *input)
@@ -30,13 +33,13 @@ void candidateElimination::compare(std::string *input)
     
     //positive training examples
     //DEBUG_MSG(__func__, input[targetCol]);
-    if(input[targetCol] == True)
+    if(boost::iequals(input[targetCol], True))
     {
         for(i = 0; i < cols; i++)
         {
             if(s[i] == "*")
                 s[i] = input[i]; 
-            else if(s[i] != input[i]){
+            else if(!boost::iequals(s[i], input[i])){
                 s[i] = "?";
                 g[i] = "?";
             }
@@ -46,7 +49,7 @@ void candidateElimination::compare(std::string *input)
     } else {
         for(i = 0; i < cols; i++)
         {
-            if(s[i] != input[i])
+            if(!boost::iequals(s[i], input[i]))
                 g[i] = s[i];
         }
         //DEBUG_MSG(__func__, "No:", getG());
@@ -124,7 +127,7 @@ JobStatus candidate_elimination_end(void *data, JobStatus status)
     //Deallocate both table data and whatever was allocated in this algo before
     //winding up with the process, else we will leak memeory.
     delete ce;
-    
+
     return JOB_FINISHED;
 }
 
