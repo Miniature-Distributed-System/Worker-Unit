@@ -138,7 +138,7 @@ int scheduleTask(struct thread_pool *threadPoolHead, struct process *newProc,
     newProcTab->priority = prior;
     newProcTab->starveCounter = 0;
     
-    DEBUG_MSG(__func__,"insert node");
+    //DEBUG_MSG(__func__,"insert node");
     rc = insert_node(threadPoolHead, newProcTab);
     pthread_cond_signal(&cond);
     

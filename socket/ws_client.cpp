@@ -67,7 +67,7 @@ json ws_client_launch(struct socket *soc, json packet){
         ws.close(websocket::close_code::normal);
         // If we get here then the connection is closed gracefully
         // The make_printable() function helps print a ConstBufferSequence
-        //std::cout << beast::make_printable(buffer.data()) << std::endl;
+        std::cout << beast::make_printable(buffer.data()) << std::endl;
 
         std::string data_buffers(boost::asio::buffer_cast<const char*>(buffer.data()), 
                     buffer.size());
