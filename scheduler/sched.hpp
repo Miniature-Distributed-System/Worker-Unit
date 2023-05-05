@@ -14,35 +14,35 @@
 extern pthread_cond_t  cond;
 extern pthread_mutex_t mutex;
 
-struct job_timer {
+struct JobTimer {
     std::uint64_t allowedCpuSlice;
     bool jobShouldPause;
 };
 
-struct queue_job {
+struct QueueJob {
     struct ProcessStates *proc;
     void *args;
     std::uint64_t cpuSliceMs;
     JobStatus jobStatus;
     bool jobErrorHandle;
-    queue_job(struct ProcessStates* proc, void* args){
+    QueueJob(struct ProcessStates* proc, void* args){
         this->proc = proc;
         this->args = args;
     }
 };
 
-struct thread_queue {
+struct ThreadQueue {
     std::uint8_t threadID;
     sem_t threadResource;
-    struct queue_job *queueHead[QUEUE_SIZE];
+    struct QueueJob *queueHead[QUEUE_SIZE];
     bool qSlotDone[QUEUE_SIZE];
     bool threadShouldStop;
     std::uint8_t totalJobsInQueue;
 };
 
-extern struct thread_queue *list[MAX_THREAD];
+extern struct ThreadQueue *list[MAX_THREAD];
 extern std::uint8_t allocatedThreads;
-extern bool sched_should_stop;
+extern bool schedulerShouldStop;
 int init_sched(struct ThreadPool *, std::uint8_t);
 void exit_sched(void);
 #endif

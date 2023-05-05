@@ -9,8 +9,8 @@
 
 //this var needs refactor should make it local scope
 std::uint8_t allocatedThreads;
-struct thread_queue *list[MAX_THREAD];
-bool sched_should_stop = 0;
+struct ThreadQueue *list[MAX_THREAD];
+bool schedulerShouldStop = 0;
 pthread_cond_t  cond  = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -29,7 +29,7 @@ int get_cpu_slice(int prior)
 
 void* start_job_timer(void *data)
 {
-    struct job_timer* jTimer = (struct job_timer*)data;
+    struct JobTimer* jTimer = (struct JobTimer*)data;
     struct timespec tim;
 
     tim.tv_nsec = jTimer->allowedCpuSlice;
@@ -40,10 +40,10 @@ void* start_job_timer(void *data)
     return 0;
 }
 
-struct job_timer* init_timer(struct queue_job* job)
+struct JobTimer* init_timer(struct QueueJob* job)
 {
     pthread_t timerThread;
-    struct job_timer* jTimer = new job_timer;
+    struct JobTimer* jTimer = new JobTimer;
     jTimer->jobShouldPause = 0;
 
     if(!job->proc->pause_proc){
@@ -61,7 +61,7 @@ struct job_timer* init_timer(struct queue_job* job)
 
 int get_total_empty_slots(void)
 {
-    struct thread_queue* queue;
+    struct ThreadQueue* queue;
     int i, j, totalSlots = 0;
 
     for(i = 0; i < allocatedThreads; i++)
@@ -77,9 +77,9 @@ int get_total_empty_slots(void)
     return totalSlots;
 }
 
-struct thread_queue* get_quickest_queue(void)
+struct ThreadQueue* get_quickest_queue(void)
 {
-    struct thread_queue *queue;
+    struct ThreadQueue *queue;
     int threadID = 0;
     std::uint64_t totalWaitTime, lowestWaitTime = INT_MAX, waitTime;
     int i,j;
@@ -111,9 +111,9 @@ struct thread_queue* get_quickest_queue(void)
     return list[threadID];
 }
 
-struct queue_job* init_job(struct taskStruct pTable)
+struct QueueJob* init_job(TaskData pTable)
 {
-    struct queue_job *job = new queue_job(pTable.proc, pTable.args);
+    struct QueueJob *job = new QueueJob(pTable.proc, pTable.args);
     job->jobStatus = JOB_PENDING;
     job->jobErrorHandle = 0;
     job->cpuSliceMs = get_cpu_slice(pTable.priority);
@@ -121,7 +121,7 @@ struct queue_job* init_job(struct taskStruct pTable)
     return job;
 }
 
-void dealloc_job(struct queue_job* job)
+void dealloc_job(struct QueueJob* job)
 {
     delete job;
     DEBUG_MSG(__func__, "deallocated job");
@@ -130,9 +130,9 @@ void dealloc_job(struct queue_job* job)
 void *sched_task(void *ptr)
 {
     struct ThreadPool* threadPoolHead = (struct ThreadPool*)ptr;
-    struct thread_queue* queue;
-    struct taskStruct proc;
-    struct queue_job* job;
+    struct ThreadQueue* queue;
+    TaskData proc;
+    struct QueueJob* job;
     int i, j, qSlots;
 
     if(threadPoolHead == NULL){
@@ -140,7 +140,7 @@ void *sched_task(void *ptr)
         return 0;
     }
 
-    while(!sched_should_stop)
+    while(!schedulerShouldStop)
     {
         qSlots = get_total_empty_slots();
         for(j = 0; j < qSlots; j++)
@@ -179,9 +179,9 @@ void *sched_task(void *ptr)
 
 void *thread_task(void *ptr)
 {
-    struct thread_queue *queue = (thread_queue*)ptr;
-    struct queue_job *job;
-    struct job_timer *timer;
+    struct ThreadQueue *queue = (ThreadQueue*)ptr;
+    struct QueueJob *job;
+    struct JobTimer *timer;
     int head = 0;
     bool done;
 
@@ -234,7 +234,7 @@ void *thread_task(void *ptr)
 int init_sched(struct ThreadPool *thread, std::uint8_t max_thread)
 {
     pthread_t sched_thread, *task_thread;
-    struct thread_queue *queue;
+    struct ThreadQueue *queue;
     struct ThreadPool* threadPoolHead;
     int i,j, ret, pid;
 
@@ -242,7 +242,7 @@ int init_sched(struct ThreadPool *thread, std::uint8_t max_thread)
     for(i = 0; i < allocatedThreads; i++)
     {
         task_thread = new pthread_t;
-        queue = new thread_queue;
+        queue = new ThreadQueue;
         if(queue == NULL){
             DEBUG_ERR(__func__,"queue alloc failed");
             return EXIT_FAILURE;
@@ -267,7 +267,7 @@ int init_sched(struct ThreadPool *thread, std::uint8_t max_thread)
 
 void exit_sched(void)
 {
-    struct thread_queue *queue;
+    struct ThreadQueue *queue;
     int i;
 
     //wait for already queued tasks to complete and empty
@@ -282,6 +282,6 @@ void exit_sched(void)
             sem_destroy(&queue->threadResource);
             delete queue;
         }
-        sched_should_stop = 1;
+        schedulerShouldStop = 1;
     }
 }
