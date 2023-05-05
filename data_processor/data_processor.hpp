@@ -1,7 +1,7 @@
 #ifndef DATA_PROC_H
 #define DATA_PROC_H
-#include "include/process.hpp"
-#include "thread_pool.hpp"
+#include "../include/process.hpp"
+#include "../scheduler/thread_pool.hpp"
 
 struct DataProcessContainer{
     std::string *colHeaders;

@@ -2,17 +2,17 @@
 #include <string>
 #include <algorithm>
 #include <vector>
-#include "algorithm/algo.hpp"
-#include "algorithm/instance.hpp"
-#include "instance/instance_list.hpp"
+#include "../instance/instance_list.hpp"
+#include "../include/packet.hpp"
+#include "../include/process.hpp"
+#include "../include/debug_rp.hpp"
+#include "../include/task.hpp"
+#include "../include/flag.h"
+#include "../sql_access.hpp"
+#include "../algorithm/algo.hpp"
+#include "../algorithm/instance.hpp"
+#include "../sender_proc/sender.hpp"
 #include "data_processor.hpp"
-#include "sql_access.hpp"
-#include "include/packet.hpp"
-#include "include/process.hpp"
-#include "include/debug_rp.hpp"
-#include "include/task.hpp"
-#include "include/flag.h"
-#include "sender_proc/sender.hpp"
 
 class InstanceData {
         Instance instance;
