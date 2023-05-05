@@ -80,6 +80,11 @@ json create_packet(struct fwd_stack_bundle item)
     {
         case RECV_ERR:
             packet["body"]["id"] = item.tableID.c_str();
+            packet["body"]["data"] = item.data.c_str();
+            break;
+        case DAT_RECVD:
+            packet["body"]["id"] = item.tableID.c_str();
+            packet["body"]["priority"] = item.priority;
             break;
         case INTR_SEND:
         case FRES_SEND:
