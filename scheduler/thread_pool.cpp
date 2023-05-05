@@ -29,7 +29,7 @@ int get_starve_limit(int prior)
  * process is pushed back until we hit a non starved process, and then inserted.
  */
 int insert_node(struct thread_pool* threadPoolHead, 
-                struct taskStruct* procTable)
+                TaskData* procTable)
 {
     struct thread_pool_node *node, *curHead, *shiftNode;
     
@@ -120,10 +120,10 @@ void delete_node(struct thread_pool* threadPoolHead)
  * is pushed into the thread_pool.
  * In case of failure it returns EXIT_FAILURE macro else 0.
  */
-int scheduleTask(struct thread_pool *threadPoolHead, struct process *newProc, 
+int scheduleTask(struct thread_pool *threadPoolHead, ProcessStates *newProc, 
                 void *args, int prior)
 {
-    struct taskStruct *newProcTab;
+    TaskData *newProcTab;
     int rc = 0;
     
     if(newProc == NULL || args == NULL){
@@ -132,7 +132,7 @@ int scheduleTask(struct thread_pool *threadPoolHead, struct process *newProc,
     if(newProc->start_proc == NULL || newProc->end_proc == NULL)
         return EXIT_FAILURE;
 
-    newProcTab = new taskStruct;
+    newProcTab = new TaskData;
     newProcTab->proc = newProc;
     newProcTab->args = args;
     newProcTab->priority = prior;
@@ -145,9 +145,9 @@ int scheduleTask(struct thread_pool *threadPoolHead, struct process *newProc,
     return rc;
 }
 
-taskStruct thread_pool_pop(struct thread_pool* threadPoolHead)
+TaskData thread_pool_pop(struct thread_pool* threadPoolHead)
 {   
-    taskStruct temp; 
+    TaskData temp; 
     struct thread_pool_node *tempHead;
     
     if(!threadPoolHead->headNode){
