@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "../include/packet.hpp"
 #include "../include/debug_rp.hpp"
 #include "../include/debug_rp.hpp"
@@ -27,7 +28,8 @@ compute_packet_status getPacketHead(packet_code status)
 {
     switch(status)
     {
-        case RECV_ERR: 
+        case RECV_ERR:
+        case DAT_ERR: //TO-DO: not yet deceided how to handle this case
             //packet was corrupt on arrival
             return P_ERR;
         case DAT_RECVD: 
@@ -98,7 +100,7 @@ json create_packet(struct fwd_stack_bundle item)
             quickSendMode.resetFlag();
     }
     
-    DEBUG_MSG(__func__, "packet created body: ", packet.dump(), " status code: ", statusCode);
+    //DEBUG_MSG(__func__, "packet created body: ", packet.dump(), " status code: ", statusCode);
 
     return packet;
 }
@@ -125,8 +127,8 @@ json getPacket(void)
                 packet = create_packet(fwdStack.popForwardStack());
             }
         } else {
-        DEBUG_MSG(__func__, "initial handshake packet");
-        packet["head"] = P_HANDSHAKE;
+            DEBUG_MSG(__func__, "initial handshake packet");
+            packet["head"] = P_HANDSHAKE;
             packet["id"] = "";
             initSender.setFlag();
         }
