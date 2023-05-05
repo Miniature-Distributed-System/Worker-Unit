@@ -170,7 +170,7 @@ int dataProcessor::initlize()
         return -1;
     }
 
-    instanceData = new InstanceData(instance, tData->metadata->cols, tData->tableID);
+    instanceData = new InstanceData(instance, tData->metadata->columns, tData->tableID);
     if(instanceData->initlizeData()){
         errorString = instanceData->getErrorString();
         return -1;
@@ -230,7 +230,7 @@ std::string dataProcessor::cleanData(std::string feild)
 std::string dataProcessor::buildUpdateCmd(std::string *newFeilds)
 {
     std::string updateCmd = "UPDATE " + tData->tableID + " SET ";
-    int cols = tData->metadata->cols;
+    int cols = tData->metadata->columns;
 
     for(int i = 0; i < cols; i++){
         updateCmd += colHeaders[i] + "='" + newFeilds[i] + "'";
@@ -248,7 +248,7 @@ std::string dataProcessor::buildUpdateCmd(std::string *newFeilds)
 */
 int dataProcessor::processSql(std::string *feild)
 {
-    int i, cols = tData->metadata->cols;
+    int i, cols = tData->metadata->columns;
     std::string* temp = new std::string[cols];
     std::string sqlUpdateCmd;
     bool modified = false;
@@ -272,7 +272,7 @@ int dataProcessor::processSql(std::string *feild)
 void dataProcessor::buildSelectCmd()
 {
     selectCmd = "SELECT ID,";
-    int i, cols = tData->metadata->cols;
+    int i, cols = tData->metadata->columns;
 
     for(i = 0; i < cols; i++){
         selectCmd += colHeaders[i] + ',';
@@ -332,7 +332,7 @@ JobStatus process_data_start(void *data)
         rc = dataProc->deleteDuplicateRecords();
         if(rc){
             DEBUG_MSG(__func__,"All duplicate data deleted");
-            tData->metadata->curCol = 0;
+            tData->metadata->currentColumn = 0;
             return JOB_DONE;
         }
     } else {

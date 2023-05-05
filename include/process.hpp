@@ -22,9 +22,9 @@ struct TaskData {
 
 struct TableMetadata {
     std::uint64_t rows;
-    std::uint64_t cols;
-    std::uint64_t curRow;
-    std::uint64_t curCol;
+    std::uint64_t columns;
+    std::uint64_t currentRow;
+    std::uint64_t currentColumn;
 };
 
 struct TableData {
@@ -37,10 +37,10 @@ struct TableData {
 
     TableData(std::uint64_t row, std::uint64_t col){
         metadata = new TableMetadata;
-        metadata->cols = col;
+        metadata->columns = col;
         metadata->rows = row;
-        metadata->curCol = 0;
-        metadata->curRow = 0;
+        metadata->currentColumn = 0;
+        metadata->currentRow = 0;
     }
 
     ~TableData(){
