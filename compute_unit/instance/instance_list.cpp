@@ -43,7 +43,7 @@ std::string DataBaseInstanceList::addInstance(std::string instanceName)
             if(iteratorInstanceModel->scheduledToDelete.isFlagSet()) continue;
             if(iteratorInstanceModel->referenceCount == 0){
                 deleteInstanceModel(iteratorInstanceModel);
-                instanceList.erase(i);
+                instanceList.erase(i--);
             } else {
                 iteratorInstanceModel->scheduledToDelete.setFlag();
                 DEBUG_MSG(__func__,"Table with alias:", iteratorInstanceModel->aliasName, " is scheduled for deletion");
