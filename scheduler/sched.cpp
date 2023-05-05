@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <bits/stdc++.h>
 #include "sched.hpp"
-#include "include/process.hpp"
-#include "include/debug_rp.hpp"
+#include "../include/process.hpp"
+#include "../include/debug_rp.hpp"
 
 //this var needs refactor should make it local scope
 std::uint8_t allocatedThreads;

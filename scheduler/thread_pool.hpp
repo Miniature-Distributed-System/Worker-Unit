@@ -3,7 +3,7 @@
 #include <semaphore.h>
 #include <cstdint>
 
-#include "include/process.hpp"
+#include "../include/process.hpp"
 
 //change this later lol
 #define MAX_POOL_SIZE 10

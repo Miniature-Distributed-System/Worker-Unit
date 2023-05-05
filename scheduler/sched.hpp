@@ -1,8 +1,8 @@
 #ifndef SCHED_H
 #define SCHED_H
 #include <semaphore.h>
-#include "include/task.hpp"
-#include "thread_pool.hpp"
+#include "../include/task.hpp"
+#include "../thread_pool.hpp"
 
 #define QUEUE_SIZE 4
 #define MAX_THREAD 10
