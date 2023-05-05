@@ -12,8 +12,9 @@ std::string computeID;
 pthread_t wsClientThread;
 Flag quickSendMode;
 Flag seizeMode;
-Flag fastSendMode;
+Flag inQSMode;
 Flag wsLock;
+Flag initSender;
 
 struct SocketContainer {
     json packet;
@@ -27,10 +28,20 @@ void *launch_client_socket(void *data)
 {
     SocketContainer *socketContainer = (SocketContainer*)data;
     //validate the received packets and process them
+    DEBUG_MSG(__func__, "normal mode connection: packet: ", socketContainer->packet);
     init_receiver(socketContainer->soc->thread, ws_client_launch(socketContainer->soc, socketContainer->packet));
-    if(!quickSendMode.isFlagSet())
-        fastSendMode.resetFlag();
     wsLock.resetFlag();
+    return 0;
+}
+
+void *launch_client_socket_QS(void *data)
+{
+    SocketContainer *socketContainer = (SocketContainer*)data;
+    //validate the received packets and process them
+    DEBUG_MSG(__func__, "quick send mode connection: packet:", socketContainer->packet);
+    init_receiver(socketContainer->soc->thread, ws_client_launch(socketContainer->soc, socketContainer->packet));
+    inQSMode.resetFlag();
+    DEBUG_MSG(__func__, "exited quicksend mode");
     return 0;
 }
 
@@ -51,21 +62,23 @@ void* socket_task(void *data)
             wsLock.setFlag(); 
             packet = getPacket();
             container->packet = packet;
-            DEBUG_MSG(__func__, "packet:",  container->packet.dump());
             //create thread and wait for results
             pthread_create(&wsClientThread, NULL, launch_client_socket, container);
         }
-        else if(quickSendMode.isFlagSet() && !fastSendMode.isFlagSet())
+        else if(quickSendMode.isFlagSet() && !inQSMode.isFlagSet())
         {
-            fastSendMode.setFlag();
+            inQSMode.setFlag();
             packet = getPacket();
+            // This thread should not lock in any case
+            int head = packet["head"];
+            head |= P_QSEND;
+            packet["head"] = head;
             quickModeContainer->packet = packet;
-            packet["id"] = "quick send";
-            DEBUG_MSG(__func__, "quick mode packet:",  quickModeContainer->packet.dump());
-            //create thread and wait for results
-            pthread_create(&wsClientThread, NULL, launch_client_socket, quickModeContainer);
+            //DEBUG_MSG(__func__, "quick mode packet:",  quickModeContainer->packet.dump());
+            // create thread and wait for results
+            pthread_create(&wsClientThread, NULL, launch_client_socket_QS, quickModeContainer);
         }
-        sleep(2);
+        //sleep(2);
     }
     DEBUG_MSG(__func__, "Shutting down socket");
     return 0;
@@ -79,9 +92,10 @@ struct socket* init_socket(struct thread_pool *thread, std::string args[])
     std::string port = args[1];
 
     wsLock.initFlag();
-    fastSendMode.initFlag();
+    inQSMode.initFlag();
     quickSendMode.initFlag();
     seizeMode.initFlag();
+    initSender.initFlag();
     soc->thread = thread;
     soc->hostname = hostname;
     soc->port = port;
