@@ -3,7 +3,7 @@
 #include "base_class.hpp"
 #include "../sql_access.hpp"
 
-class candidateElimination : public Base {
+class CandidateElimination : public Base {
     private:
         int cols;
         static const int ValidationCols = 3;
@@ -30,8 +30,8 @@ class candidateElimination : public Base {
 
     public:
         //DatabaseAccess *dataBaseAccess;
-        candidateElimination(){};
-        candidateElimination(int n);
+        CandidateElimination(){};
+        CandidateElimination(int n);
         void compare(std::string *input);
         std::string getS();
         std::string getG();

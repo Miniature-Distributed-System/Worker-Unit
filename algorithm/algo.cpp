@@ -7,7 +7,7 @@
 
 InstanceList globalInstanceList;
 
-int sched_algo(struct thread_pool *thread, TableData *tData)
+int sched_algo(struct ThreadPool *thread, TableData *tData)
 {
     ProcessStates* proc;
     short algoIndex;

@@ -12,7 +12,7 @@
 #include "../include/packet.hpp"
 #include "cand_elim.hpp"
 
-candidateElimination::candidateElimination(int n)
+CandidateElimination::CandidateElimination(int n)
 {
     cols = n - 2;
     targetCol = n - 1;
@@ -27,7 +27,7 @@ candidateElimination::candidateElimination(int n)
     // dataBaseAccess->initDatabase();
 }
 
-void candidateElimination::compare(std::string *input)
+void CandidateElimination::compare(std::string *input)
 {
     int i;
     
@@ -56,7 +56,7 @@ void candidateElimination::compare(std::string *input)
     }
 }
 
-std::string candidateElimination::getS()
+std::string CandidateElimination::getS()
 {
     int i;
     std::string finalStr;
@@ -70,7 +70,7 @@ std::string candidateElimination::getS()
     return finalStr;
 }
 
-std::string candidateElimination::getG()
+std::string CandidateElimination::getG()
 {
     int i;
     std::string finalStr;
@@ -84,7 +84,7 @@ std::string candidateElimination::getG()
     return finalStr;
 }
 
-std::string *candidateElimination::getValidationRow(int row)
+std::string *CandidateElimination::getValidationRow(int row)
 {
     std::string *temp = new std::string[3];
     for(int i = 0; i < 3; i++){
@@ -96,7 +96,7 @@ std::string *candidateElimination::getValidationRow(int row)
 JobStatus candidate_elimination_start(void *data)
 {
     TableData* tData = (TableData*)data;
-    candidateElimination *ce = (candidateElimination*)tData->args;
+    CandidateElimination *ce = (CandidateElimination*)tData->args;
     std::string *feild;
     
     if(tData->metadata->currentRow >= tData->metadata->rows)
@@ -116,7 +116,7 @@ JobStatus candidate_elimination_pause(void *data){
 JobStatus candidate_elimination_end(void *data, JobStatus status)
 {
     TableData* tData = (TableData*)data;
-    candidateElimination *ce = (candidateElimination*)tData->args;
+    CandidateElimination *ce = (CandidateElimination*)tData->args;
     std::string s = ce->getS();
     std::string g = ce->getG();
     std::string final = s + "\n" + g;
@@ -139,7 +139,7 @@ struct ProcessStates *ce_algorithm = new ProcessStates{
 
 ProcessStates* init_ce_algorithm(TableData* tData)
 {
-    candidateElimination *ce = new candidateElimination(tData->metadata->columns);
+    CandidateElimination *ce = new CandidateElimination(tData->metadata->columns);
     tData->args = ce;
     return ce_algorithm;
 }

@@ -9,7 +9,7 @@
 //bound to change once build root is made
 #define TOT_ALGO 2
 
-int sched_algo(thread_pool* threadPool,TableData* tableData);
+int sched_algo(ThreadPool* threadPool,TableData* tableData);
 void dealloc_table_dat(TableData *tData);
 
 //add function prototypes below this
@@ -29,6 +29,6 @@ template <class X> Base* make() {
 
 static BaseMaker* makers[TOT_ALGO] = { 
     make<example>, 
-    make<candidateElimination> 
+    make<CandidateElimination> 
 };
 #endif
