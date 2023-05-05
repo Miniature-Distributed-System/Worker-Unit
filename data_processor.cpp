@@ -127,7 +127,7 @@ class dataProcessor{
         //DatabaseAccess *dataBaseAccess;
         
         dataProcessor(struct thread_pool* ,
-                        struct data_proc_container *);
+                        struct DataProcessContainer *);
         ~dataProcessor();
         int initlize();
         int processSql(std::string *);
@@ -141,7 +141,7 @@ class dataProcessor{
 };
 
 dataProcessor::dataProcessor(struct thread_pool* thread,
-                struct data_proc_container *container)
+                struct DataProcessContainer *container)
 {
     this->tData = container->tData;
     this->thread = thread;
@@ -386,7 +386,7 @@ struct process* data_proc = new process {
 };
 
 int init_data_processor(struct thread_pool* thread,
-                struct data_proc_container* container)
+                struct DataProcessContainer* container)
 {
     dataProcessor *dpContainer = new dataProcessor(thread, container);
     if(!thread) DEBUG_ERR(__func__, "error1");
