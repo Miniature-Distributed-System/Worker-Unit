@@ -8,7 +8,7 @@
 #include "../sql_access.hpp"
 #include <unistd.h>
 
-struct thread_pool *thread;
+struct ThreadPool *thread;
 
 //Dead functions for test compilation purposes
 int send_packet(std::string data, std::string tableID, int statusCode)

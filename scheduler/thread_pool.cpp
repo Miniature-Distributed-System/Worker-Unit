@@ -28,10 +28,10 @@ int get_starve_limit(int prior)
  * If next process is found be starved longer than its limit the higher prioriy
  * process is pushed back until we hit a non starved process, and then inserted.
  */
-int insert_node(struct thread_pool* threadPoolHead, 
+int insert_node(struct ThreadPool* threadPoolHead, 
                 TaskData* procTable)
 {
-    struct thread_pool_node *node, *curHead, *shiftNode;
+    struct ThreadPoolNode *node, *curHead, *shiftNode;
     
     sem_wait(&threadPoolHead->threadPool_mutex);
     if(threadPoolHead->threadPoolCount >= MAX_POOL_SIZE){
@@ -40,7 +40,7 @@ int insert_node(struct thread_pool* threadPoolHead,
         return EXIT_FAILURE;
     }
 
-    node = new thread_pool_node;
+    node = new ThreadPoolNode;
     node->pData = procTable;
     node->next = NULL;
     curHead = threadPoolHead->headNode;
@@ -90,9 +90,9 @@ int insert_node(struct thread_pool* threadPoolHead,
     return 0;
 }
 
-void delete_node(struct thread_pool* threadPoolHead)
+void delete_node(struct ThreadPool* threadPoolHead)
 {
-    struct thread_pool_node *curHead, *nextHead;
+    struct ThreadPoolNode *curHead, *nextHead;
 
     sem_wait(&threadPoolHead->threadPool_mutex);
     //This condition should always be false if its true we fucked up somewhere
@@ -120,7 +120,7 @@ void delete_node(struct thread_pool* threadPoolHead)
  * is pushed into the thread_pool.
  * In case of failure it returns EXIT_FAILURE macro else 0.
  */
-int scheduleTask(struct thread_pool *threadPoolHead, ProcessStates *newProc, 
+int scheduleTask(struct ThreadPool *threadPoolHead, ProcessStates *newProc, 
                 void *args, int prior)
 {
     TaskData *newProcTab;
@@ -145,10 +145,10 @@ int scheduleTask(struct thread_pool *threadPoolHead, ProcessStates *newProc,
     return rc;
 }
 
-TaskData thread_pool_pop(struct thread_pool* threadPoolHead)
+TaskData thread_pool_pop(struct ThreadPool* threadPoolHead)
 {   
     TaskData temp; 
-    struct thread_pool_node *tempHead;
+    struct ThreadPoolNode *tempHead;
     
     if(!threadPoolHead->headNode){
         DEBUG_ERR(__func__, "list is empty");
@@ -168,9 +168,9 @@ TaskData thread_pool_pop(struct thread_pool* threadPoolHead)
     return temp;
 }
 
-struct thread_pool* init_thread_pool()
+struct ThreadPool* init_thread_pool()
 {
-    struct thread_pool* threadPoolHead = new thread_pool;
+    struct ThreadPool* threadPoolHead = new ThreadPool;
 
     if(!threadPoolHead){
         DEBUG_ERR(__func__,"Failed to alloc thread pool memory");
@@ -184,8 +184,8 @@ struct thread_pool* init_thread_pool()
     return threadPoolHead;
 }
 
-void exit_thread_pool(struct thread_pool* threadPoolHead){
-    struct thread_pool_node *temp, *temp_head;
+void exit_thread_pool(struct ThreadPool* threadPoolHead){
+    struct ThreadPoolNode *temp, *temp_head;
 
     /* send the seize packet which will let server know that node is about to 
        shutdown and no more csv data should be sent to node for processing. */

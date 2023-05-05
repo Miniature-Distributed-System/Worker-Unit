@@ -43,6 +43,6 @@ struct thread_queue {
 extern struct thread_queue *list[MAX_THREAD];
 extern std::uint8_t allocatedThreads;
 extern bool sched_should_stop;
-int init_sched(struct thread_pool *, std::uint8_t);
+int init_sched(struct ThreadPool *, std::uint8_t);
 void exit_sched(void);
 #endif

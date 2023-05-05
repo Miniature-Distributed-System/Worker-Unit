@@ -13,6 +13,6 @@ struct DataProcessContainer{
 };
 
 int processData(struct TableData *);
-int init_data_processor(struct thread_pool* thread,
+int init_data_processor(struct ThreadPool* thread,
                 struct DataProcessContainer* container);
 #endif

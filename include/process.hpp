@@ -48,7 +48,7 @@ struct TableData {
     }
 };
 
-int scheduleTask(struct thread_pool *thread, struct ProcessStates* proc, 
+int scheduleTask(struct ThreadPool *thread, struct ProcessStates* proc, 
                 void *args, int priority);
 
 #endif

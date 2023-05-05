@@ -4,5 +4,5 @@
 #include "../sender_proc/sender.hpp"
 #include "../scheduler/thread_pool.hpp"
 
-int init_receiver(struct thread_pool*, json);
+int init_receiver(struct ThreadPool*, json);
 #endif

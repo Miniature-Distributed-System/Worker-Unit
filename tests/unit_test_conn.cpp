@@ -6,7 +6,7 @@
 #include "../scheduler/sched.hpp"
 #include "../sql_access.hpp"
 
-struct thread_pool *thread;
+struct ThreadPool *thread;
 struct datContainer{
     struct process *newProc;
     void *args;
@@ -19,7 +19,7 @@ void* proc(void *data)
     newDat->newProc->end_proc(newDat->args);
 }
 
-int sched_task(struct thread_pool *threadPoolHead, struct process *newProc, 
+int sched_task(struct ThreadPool *threadPoolHead, struct process *newProc, 
                 void *args, int prior)
 {
     pthread_t pthread;
@@ -29,13 +29,13 @@ int sched_task(struct thread_pool *threadPoolHead, struct process *newProc,
     pthread_create(&pthread,NULL, proc, newDat);
     return 0;
 }
-int sched_algo(struct thread_pool* threadPool, struct table *tData)
+int sched_algo(struct ThreadPool* threadPool, struct table *tData)
 {
     DEBUG_MSG(__func__, "algorithm scheduled");
     return 0;
 }
 
-int init_data_processor(struct thread_pool* thread,
+int init_data_processor(struct ThreadPool* thread,
                 struct data_proc_container* container){
     return 0;
 }

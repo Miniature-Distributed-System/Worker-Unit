@@ -18,7 +18,7 @@ DataBaseInstanceList instanceList;
 
 int main()
 {
-    struct thread_pool *thread;
+    struct ThreadPool *thread;
     struct socket *soc;
     std::string net[2] = {"0.0.0.0", "8080"};
     std::string hostname, port;

@@ -11,13 +11,13 @@
 #define PRIOR_2_STRVLMT 6
 #define PRIOR_3_STRVLMT 8
 
-struct thread_pool_node {
+struct ThreadPoolNode {
     struct TaskData *pData;
-    struct thread_pool_node *next;
+    struct ThreadPoolNode *next;
 };
 
-struct thread_pool {
-    struct thread_pool_node *headNode;
+struct ThreadPool {
+    struct ThreadPoolNode *headNode;
     std::uint8_t threadPoolCount;
     sem_t threadPool_mutex;
 };
@@ -30,7 +30,7 @@ class ThreadStructExport {
         TaskData& operator*(){ return *thread; } 
 };
 
-struct thread_pool* init_thread_pool();
-void exit_thread_pool(struct thread_pool*);
-TaskData thread_pool_pop(struct thread_pool*);
+ThreadPool* init_thread_pool();
+void exit_thread_pool(struct ThreadPool*);
+TaskData thread_pool_pop(struct ThreadPool*);
 #endif

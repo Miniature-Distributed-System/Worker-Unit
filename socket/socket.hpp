@@ -12,13 +12,13 @@ extern Flag seizeMode;
 extern Flag initSender;
 
 struct socket{
-    struct thread_pool *thread;
+    struct ThreadPool *thread;
     std::string port;
     std::string hostname;
     bool socketShouldStop;
 };
 
-struct socket* init_socket(struct thread_pool *, std::string *);
+struct socket* init_socket(struct ThreadPool *, std::string *);
 void exit_socket(struct socket *soc);
 
 #endif

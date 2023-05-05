@@ -129,7 +129,7 @@ void dealloc_job(struct queue_job* job)
 
 void *sched_task(void *ptr)
 {
-    struct thread_pool* threadPoolHead = (struct thread_pool*)ptr;
+    struct ThreadPool* threadPoolHead = (struct ThreadPool*)ptr;
     struct thread_queue* queue;
     struct taskStruct proc;
     struct queue_job* job;
@@ -231,11 +231,11 @@ void *thread_task(void *ptr)
     return 0;
 }
 
-int init_sched(struct thread_pool *thread, std::uint8_t max_thread)
+int init_sched(struct ThreadPool *thread, std::uint8_t max_thread)
 {
     pthread_t sched_thread, *task_thread;
     struct thread_queue *queue;
-    struct thread_pool* threadPoolHead;
+    struct ThreadPool* threadPoolHead;
     int i,j, ret, pid;
 
     allocatedThreads = max_thread;

@@ -123,10 +123,10 @@ class dataProcessor{
         Flag dataCleanPhase;
         std::uint64_t curRow = 1;
         struct TableData *tData;
-        struct thread_pool *thread;
+        struct ThreadPool *thread;
         //DatabaseAccess *dataBaseAccess;
         
-        dataProcessor(struct thread_pool* ,
+        dataProcessor(struct ThreadPool* ,
                         struct DataProcessContainer *);
         ~dataProcessor();
         int initlize();
@@ -140,7 +140,7 @@ class dataProcessor{
 
 };
 
-dataProcessor::dataProcessor(struct thread_pool* thread,
+dataProcessor::dataProcessor(struct ThreadPool* thread,
                 struct DataProcessContainer *container)
 {
     this->tData = container->tData;
@@ -385,7 +385,7 @@ struct ProcessStates* data_proc = new ProcessStates {
     .end_proc = process_data_finalize
 };
 
-int init_data_processor(struct thread_pool* thread,
+int init_data_processor(struct ThreadPool* thread,
                 struct DataProcessContainer* container)
 {
     dataProcessor *dpContainer = new dataProcessor(thread, container);

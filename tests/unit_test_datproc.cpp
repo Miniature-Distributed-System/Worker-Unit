@@ -9,7 +9,7 @@
 #include "../include/debug_rp.hpp"
 #include "../include/task.hpp"
 
-int sched_task(struct thread_pool *threadPoolHead, struct process *newProc, 
+int sched_task(struct ThreadPool *threadPoolHead, struct process *newProc, 
                 void *args, int prior)
 {
    int ret = JOB_PENDING;
@@ -25,7 +25,7 @@ int send_packet(std::string data, std::string tableID, int statusCode)
     return 0;
 }
 
-int sched_algo(struct thread_pool *thread, struct table *tData)
+int sched_algo(struct ThreadPool *thread, struct table *tData)
 {
    return 0;
 }
@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 {
    struct data_proc_container* container = new data_proc_container;
    struct table *tData = new table;
-   struct thread_pool *thread;
+   struct ThreadPool *thread;
    int rc;
    
    init_db();
