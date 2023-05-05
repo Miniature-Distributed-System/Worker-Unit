@@ -84,7 +84,7 @@ void* socket_task(void *data)
     return 0;
 }
 
-struct socket* init_socket(struct thread_pool *thread, std::string args[])
+struct socket* init_socket(ThreadPool *thread, std::string args[])
 {
     pthread_t socketThread;
     struct socket* soc = new socket;
