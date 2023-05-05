@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "algo.hpp"
 #include "instance.hpp"
-#include "../data_processor.hpp"
+#include "../data_processor/data_processor.hpp"
 #include "../include/process.hpp"
 #include "../include/debug_rp.hpp"
 
