@@ -2,7 +2,7 @@
 #define RECV_PORT_H_
 #include <iostream>
 #include "../sender_proc/sender.hpp"
-#include "../thread_pool.hpp"
+#include "../scheduler/thread_pool.hpp"
 
 int init_receiver(struct thread_pool*, json);
 #endif

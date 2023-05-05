@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include <cassert>
-#include "thread_pool.hpp"
-#include "sched.hpp"
+#include "scheduer/thread_pool.hpp"
+#include "scheduler/sched.hpp"
 #include "sql_access.hpp"
 #include "socket/socket.hpp"
 #include "instance/instance_list.hpp"

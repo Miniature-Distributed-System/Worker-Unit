@@ -1,7 +1,7 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 #include <iostream>
-#include "../thread_pool.hpp"
+#include "../scheduler/thread_pool.hpp"
 #include "../include/flag.h"
 
 extern pthread_cond_t socket_cond;

@@ -5,9 +5,9 @@
 #include "../sql_access.hpp"
 #include "../data_processor.hpp"
 #include "../algorithm/algo.hpp"
-#include "../thread_pool.hpp"
+#include "../scheduler/thread_pool.hpp"
 #include "../include/debug_rp.hpp"
-#include "../include/task.h"
+#include "../include/task.hpp"
 
 int sched_task(struct thread_pool *threadPoolHead, struct process *newProc, 
                 void *args, int prior)

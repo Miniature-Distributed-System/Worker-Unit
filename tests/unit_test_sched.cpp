@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include "../include/debug_rp.hpp"
-#include "../sched.hpp"
+#include "../scheduler/sched.hpp"
 #include "../include/process.hpp"
 #include "../algorithm/algo.hpp"
 #include "../data_processor.hpp"

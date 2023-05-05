@@ -2,8 +2,8 @@
 #include "../socket/socket.hpp"
 #include "../include/process.hpp"
 #include "../include/debug_rp.hpp"
-#include "../thread_pool.hpp"
-#include "../sched.hpp"
+#include "../scheduler/thread_pool.hpp"
+#include "../scheduler/sched.hpp"
 #include "../sql_access.hpp"
 
 struct thread_pool *thread;
