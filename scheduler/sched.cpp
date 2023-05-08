@@ -14,7 +14,7 @@ bool schedulerShouldStop = 0;
 pthread_cond_t  cond  = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-int get_cpu_slice(int prior)
+int get_cpu_slice(TaskPriority prior)
 {   
     int rc;
     switch(prior)

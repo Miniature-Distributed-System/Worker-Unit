@@ -12,7 +12,7 @@ struct ProcessStates {
 struct TaskData {
     struct ProcessStates *proc;
     void *args;
-    std::uint8_t priority;
+    TaskPriority priority;
     std::uint16_t starveCounter;
     TaskData(){
         proc = NULL;
@@ -49,6 +49,6 @@ struct TableData {
 };
 
 int scheduleTask(struct ThreadPool *thread, struct ProcessStates* proc, 
-                void *args, int priority);
+                void *args, TaskPriority priority);
 
 #endif
