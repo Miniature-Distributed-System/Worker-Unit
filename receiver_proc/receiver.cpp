@@ -275,6 +275,6 @@ int init_receiver(struct ThreadPool* thread, json pkt)
 
     //DEBUG_MSG(__func__, "init receiver");
     //Schedule the receiver task on the task pool
-    scheduleTask(thread, receiver_proc, (void*)recv, 0);
+    scheduleTask(thread, receiver_proc, (void*)recv, HIGH_PRIORITY);
     return 0;
 }
