@@ -9,10 +9,12 @@ enum JobStatus {
 };
 
 enum TaskPriority {
-    HIGH_PRIORITY = 0,
+    NON_PREEMTABLE = 0,
+    HIGH_PRIORITY,
     MEDIUM_PRIORITY,
     LOW_PRIORITY,
     DEFAULT_PRIORITY = LOW_PRIORITY,
+    NR_TASK_PRIORITY = DEFAULT_PRIORITY,
 };
 
 #endif
