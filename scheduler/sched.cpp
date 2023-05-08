@@ -14,15 +14,20 @@ bool schedulerShouldStop = 0;
 pthread_cond_t  cond  = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
+#define HIGH_PRIORITY_TASK_TIMESLICE_MUL 6
+#define MEDIUM_PRIORITY_TASK_TIMESLICE_MUL 4
+#define LOW_PRIORITY_TASK_TIMESLICE 2
+
 int get_cpu_slice(TaskPriority prior)
 {   
     int rc;
     switch(prior)
     {
-        case 0: rc = 0;break;
-        case 1: rc = 6 * NANOSECS;break;
-        case 2: rc = 4 * NANOSECS;break;
-        case 3: rc = 2 * NANOSECS;break;
+        case NON_PREEMTABLE: rc = 0;break;
+        case HIGH_PRIORITY: rc = HIGH_PRIORITY_TASK_TIMESLICE_MUL * NANOSECS;break;
+        case MEDIUM_PRIORITY: rc = MEDIUM_PRIORITY_TASK_TIMESLICE_MUL * NANOSECS;break;
+        case LOW_PRIORITY: 
+        default: rc = LOW_PRIORITY_TASK_TIMESLICE * NANOSECS;break;
     }
     return rc;
 }
