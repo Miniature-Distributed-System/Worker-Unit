@@ -3,7 +3,7 @@
 #include "../instance/instance_list.hpp"
 #include "../socket/socket.hpp"
 #include "../services/sqlite_database_access.hpp"
-#include "../algorithm/instance.hpp"
+#include "../instance/instance.hpp"
 #include "../data_processor/data_processor.hpp"
 #include "../include/packet.hpp"
 #include "../include/process.hpp"

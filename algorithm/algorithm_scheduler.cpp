@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "algorithm_scheduler.hpp"
-#include "instance.hpp"
+#include "../instance/instance.hpp"
 #include "../data_processor/data_processor.hpp"
 #include "../include/process.hpp"
 #include "../include/debug_rp.hpp"
