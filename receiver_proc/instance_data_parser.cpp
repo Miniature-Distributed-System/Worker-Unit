@@ -2,7 +2,7 @@
 #include "../algorithm/instance.hpp"
 #include "../instance/instance_list.hpp"
 #include "data_parser.hpp"
-#include "../sql_access.hpp"
+#include "../services/sqlite_database_access.hpp"
 
 int countColumns(std::string data){
     int i = -1;

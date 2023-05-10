@@ -2,9 +2,9 @@
 #include <cassert>
 #include "scheduler/thread_pool.hpp"
 #include "scheduler/sched.hpp"
-#include "sql_access.hpp"
 #include "socket/socket.hpp"
 #include "instance/instance_list.hpp"
+#include "services/sqlite_database_access.hpp"
 
 void menu(){
     std::cout << "\n=========Control Menu==========" << std::endl;
@@ -36,9 +36,9 @@ int main()
     }
     std::cout <<"Initing database..." << std::endl;
     assert(sqlite3_config(SQLITE_CONFIG_SERIALIZED) == SQLITE_OK);
-    dataBaseAccess = new DatabaseAccess();
-    dataBaseAccess->initDatabase();
-    std::cout << "Initing task pool..." << std::endl;
+    sqliteDatabaseAccess = new SqliteDatabaseAccess();
+    sqliteDatabaseAccess->initDatabase();
+    std::cout <<"Inited database" << std::endl;
     thread = init_thread_pool();
     std::cout << "Enter thread count (max:"<<MAX_THREAD - 1<<"): ";
     std::cin >> tNum;

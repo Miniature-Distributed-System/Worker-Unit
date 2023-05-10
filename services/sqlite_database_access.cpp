@@ -1,7 +1,7 @@
 #include <list>
-#include "sql_access.hpp"
-#include "include/debug_rp.hpp"
-#include "data_processor/data_processor.hpp"
+#include "sqlite_database_access.hpp"
+#include "../include/debug_rp.hpp"
+#include "../data_processor/data_processor.hpp"
 
 static int colNum;
 

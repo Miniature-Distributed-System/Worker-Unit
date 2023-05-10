@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <sqlite3.h>
 #include <iostream>
-#include "../sql_access.hpp"
+#include "../services/sqlite_database_access.hpp"
 #include "../data_processor/data_processor.hpp"
 #include "../algorithm/algo.hpp"
 #include "../scheduler/thread_pool.hpp"

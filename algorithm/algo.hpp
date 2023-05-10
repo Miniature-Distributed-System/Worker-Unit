@@ -1,7 +1,7 @@
 #ifndef ALGO_H
 #define ALGO_H
 #include <sqlite3.h>
-#include "../sql_access.hpp"
+#include "../services/sqlite_database_access.hpp"
 #include "../include/process.hpp"
 #include "cand_elim.hpp"
 #include "example.hpp"
