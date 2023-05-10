@@ -10,7 +10,7 @@
 #include "../include/flag.h"
 #include "../services/sqlite_database_access.hpp"
 #include "../services/file_database_access.hpp"
-#include "../algorithm/algo.hpp"
+#include "../algorithm/algorithm_scheduler.hpp"
 #include "../algorithm/instance.hpp"
 #include "../sender_proc/sender.hpp"
 #include "data_processor.hpp"

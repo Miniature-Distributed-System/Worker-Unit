@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <array>
-#include "algo.hpp"
+#include "algorithm_scheduler.hpp"
 #include "../include/process.hpp"
 #include "../include/task.hpp"
 #include "../sender_proc/sender.hpp"
