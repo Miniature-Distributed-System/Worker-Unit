@@ -3,7 +3,7 @@
 #include <sqlite3.h>
 #include "../services/sqlite_database_access.hpp"
 #include "../include/process.hpp"
-#include "cand_elim.hpp"
+#include "candidate_elemination.hpp"
 #include "example.hpp"
 
 //bound to change once build root is made

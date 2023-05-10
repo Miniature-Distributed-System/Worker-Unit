@@ -10,7 +10,7 @@
 #include "../instance/instance_list.hpp"
 //This needs nuking as dirs will change later
 #include "../include/packet.hpp"
-#include "cand_elim.hpp"
+#include "candidate_elemination.hpp"
 
 CandidateElimination::CandidateElimination(int columns, std::string tableName)
 {
