@@ -1,6 +1,5 @@
 #ifndef CE_ALGO_C
 #define CE_ALGO_C
-#include "base_class.hpp"
 #include "../services/sqlite_database_access.hpp"
 #include "../services/file_database_access.hpp"
 
