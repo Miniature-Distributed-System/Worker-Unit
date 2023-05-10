@@ -25,7 +25,7 @@ void deleteInstanceModel(InstanceModel *instanceModel)
 {
     std::string aliasName = instanceModel->aliasName;
     std::string dropTableQuery = "DROP TABLE " + aliasName + ";";
-    dataBaseAccess->writeValue(dropTableQuery.c_str());
+    sqliteDatabaseAccess->writeValue(dropTableQuery.c_str());
     delete instanceModel;
 
     DEBUG_MSG(__func__, "deallocated and delete instance model:", aliasName);

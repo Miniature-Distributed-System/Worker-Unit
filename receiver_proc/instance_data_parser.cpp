@@ -60,9 +60,9 @@ int InstanceDataParser::insertIntoTable(std::string data, int startIndex)
     end = start = startIndex;
     //construct table
     const char *sqlCmd = createTableQuery.c_str();
-    rc = dataBaseAccess->writeValue(sqlCmd);
+    rc = sqliteDatabaseAccess->writeValue(sqlCmd);
     if(rc != SQLITE_OK){
-        std::string *temp = dataBaseAccess->readValue(verifyTableQuery.c_str(), -1);
+        std::string *temp = sqliteDatabaseAccess->readValue(verifyTableQuery.c_str(), -1);
         if(temp == NULL){
             DEBUG_ERR(__func__, "Failed to insert table into database");
             return EXIT_FAILURE;
@@ -90,9 +90,9 @@ int InstanceDataParser::insertIntoTable(std::string data, int startIndex)
         tempInsert.append(");");
         //DEBUG_MSG(__func__, "constructed insert cmd:", tempInsert);
         const char *sqlInsert = tempInsert.c_str();
-        rc = dataBaseAccess->writeValue(sqlInsert);
+        rc = sqliteDatabaseAccess->writeValue(sqlInsert);
         if(rc != SQLITE_OK){
-            rc = dataBaseAccess->writeValue(sqlInsert);
+            rc = sqliteDatabaseAccess->writeValue(sqlInsert);
                 if(rc == SQLITE_OK){
                 rows++;
             }
@@ -112,7 +112,7 @@ void InstanceDataParser::dropTable()
     DEBUG_MSG(__func__, "dropping current table in database...");
     dropTableQuery = "DROP TABLE " + tableId + ";";
     //We don't give a knock is it fails as we are already failing at this point
-    dataBaseAccess->writeValue(dropTableQuery.c_str());
+    sqliteDatabaseAccess->writeValue(dropTableQuery.c_str());
 }
 
 void InstanceDataParser::constructInstanceObjects(std::uint8_t algoType)

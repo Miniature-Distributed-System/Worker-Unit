@@ -50,7 +50,7 @@ std::string* InstanceData::validateColumns()
     }
 
     std::string *result = new std::string[cols];
-    std::string *instanceColumnNames = dataBaseAccess->getColumnNames(instance.getId(), cols);
+    std::string *instanceColumnNames = sqliteDatabaseAccess->getColumnNames(instance.getId(), cols);
     std::vector<std::string> userTableColumnNames = fileDataBaseAccess->getColumnNamesList();
 
     if(instanceColumnNames == NULL || userTableColumnNames.size() == 0){
@@ -89,7 +89,7 @@ int InstanceData::initlizeData()
     for(int i = 0; i < instance.getTotalColumns(); i++){
         DEBUG_MSG(__func__, "TableId:", instance.getId(), " ColName:", columnNames[i]);
         //Any failures here would be unfortunate and not correctable
-        str = dataBaseAccess->getColumnValues(instance.getId(), columnNames[i], instance.getTotalRows());
+        str = sqliteDatabaseAccess->getColumnValues(instance.getId(), columnNames[i], instance.getTotalRows());
         instanceDataMatrix.push_back(str);
     }
 
@@ -243,7 +243,7 @@ int DataProcessor::processSql(std::vector<std::string> feildList)
 
 //     // if(selectCmd.empty())
 //     //     buildSelectCmd();
-//     // rowID = dataBaseAccess->readValue(selectCmd.c_str(), 0);
+//     // rowID = sqliteDatabaseAccess->readValue(selectCmd.c_str(), 0);
 //     // if(!rowID){
 //     //     DEBUG_ERR(__func__, "select command read error");
 //     //     return 0;
@@ -252,7 +252,7 @@ int DataProcessor::processSql(std::vector<std::string> feildList)
 //     // {
 //     //     //DEBUG_MSG(__func__, "cleaning up duplicate record ID:", *rowID);
 //     //     temp = deleteCmd + *rowID + ";";
-//     //     dataBaseAccess->writeValue(temp.c_str());
+//     //     sqliteDatabaseAccess->writeValue(temp.c_str());
 //     //     return 0;
 //     // }
 //     // else
@@ -296,7 +296,7 @@ JobStatus process_data_start(void *data)
             dataProc->curRow = 0;
         } else {
             feild = dataProc->fileDataBaseAccess->getRowValueList(dataProc->curRow);
-            //feild = dataBaseAccess->getRowValues(tData, dataProc->curRow);
+            //feild = sqliteDatabaseAccess->getRowValues(tData, dataProc->curRow);
             if(feild.size() > 0){
                 dataProc->processSql(feild);
                 dataProc->curRow++;
@@ -324,7 +324,7 @@ JobStatus process_data_finalize(void *data, JobStatus status)
     getCleanedTable = dataProc->fileDataBaseAccess->getBlob();
     DEBUG_MSG(__func__, getCleanedTable);
     //std::replace(getCleanedTable.begin(), getCleanedTable.end(), ';', '\n');
-    //delete dataBaseAccess;
+    //delete sqliteDatabaseAccess;
     //getCleanedTable = sql_read(selectAll.c_str(), -1);
     send_packet(getCleanedTable, tData->tableID, INTR_SEND, tData->priority);
     //Schedule the algorithm to process our cleaned data

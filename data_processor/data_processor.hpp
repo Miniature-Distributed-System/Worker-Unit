@@ -5,14 +5,11 @@
 
 struct DataProcessContainer{
     std::string *colHeaders;
-    struct TableData* tData;
-    DataProcessContainer(std::string *colHeaders, TableData* tData){
-        this->colHeaders = colHeaders;
-        this->tData = tData;
-    }
+    TableData* tData;
+    DataProcessContainer(){};
+    DataProcessContainer(std::string *colHeaders, TableData* tData) : colHeaders(colHeaders), tData(tData) {};
 };
 
-int processData(struct TableData *);
-int init_data_processor(struct ThreadPool* thread,
-                struct DataProcessContainer* container);
+int processData(TableData *);
+int init_data_processor(ThreadPool* thread, DataProcessContainer container);
 #endif

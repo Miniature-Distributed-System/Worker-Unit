@@ -3,10 +3,10 @@
 #include <sqlite3.h>
 #include <string>
 
-class DatabaseAccess {
+class SqliteDatabaseAccess {
         sqlite3 *db;
     public:
-        ~DatabaseAccess();
+        ~SqliteDatabaseAccess();
         int initDatabase();
         std::string* getRowValues(struct TableData* tData, int rowNumber);
         std::string* readValue(const char* sqlQuery, int column);
@@ -15,6 +15,6 @@ class DatabaseAccess {
         int writeValue(const char * sqlQuery);
 };
 
-extern DatabaseAccess *dataBaseAccess;
+extern SqliteDatabaseAccess *sqliteDatabaseAccess;
 
 #endif

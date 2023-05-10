@@ -5,7 +5,7 @@
 
 static int colNum;
 
-int DatabaseAccess::initDatabase()
+int SqliteDatabaseAccess::initDatabase()
 {
     int i, rc;
     
@@ -17,7 +17,7 @@ int DatabaseAccess::initDatabase()
     return 0;
 }
 
-DatabaseAccess::~DatabaseAccess()
+SqliteDatabaseAccess::~SqliteDatabaseAccess()
 {
     int rc;
     rc = sqlite3_close(db);
@@ -38,7 +38,7 @@ static int rowCallback(void *data, int argc, char **argv, char **azColName)
    return 0;
 }
 
-std::string* DatabaseAccess::getRowValues(TableData* tData, int rowNum)
+std::string* SqliteDatabaseAccess::getRowValues(TableData* tData, int rowNum)
 {
     std::string rowCmd = "SELECT * FROM " + tData->tableID + " where id=" 
                         + std::to_string(rowNum) + ";";
@@ -71,7 +71,7 @@ static int colCallback(void *data, int argc, char **argv, char **azColName)
    return 0;
 }
 
-std::string* DatabaseAccess::getColumnValues(std::string tableName, std::string columnName, int rows)
+std::string* SqliteDatabaseAccess::getColumnValues(std::string tableName, std::string columnName, int rows)
 {
     std::string colCmd = "SELECT " + columnName + " FROM " + tableName + ";"; 
     std::string *feilds = new std::string[rows];
@@ -92,7 +92,7 @@ std::string* DatabaseAccess::getColumnValues(std::string tableName, std::string 
     return feilds;
 }
 
-int DatabaseAccess::writeValue(const char * sqlQuery)
+int SqliteDatabaseAccess::writeValue(const char * sqlQuery)
 {
     char* sqlErrMsg = NULL;
     int rc = 0;
@@ -125,7 +125,7 @@ static int read_callback(void *data, int argc, char **argv, char **azColName)
     return 0;
 }
 
-std::string* DatabaseAccess::readValue(const char* sqlQuery, int column)
+std::string* SqliteDatabaseAccess::readValue(const char* sqlQuery, int column)
 {
     char* sqlErrMsg = NULL;
     int rc = 0;
@@ -154,7 +154,7 @@ static int column_head_callback(void *data, int argc, char **argv,
     return 0;
 }
 
-std::string* DatabaseAccess::getColumnNames(std::string tableID, int cols)
+std::string* SqliteDatabaseAccess::getColumnNames(std::string tableID, int cols)
 {
     char* sqlErrMsg = NULL;
     int rc = 0;
