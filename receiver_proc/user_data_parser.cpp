@@ -1,0 +1,66 @@
+#include "../include/debug_rp.hpp"
+#include "../instance/instance_list.hpp"
+#include "../include/process.hpp"
+#include "../sql_access.hpp"
+#include "data_parser.hpp"
+
+TaskPriority indexOfTaskPriority(int i) { return static_cast<TaskPriority>(i);}
+
+void UserDataParser::constructDataObjects(std::uint8_t priority, std::string algoType)
+{
+    TableData *tData;
+    // The first row is the Column name rows aka header
+    tData = new TableData(rows - 1, columns);
+    tData->tableID = tableId;
+    tData->instanceType = algoType;
+    tData->priority = indexOfTaskPriority(priority);
+    *dataProcContainer = DataProcessContainer(colHeaders, tData);
+}
+
+ReceiverStatus UserDataParser::processDataPacket(std::string &tableID, DataProcessContainer *dataProcessContainer)
+{
+    std::string bodyData, algoType;
+    int bodyDataStart, priority;
+
+    this->dataProcContainer = dataProcessContainer;
+
+    //Even if one fails we flag error and not proceed further
+    try{
+        tableId = packet["body"]["tableid"];
+        bodyData = packet["body"]["data"];
+        algoType = packet["body"]["instancetype"];
+        priority = packet["body"]["priority"];
+    }catch(json::exception e){
+        DEBUG_ERR(__func__, e.what());
+        return P_ERROR;
+    }
+
+    try{
+        fileDataBaseAccess = new FileDataBaseAccess(tableId, RW_FILE);
+    } catch(std::exception &e){
+        DEBUG_ERR(__func__, e.what());
+        return P_ERROR;
+    }
+
+    tableID = tableId;
+    // Increment counter for instance type
+    instanceList.incrimentRefrence(algoType);
+    // Get the alias name of the instance thats used by local database here
+    algoType = instanceList.getInstanceAliasName(algoType);
+    if(algoType.empty()){
+        DEBUG_ERR(__func__, "instance type:", packet["body"]["instancetype"]," not found");
+        return P_ERROR;
+    }
+    DEBUG_MSG(__func__, "got instance alias name :", algoType);
+
+    fileDataBaseAccess->writeBlob(bodyData);
+    columns = fileDataBaseAccess->getTotalColumns();
+    rows = fileDataBaseAccess->getTotalRows();
+    DEBUG_MSG(__func__, "rows:", rows, " columns:",columns);
+
+    //initilze and construct table & data_processor bundle
+    constructDataObjects(priority, algoType);
+    delete fileDataBaseAccess;
+    
+    return P_SUCCESS;
+}
