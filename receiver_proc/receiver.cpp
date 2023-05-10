@@ -24,8 +24,8 @@ class Receiver
         std::string tableId;
         ReceiverStatus receiverStatus;
         Flag isUserData;
-        struct ThreadPool *thread;
-        struct DataProcessContainer *dataProcContainer;
+        ThreadPool *thread;
+        DataProcessContainer dataProcContainer;
 
         ReceiverStatus validatePacketHead();
         ReceiverStatus validatePacketBodyType();
@@ -153,7 +153,7 @@ ReceiverStatus Receiver::validatePacketBodyType()
 
     try {
         auto defaultPatch = validator.validate(packet["body"]);
-        DEBUG_MSG(__func__, "this is a data packet.");
+        DEBUG_MSG(__func__, packet["tableid"], " is a data packet.");
         isUserData.setFlag();
         return P_VALID;
     } catch (const std::exception &e) {
@@ -163,7 +163,7 @@ ReceiverStatus Receiver::validatePacketBodyType()
     validator.set_root_schema(instancePacketSchema);
     try{
         auto defaultPatch = validator.validate(packet["body"]);
-        DEBUG_MSG(__func__, "this is a instance packet.");
+        DEBUG_MSG(__func__, packet["instanceid"], " is a instance packet.");
         return P_VALID;
     }catch(const std::exception &e){
         DEBUG_ERR(__func__, "body field is not Instance data", e.what());
@@ -195,10 +195,10 @@ ReceiverStatus Receiver::identifyPacketType()
             if(validatePacketBodyType() != P_ERROR){
                 if(isUserData.isFlagSet()){
                    UserDataParser userDataParser(packet);
-                   rc = userDataParser.processInstancePacket(tableId, &dataProcContainer);
+                   rc = userDataParser.processDataPacket(tableId, &dataProcContainer);
                 } else {
                     InstanceDataParser instanceDataParser(packet);
-                    rc = instanceDataParser.processDataPacket(tableId);
+                    rc = instanceDataParser.processInstancePacket(tableId);
                 }
             }
         }
