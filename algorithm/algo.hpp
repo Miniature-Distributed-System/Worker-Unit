@@ -21,14 +21,4 @@ static struct ProcessStates* (*avial_algo[TOT_ALGO])(TableData*) = {
     init_ce_algorithm
 };
 
-typedef Base* BaseMaker();
-
-template <class X> Base* make() {
-  return new X;
-}
-
-static BaseMaker* makers[TOT_ALGO] = { 
-    make<example>, 
-    make<CandidateElimination> 
-};
 #endif

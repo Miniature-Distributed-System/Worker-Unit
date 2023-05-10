@@ -29,10 +29,8 @@ int sched_algo(struct ThreadPool *thread, TableData *tData)
 
 void dealloc_table_dat(struct TableData *tData)
 {
-    std::string dropTable = "DROP TABLE " + tData->tableID + ";";
     //Don't care if it fails
-    if(dataBaseAccess){
-        dataBaseAccess->writeValue(dropTable.c_str());
-    }
+     FileDataBaseAccess *fileDataBaseAccess = new FileDataBaseAccess(tData->tableID, RW_FILE);
+    fileDataBaseAccess->dropFile();
     delete tData;
 }
