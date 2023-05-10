@@ -1,12 +1,11 @@
+#include <unistd.h>
 #include "instance.hpp"
 #include "../include/debug_rp.hpp"
+
 Instance::Instance(std::string instanceId, std::uint8_t linkedAlgorithm, std::uint8_t totalColumns, 
-                std::uint64_t totalRows)
+                std::uint64_t totalRows) : instanceId(instanceId), linkedAlgorithm(linkedAlgorithm),
+                totalColumns(totalColumns), totalRows(totalRows)
 {
-    this->instanceId = instanceId;
-    this->linkedAlgorithm = linkedAlgorithm;
-    this->totalColumns = totalColumns;
-    this->totalRows = totalRows;
     DEBUG_MSG(__func__, "TableId:", this->instanceId, " totoalCols:", this->totalColumns + 0);
 }
 
@@ -39,13 +38,19 @@ Instance InstanceList::getInstanceFromId(std::string id)
 {
     Instance instance;
     std::string instanceId;
+
+    if(instanceList.size() == 0){
+        DEBUG_ERR(__func__, "instance list is 0 therefore going to sleep for a while");
+        sleep(1);
+    }
+
     for(auto it = instanceList.begin(); it != instanceList.end(); it++){
         instanceId = (*it)->getId();
-        if(id == instanceId){
+        if(!id.compare(instanceId)){
             return *(*it);
         }
     }
-    DEBUG_ERR(__func__, "No match found");
+    DEBUG_ERR(__func__, "No match found for:", id);
     //return dummy object
     return instance;
 }
