@@ -84,8 +84,11 @@ std::string* DatabaseAccess::getColumnValues(std::string tableName, std::string 
         sqlite3_free(sqlErrMsg);
         return NULL;
     }
-    for(auto i = data.begin(); i != data.end(); i++, j++)
-      feilds[j] = *i;
+    
+    for(auto i = data.begin(); i != data.end(); i++, j++){
+        if(j == rows) break;
+        feilds[j] = *i;
+    }
     return feilds;
 }
 
