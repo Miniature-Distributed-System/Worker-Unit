@@ -9,11 +9,11 @@ class CandidateElimination {
         int targetCol;
         std::string *s;
         std::string *g;
-        std::string True = "yes";
+        std::string confirmValue;
         std::string tableName;
     public:
         FileDataBaseAccess *fileDataBaseAccess;
-        CandidateElimination(int cols, std::string tableName);
+        CandidateElimination(int cols, TableData *tableData);
         ~CandidateElimination();
         CandidateElimination(int n);
         void compare(std::vector<std::string> valueList);

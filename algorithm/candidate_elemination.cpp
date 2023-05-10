@@ -2,19 +2,18 @@
 #include <string>
 #include <vector>
 #include <array>
-#include "algorithm_scheduler.hpp"
 #include "../include/process.hpp"
 #include "../include/task.hpp"
-#include "../sender_proc/sender.hpp"
 #include "../include/debug_rp.hpp"
-#include "../instance/instance_list.hpp"
-//This needs nuking as dirs will change later
 #include "../include/packet.hpp"
+#include "../sender_proc/sender.hpp"
+#include "../instance/instance_list.hpp"
+#include "algorithm_scheduler.hpp"
 #include "candidate_elemination.hpp"
 
-CandidateElimination::CandidateElimination(int columns, std::string tableName)
+CandidateElimination::CandidateElimination(int columns, TableData *tableData)
 {
-    this->tableName = tableName;
+    this->tableName = tableData->tableID;
     cols = columns - 2;
     targetCol = columns - 1;
     s = new std::string[cols];
@@ -24,6 +23,14 @@ CandidateElimination::CandidateElimination(int columns, std::string tableName)
         s[i] = "*";
         g[i] = "?";
     }
+    std::string* columnValues = sqliteDatabaseAccess->getColumnNames(tableData->instanceType, columns);
+    if(columnValues){
+        std::string targetColumnName = columnValues[columns - 1];
+        confirmValue = sqliteDatabaseAccess->getColumnValues(tableData->instanceType, targetColumnName, 2)[0];
+        if(confirmValue.empty())
+            confirmValue = "yes";
+    } else confirmValue = "yes";
+    
     fileDataBaseAccess = new FileDataBaseAccess(tableName, READ_FILE);
 }
 
@@ -38,7 +45,7 @@ void CandidateElimination::compare(std::vector<std::string> valueList)
     
     //positive training examples
     //DEBUG_MSG(__func__, input[targetCol]);
-    if(boost::iequals(valueList[targetCol], True))
+    if(boost::iequals(valueList[targetCol], confirmValue))
     {
         for(i = 0; i < cols; i++)
         {
@@ -98,7 +105,6 @@ JobStatus candidate_elimination_start(void *data)
     if(tData->metadata->currentRow >= tData->metadata->rows)
         return JOB_DONE;
     feild = ce->fileDataBaseAccess->getRowValueList(tData->metadata->currentRow);
-    //feild = dataBaseAccess->getRowValues(tData, tData->metadata->currentRow);
     if(feild.size() == tData->metadata->columns)
         ce->compare(feild);
     else DEBUG_ERR(__func__, "doesn't match column count :", feild.size());
@@ -137,7 +143,7 @@ struct ProcessStates *ce_algorithm = new ProcessStates{
 
 ProcessStates* init_ce_algorithm(TableData* tData)
 {
-    CandidateElimination *ce = new CandidateElimination(tData->metadata->columns, tData->tableID);
+    CandidateElimination *ce = new CandidateElimination(tData->metadata->columns, tData);
     tData->args = ce;
     return ce_algorithm;
 }
