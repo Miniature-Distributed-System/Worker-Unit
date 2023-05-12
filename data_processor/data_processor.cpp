@@ -13,93 +13,7 @@
 #include "../algorithm/algorithm_scheduler.hpp"
 #include "../sender_proc/sender.hpp"
 #include "data_processor.hpp"
-
-class InstanceData {
-        Instance instance;
-        std::vector<std::string*> instanceDataMatrix;
-        std::string userTableName;
-        int userTableTotalColumns;
-        std::string errorString;
-        FileDataBaseAccess *fileDataBaseAccess;
-    public:
-        InstanceData(Instance, int, std::string);
-        ~InstanceData();
-        int initlizeData();
-        std::string* validateColumns();
-        std::string* getPossibleFields(int column);
-        std::uint64_t getTotalRows() { return instance.getTotalRows(); }
-        std::string getErrorString() { return errorString;}
-};
-
-InstanceData::InstanceData(Instance instance, int cols, std::string userTableId) : instance(instance), 
-                userTableName(userTableId) , userTableTotalColumns(cols)
-{
-    fileDataBaseAccess = new FileDataBaseAccess(userTableName, READ_FILE);
-}
-
-std::string* InstanceData::validateColumns()
-{
-    int k = 0, cols = instance.getTotalColumns();
-
-    if(cols != userTableTotalColumns){
-        errorString = "columns dont match user: " + userTableTotalColumns;
-        errorString += " instance: " + cols + 0;
-        DEBUG_ERR(__func__, errorString);
-        return NULL;
-    }
-
-    std::string *result = new std::string[cols];
-    std::string *instanceColumnNames = sqliteDatabaseAccess->getColumnNames(instance.getId(), cols);
-    std::vector<std::string> userTableColumnNames = fileDataBaseAccess->getColumnNamesList();
-
-    if(instanceColumnNames == NULL || userTableColumnNames.size() == 0){
-        errorString = "column data retrevial failed";
-        DEBUG_ERR(__func__,errorString);
-        return NULL;
-    }
-
-    //Match all columns else its an error
-    for(int i = 0; i < cols; i++){
-        for(int j = 0; j < cols; j++){
-            if(!userTableColumnNames[i].compare(instanceColumnNames[j])){
-                result[k++] = instanceColumnNames[j];
-                break;
-            }
-        }
-    }
-
-    if(k != cols){
-        errorString = "Instance table and User table columns did not match";
-        DEBUG_ERR(__func__, errorString);
-        return NULL;
-    }
-
-    DEBUG_MSG(__func__, "Columns validation successfull!");
-    return result;
-}
-
-int InstanceData::initlizeData()
-{
-    std::string *str, *columnNames;
-
-    columnNames = validateColumns();
-    if(columnNames == NULL)
-        return -1;
-    for(int i = 0; i < instance.getTotalColumns(); i++){
-        DEBUG_MSG(__func__, "TableId:", instance.getId(), " ColName:", columnNames[i]);
-        //Any failures here would be unfortunate and not correctable
-        str = sqliteDatabaseAccess->getColumnValues(instance.getId(), columnNames[i], instance.getTotalRows());
-        instanceDataMatrix.push_back(str);
-    }
-
-    DEBUG_MSG(__func__, "data initilize success!");
-    return 0;
-}
-
-std::string* InstanceData::getPossibleFields(int column)
-{
-    return instanceDataMatrix.at(column);
-}
+#include "instance_data.hpp"
 
 class DataProcessor {
     private:
@@ -174,10 +88,6 @@ std::string DataProcessor::validateFeild(std::string feild)
     std::string* temp;
     int i ,totalColumns;
     
-    // Base* base = makers[tData->instanceType]();
-    // aviCols = base->getColCount();
-    // temp = base->getPossibleFeilds(curCol);
-    // delete base;
     temp = instanceData->getPossibleFields(curCol);
     if(temp == NULL){
         DEBUG_ERR(__func__, "Instance data for instance column index: ", curCol);
@@ -234,34 +144,6 @@ int DataProcessor::processSql(std::vector<std::string> feildList)
     return 0;
 }
 
-// deleteDuplicateRecords(): This method cycles through the db and finds duplicate records and deletes them.
-// int DataProcessor::deleteDuplicateRecords()
-// {
-//     // std::string *rowID;
-//     // std::string temp;
-
-//     // if(selectCmd.empty())
-//     //     buildSelectCmd();
-//     // rowID = sqliteDatabaseAccess->readValue(selectCmd.c_str(), 0);
-//     // if(!rowID){
-//     //     DEBUG_ERR(__func__, "select command read error");
-//     //     return 0;
-//     // }
-//     // if(!rowID->empty())
-//     // {
-//     //     //DEBUG_MSG(__func__, "cleaning up duplicate record ID:", *rowID);
-//     //     temp = deleteCmd + *rowID + ";";
-//     //     sqliteDatabaseAccess->writeValue(temp.c_str());
-//     //     return 0;
-//     // }
-//     // else
-//     //     return 1;
-//     if(rowCount <  tableData->metadata->rows - 1){
-//         fileDataBaseAccess->deleteDuplicateRecords(rowCount++);
-//     }
-//     return 0;
-// }
-
 /* process_data_start(): This method is called by scheduler, It processes the data before algorithms work on it.
  * This method has two phases processSql phase where the sql is processed to look for invalid values in all columns, in 
  * second phase the data is cleaned and duplicate records are deleted from db.
@@ -295,7 +177,6 @@ JobStatus process_data_start(void *data)
             dataProc->curRow = 0;
         } else {
             feild = dataProc->fileDataBaseAccess->getRowValueList(dataProc->curRow);
-            //feild = sqliteDatabaseAccess->getRowValues(tData, dataProc->curRow);
             if(feild.size() > 0){
                 dataProc->processSql(feild);
                 dataProc->curRow++;
@@ -322,9 +203,6 @@ JobStatus process_data_finalize(void *data, JobStatus status)
     //Send the cleaned data back to server via fwd stack
     getCleanedTable = dataProc->fileDataBaseAccess->getBlob();
     DEBUG_MSG(__func__, getCleanedTable);
-    //std::replace(getCleanedTable.begin(), getCleanedTable.end(), ';', '\n');
-    //delete sqliteDatabaseAccess;
-    //getCleanedTable = sql_read(selectAll.c_str(), -1);
     send_packet(getCleanedTable, tData->tableID, INTR_SEND, tData->priority);
     //Schedule the algorithm to process our cleaned data
     sched_algo(dataProc->thread, tData);
@@ -342,12 +220,7 @@ struct ProcessStates* data_proc = new ProcessStates {
 
 int init_data_processor(struct ThreadPool* thread, DataProcessContainer container)
 {
-    if(!thread) DEBUG_ERR(__func__, "error1");
-    if(!data_proc) DEBUG_ERR(__func__, "error2");
-    if(!container.tData) DEBUG_ERR(__func__, "error5");
-    if(!container.tData->priority) DEBUG_ERR(__func__, "error6");
     DataProcessor *dpContainer = new DataProcessor(thread, container);
-    if(!dpContainer) DEBUG_ERR(__func__, "error3");
     scheduleTask(thread, data_proc, dpContainer, container.tData->priority);
     DEBUG_MSG(__func__, "initilized data processor");
 
