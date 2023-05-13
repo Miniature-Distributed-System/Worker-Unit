@@ -14,11 +14,11 @@
 CandidateElimination::CandidateElimination(int columns, TableData *tableData)
 {
     this->tableName = tableData->tableID;
-    cols = columns - 2;
+    cols = columns - 1;
     targetCol = columns - 1;
     s = new std::string[cols];
     g = new std::string[cols];
-    //DEBUG_MSG(__func__, "cols", cols, "target",targetCol);
+
     for(int i = 0; i < cols; i++){
         s[i] = "*";
         g[i] = "?";
@@ -123,7 +123,7 @@ JobStatus candidate_elimination_end(void *data, JobStatus status)
     CandidateElimination *ce = (CandidateElimination*)tData->args;
     std::string s = ce->getS();
     std::string g = ce->getG();
-    std::string final = s + "\n" + g;
+    std::string final = s + ":" + g;
     send_packet(final, tData->tableID, FRES_SEND, tData->priority);
     DEBUG_MSG(__func__, "end process S:",s, " G:", g, " for table:", tData->tableID); 
     delete ce;
