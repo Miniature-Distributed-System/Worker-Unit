@@ -188,6 +188,17 @@ JobStatus process_data_start(void *data)
     return JOB_PENDING;
 }
 
+JobStatus process_data_pause(void *data)
+{
+    DataProcessor *dataProc = (DataProcessor*)data;
+    TableData *tData = dataProc->tableData;
+    // This is just an update packet sent to server informing it the data is still being processed
+    if(dataProc)
+        send_packet("", tData->tableID, RESET_TIMER, tData->priority);
+
+    return JOB_PENDING;
+}
+
 JobStatus process_data_finalize(void *data, JobStatus status)
 {
     DataProcessor *dataProc = (DataProcessor*)data;
@@ -217,6 +228,7 @@ JobStatus process_data_finalize(void *data, JobStatus status)
 
 struct ProcessStates* data_proc = new ProcessStates {
     .start_proc = process_data_start,
+    .pause_proc = process_data_pause,
     .end_proc = process_data_finalize
 };
 
