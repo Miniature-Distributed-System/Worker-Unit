@@ -9,6 +9,7 @@
 #include "../include/process.hpp"
 #include "../include/task.hpp"
 #include "../include/debug_rp.hpp"
+#include "../include/logger.hpp"
 #include "data_parser.hpp"
 #include "receiver.hpp"
 
@@ -137,10 +138,10 @@ ReceiverStatus Receiver::validatePacketHead()
 
     try {
         auto defaultPatch = validator.validate(packet);
-        DEBUG_MSG(__func__, "packet head validated.");
+        Log().info(__func__, "packet head validated.");
         return P_VALID;
     } catch (const std::exception &e) {
-        DEBUG_ERR(__func__, "packet invalid, ", e.what());
+        Log().debug(__func__, "packet invalid, ", e.what());
         return P_ERROR;
     }
 }
@@ -153,22 +154,23 @@ ReceiverStatus Receiver::validatePacketBodyType()
 
     try {
         auto defaultPatch = validator.validate(packet["body"]);
-        DEBUG_MSG(__func__, packet["tableid"], " is a data packet.");
+        Log().info(__func__, packet["tableid"].dump(), " is a data packet.");
         isUserData.setFlag();
         return P_VALID;
     } catch (const std::exception &e) {
-        DEBUG_ERR(__func__, "body field is not User data", e.what());
+        Log().debug(__func__, "body field is not User data ", e.what());
+        
+        validator.set_root_schema(instancePacketSchema);
+        try{
+            auto defaultPatch = validator.validate(packet["body"]);
+            Log().info(__func__, packet["instanceid"].dump(), " is a instance packet.");
+            return P_VALID;
+        }catch(const std::exception &e){
+            Log().debug(__func__, "body field is not Instance data ", e.what());
+        }
     }
 
-    validator.set_root_schema(instancePacketSchema);
-    try{
-        auto defaultPatch = validator.validate(packet["body"]);
-        DEBUG_MSG(__func__, packet["instanceid"], " is a instance packet.");
-        return P_VALID;
-    }catch(const std::exception &e){
-        DEBUG_ERR(__func__, "body field is not Instance data", e.what());
-    }
-    DEBUG_ERR(__func__, "packet body is corrupted!");
+    Log().error(__func__, "packet body is corrupted!");
     return P_ERROR;
 }
 
@@ -187,7 +189,6 @@ ReceiverStatus Receiver::identifyPacketType()
     if(validatePacketHead() == P_VALID){
         packetHead = packet["head"];
         if(packetHead & SP_HANDSHAKE){
-            DEBUG_MSG(__func__, "Handshake");
             computeID = packet["id"];
             rc = P_EMPTY;
         }
@@ -217,7 +218,7 @@ ReceiverStatus Receiver::identifyPacketType()
               that packet. */
 
             //TO-DO: This needs reimplimentaion at server level
-            DEBUG_ERR(__func__,"invalid packet header code");
+            Log().debug(__func__,"invalid packet header code");
             rc = P_ERROR;
         }
     }
@@ -239,15 +240,15 @@ JobStatus receiver_finalize(void *data, JobStatus signal)
     if(recv->receiverStatus == P_ERROR){
         // tableID itself is corrupt or it was a status signal that was lost in transmission
         if(recv->tableId.empty()){
-            DEBUG_ERR(__func__, "packet data fields corrupted, resend packet");
+            Log().debug(__func__, "packet data fields corrupted, resend packet");
             send_packet("","", RECV_ERR, HIGH_PRIORITY);
         } else {
-            DEBUG_ERR(__func__, "packet corrupted, resend packet");
+            Log().debug(__func__, "packet corrupted, resend packet");
             send_packet("", instanceList.getInstanceActualName(recv->tableId), RECV_ERR, HIGH_PRIORITY);
         }
     } else if(recv->receiverStatus == P_SUCCESS){
         // notify server data received successfully
-        DEBUG_MSG(__func__,"packet received successfully");
+        Log().info(__func__,"packet received successfully");
         if(recv->isUserData.isFlagSet())
             send_packet("", recv->tableId, DAT_RECVD, DEFAULT_PRIORITY);
         else

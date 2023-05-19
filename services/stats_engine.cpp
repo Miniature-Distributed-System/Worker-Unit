@@ -1,5 +1,6 @@
 #include "stats_engine.hpp"
 #include "../include/debug_rp.hpp"
+#include "../include/logger.hpp"
 
 StatisticsEngine::StatisticsEngine(int threadCount, int statisticsArraySize) : threadCount(threadCount),
     statisticsArraySize(statisticsArraySize)
@@ -11,7 +12,7 @@ StatisticsEngine::StatisticsEngine(int threadCount, int statisticsArraySize) : t
     for(int i = 0; i <= NR_TASK_PRIORITY; i++)
         taskCountVector.push_back(0);
     averageQueueTime = 0;
-    DEBUG_MSG(__func__, "inited stats engine");
+    Log().info(__func__, "inited stats engine");
 }
 
 /* calculateAvgTimerVector(): Takes the whole of queueTimeVector and averages all its values and updates 

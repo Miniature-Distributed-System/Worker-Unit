@@ -2,11 +2,15 @@
 #include <regex>
 #include <filesystem>
 #include "../include/debug_rp.hpp"
+#include "../include/logger.hpp"
 #include "file_database_access.hpp"
 
-class RowOutOfBounds : public std::exception {
-    using std::exception::exception;
-};
+// class FileDataBaseExceptions : public std::exception {
+//         std::string message;
+//     public:
+//         FileDataBaseExceptions(std::string str) : message(str) {};
+//         const char * what() const override { return message.c_str(); };
+// };
 
 FileDataBaseAccess::FileDataBaseAccess(std::string fileName, FileAccessType accessMacro) : 
                 fileName(fileName) ,accessMode(accessMacro)
@@ -18,12 +22,12 @@ FileDataBaseAccess::FileDataBaseAccess(std::string fileName, FileAccessType acce
             while(getline(fileAccess, buffer)){
                 readData.push_back(buffer);
             }
-            DEBUG_MSG(__func__, "opened file in read mode:", fileName);
+            Log().info(__func__, "opened file in read mode:", fileName);
             fileAccess.close();
         } else {
             fileAccess.open(fileName + ".csv", std::fstream::out | std::fstream::in);
             if(fileAccess.fail()){
-                DEBUG_MSG(__func__, fileName, ".csv file does not exist creating new file");
+                Log().info(__func__, fileName, ".csv file does not exist creating new file");
                 fileAccess.open(fileName + ".csv", std::fstream::out);
                 fileAccess.close();
                 fileAccess.open(fileName + ".csv", std::fstream::out | std::fstream::in);
@@ -33,28 +37,28 @@ FileDataBaseAccess::FileDataBaseAccess(std::string fileName, FileAccessType acce
                 readWriteData.push_back(buffer);
             }
             fileAccess.close();
-            DEBUG_MSG(__func__, "opened file in read/write mode:", fileName);
+            Log().info(__func__, "opened file in read/write mode:", fileName);
         }
         dataModified.initFlag(false);
         fileDeleted.initFlag(false);
         
     } catch (std::exception &e){
-        DEBUG_ERR(__func__,"Error in opening file", e.what());
+        Log().error(__func__,"Error in opening file", e.what());
     }   
 }
 
 FileDataBaseAccess::~FileDataBaseAccess()
 {
     if(fileDeleted.isFlagSet()){
-        DEBUG_ERR(__func__, "File is deleted and can't be accessed");
+        Log().error(__func__, "File is deleted and can't be accessed");
         return;
     }
     
     commitChanges();
     fileAccess.open(fileName + ".csv", std::fstream::in);
-    DEBUG_MSG(__func__, "commited changes are:", fileAccess.rdbuf());
+    //DEBUG_MSG(__func__, "commited changes are:", fileAccess.rdbuf());
     fileAccess.close();
-    DEBUG_MSG(__func__, "closing file:", fileName, " with access mode:", accessMode);
+    Log().info(__func__, "closing file:", fileName, " with access mode:", accessMode);
 }
 
 // Pulled off from stackoverflow
@@ -72,7 +76,7 @@ std::list<std::string> split_string_by_newline(const std::string& str)
 int FileDataBaseAccess::writeBlob(std::string data)
 {
     if(fileDeleted.isFlagSet()){
-        DEBUG_MSG(__func__, "File was deleted and won't save any changes");
+        Log().info(__func__, "File was deleted and won't save any changes");
         return -1;
     }
 
@@ -87,7 +91,7 @@ int FileDataBaseAccess::writeBlob(std::string data)
 std::string FileDataBaseAccess::getBlob()
 {
     if(fileDeleted.isFlagSet()){
-        DEBUG_ERR(__func__, "File is deleted and can't be accessed");
+        Log().error(__func__, "File is deleted and can't be accessed");
         return "";
     }
 
@@ -107,7 +111,7 @@ std::string FileDataBaseAccess::getBlob()
 int FileDataBaseAccess::getTotalRows()
 {
     if(fileDeleted.isFlagSet()){
-        DEBUG_ERR(__func__, "File is deleted and can't be accessed");
+        Log().error(__func__, "File is deleted and can't be accessed");
         return -1;
     }
 
@@ -121,7 +125,7 @@ int FileDataBaseAccess::getTotalRows()
 int FileDataBaseAccess::getTotalColumns()
 {
     if(fileDeleted.isFlagSet()){
-        DEBUG_ERR(__func__, "File is deleted and can't be accessed");
+        Log().error(__func__, "File is deleted and can't be accessed");
         return -1;
     }
         
@@ -159,7 +163,7 @@ std::vector<std::string> adv_tokenizer(std::string s, char del)
 std::vector<std::string> FileDataBaseAccess::getRowValueList(int rowIndex)
 {
     if(fileDeleted.isFlagSet()){
-        DEBUG_ERR(__func__, "File is deleted and can't be accessed");
+        Log().error(__func__, "File is deleted and can't be accessed");
         std::vector<std::string> empty;
         return empty;
     }
@@ -185,7 +189,7 @@ std::vector<std::string> FileDataBaseAccess::getRowValueList(int rowIndex)
 std::vector<std::string> FileDataBaseAccess::getColumnNamesList()
 {
     if(fileDeleted.isFlagSet()){
-        DEBUG_ERR(__func__, "File is deleted and can't be accessed");
+        Log().error(__func__, "File is deleted and can't be accessed");
         std::vector<std::string> empty;
         return empty;
     }
@@ -204,16 +208,16 @@ std::vector<std::string> FileDataBaseAccess::getColumnNamesList()
 int FileDataBaseAccess::writeRowValue(std::string value, int rowIndex, int columnIndex)
 {
     if(fileDeleted.isFlagSet()){
-         DEBUG_ERR(__func__, "File is deleted and can't be accessed");
+         Log().error(__func__, "File is deleted and can't be accessed");
          return -1;
     }
 
     if(accessMode == READ_FILE){
-        DEBUG_ERR(__func__, "Writing is not allowed in read mode");
+        Log().error(__func__, "Writing is not allowed in read mode");
         return -2;
     }
     if(readWriteData.size() < rowIndex){
-        DEBUG_ERR(__func__, "row index exceeds total rows present in CSV");
+        Log().debug(__func__, "row index exceeds total rows present in CSV");
         return -3;
     }
 
@@ -241,16 +245,16 @@ int FileDataBaseAccess::writeRowValue(std::string value, int rowIndex, int colum
 int FileDataBaseAccess::writeRowValueList(std::vector<std::string> valueList, int rowIndex)
 {
     if(fileDeleted.isFlagSet()){
-         DEBUG_ERR(__func__, "File is deleted and can't be accessed");
+         Log().error(__func__, "File is deleted and can't be accessed");
          return -1;
     }
 
     if(accessMode == READ_FILE){
-        DEBUG_ERR(__func__, "Writing is not allowed in read mode");
+        Log().error(__func__, "Writing is not allowed in read mode");
         return -2;
     }
     if(readWriteData.size() < rowIndex){
-        DEBUG_ERR(__func__, "row index exceeds total rows present in CSV");
+        Log().debug(__func__, "row index exceeds total rows present in CSV");
         return -3;
     }
 
@@ -269,7 +273,7 @@ int FileDataBaseAccess::writeRowValueList(std::vector<std::string> valueList, in
 std::string FileDataBaseAccess::getRowValue(int rowIndex, int columnIndex)
 {
     if(fileDeleted.isFlagSet()){
-         DEBUG_ERR(__func__, "File is deleted and can't be accessed");
+         Log().error(__func__, "File is deleted and can't be accessed");
          return "";
     }
 
@@ -293,16 +297,16 @@ std::string FileDataBaseAccess::getRowValue(int rowIndex, int columnIndex)
 int FileDataBaseAccess::deleteDuplicateRecords(int rowIndex)
 {
     if(fileDeleted.isFlagSet()){
-         DEBUG_ERR(__func__, "File is deleted and can't be accessed");
+         Log().error(__func__, "File is deleted and can't be accessed");
          return -1;
     }
 
     if(accessMode == READ_FILE){
-        DEBUG_ERR(__func__, "Writing is not allowed in read mode");
+        Log().error(__func__, "Writing is not allowed in read mode");
         return -2;
     }
     if(readWriteData.size() <= rowIndex){
-        DEBUG_MSG(__func__, "Deuplicate rows deletion has come to end of record");
+        Log().info(__func__, "Deuplicate rows deletion has come to end of record");
         return -3;
     }
         
@@ -326,12 +330,12 @@ int FileDataBaseAccess::deleteDuplicateRecords(int rowIndex)
 void FileDataBaseAccess::dropFile()
 {
     if(fileDeleted.isFlagSet()){
-         DEBUG_ERR(__func__, "File is deleted and can't be accessed");
+         Log().error(__func__, "File is deleted and can't be accessed");
          return;
     }
 
     if(accessMode == READ_FILE){
-        DEBUG_ERR(__func__, "Writing is not allowed in read mode");
+        Log().error(__func__, "Writing is not allowed in read mode");
         return;
     }
     

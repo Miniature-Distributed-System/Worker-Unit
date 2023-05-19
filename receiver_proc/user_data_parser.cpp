@@ -2,6 +2,7 @@
 #include "../instance/instance_list.hpp"
 #include "../include/process.hpp"
 #include "../services/sqlite_database_access.hpp"
+#include "../include/logger.hpp"
 #include "data_parser.hpp"
 
 TaskPriority indexOfTaskPriority(int i) { return static_cast<TaskPriority>(i);}
@@ -31,14 +32,14 @@ ReceiverStatus UserDataParser::processDataPacket(std::string &tableID, DataProce
         algoType = packet["body"]["instancetype"];
         priority = packet["body"]["priority"];
     }catch(json::exception e){
-        DEBUG_ERR(__func__, e.what());
+        Log().error(__func__, e.what());
         return P_ERROR;
     }
 
     try{
         fileDataBaseAccess = new FileDataBaseAccess(tableId, RW_FILE);
     } catch(std::exception &e){
-        DEBUG_ERR(__func__, e.what());
+        Log().error(__func__, e.what());
         return P_ERROR;
     }
 
@@ -48,15 +49,14 @@ ReceiverStatus UserDataParser::processDataPacket(std::string &tableID, DataProce
     // Get the alias name of the instance thats used by local database here
     algoType = instanceList.getInstanceAliasName(algoType);
     if(algoType.empty()){
-        DEBUG_ERR(__func__, "instance type:", packet["body"]["instancetype"]," not found");
+        Log().debug(__func__, "instance type:", packet["body"]["instancetype"]," not found");
         return P_ERROR;
     }
-    DEBUG_MSG(__func__, "got instance alias name :", algoType);
 
     fileDataBaseAccess->writeBlob(bodyData);
     columns = fileDataBaseAccess->getTotalColumns();
     rows = fileDataBaseAccess->getTotalRows();
-    DEBUG_MSG(__func__, "rows:", rows, " columns:",columns);
+    Log().info(__func__, "rows:", rows, " columns:",columns);
 
     //initilze and construct table & data_processor bundle
     constructDataObjects(priority, algoType);

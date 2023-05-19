@@ -2,6 +2,7 @@
 #include "../include/debug_rp.hpp"
 #include "../services/sqlite_database_access.hpp"
 #include "instance_list.hpp"
+#include "../include/logger.hpp"
 
 DataBaseInstanceList::DataBaseInstanceList()
 {
@@ -28,7 +29,7 @@ void deleteInstanceModel(InstanceModel *instanceModel)
     sqliteDatabaseAccess->writeValue(dropTableQuery.c_str());
     delete instanceModel;
 
-    DEBUG_MSG(__func__, "deallocated and delete instance model:", aliasName);
+    Log().info(__func__, "deallocated and delete instance model:", aliasName);
 }
 
 std::string DataBaseInstanceList::addInstance(std::string instanceName)
@@ -46,14 +47,14 @@ std::string DataBaseInstanceList::addInstance(std::string instanceName)
                 instanceList.erase(i--);
             } else {
                 iteratorInstanceModel->scheduledToDelete.setFlag();
-                DEBUG_MSG(__func__,"Table with alias:", iteratorInstanceModel->aliasName, " is scheduled for deletion");
+                Log().info(__func__,"Table with alias:", iteratorInstanceModel->aliasName, " is scheduled for deletion");
             }
         }
     }
 
     instanceList.push_back(instanceModel);
     sem_post(&instanceListLock);
-    DEBUG_MSG(__func__, "Added instance:", instanceName, " into database as:", aliasName);
+    Log().info(__func__, "Added instance:", instanceName, " into database as:", aliasName);
     return aliasName;
 }
 
@@ -66,7 +67,7 @@ void DataBaseInstanceList::incrimentRefrence(std::string instanceName)
             // Only if instance is not scheduled for deletion
             if(!iteratorInstanceModel->scheduledToDelete.isFlagSet()){
                 iteratorInstanceModel->referenceCount++;
-                DEBUG_MSG(__func__, "reference count:",iteratorInstanceModel->referenceCount, " currently for ",
+                Log().info(__func__, "reference count:",iteratorInstanceModel->referenceCount, " currently for ",
                                 iteratorInstanceModel->aliasName);
                 break;
             }
@@ -84,7 +85,7 @@ void DataBaseInstanceList::dereferenceInstance(std::string aliasName)
             // Only if instance is not scheduled for deletion
             if(!iteratorInstanceModel->scheduledToDelete.isFlagSet()){
                 iteratorInstanceModel->referenceCount--;
-                DEBUG_MSG(__func__, "reference count:",iteratorInstanceModel->referenceCount, " currently for ",
+                Log().info(__func__, "reference count:",iteratorInstanceModel->referenceCount, " currently for ",
                                 iteratorInstanceModel->aliasName);
                 break;
             }
@@ -102,7 +103,7 @@ std::string DataBaseInstanceList::getInstanceActualName(std::string aliasName)
         }
     }
 
-    DEBUG_ERR(__func__, "failed to fetch the alias name of table:", aliasName, " from list");
+    Log().debug(__func__, "failed to fetch the alias name of table:", aliasName, " from list");
     return "";
 }
 
@@ -115,6 +116,6 @@ std::string DataBaseInstanceList::getInstanceAliasName(std::string instanceName)
         }
     }
 
-    DEBUG_ERR(__func__, "failed to fetch the alias for instance:", instanceName, " from list");
+    Log().debug(__func__, "failed to fetch the alias for instance:", instanceName, " from list");
     return "";
 }

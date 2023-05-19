@@ -4,6 +4,7 @@
 #include "../data_processor/data_processor.hpp"
 #include "../include/process.hpp"
 #include "../include/debug_rp.hpp"
+#include "../include/logger.hpp"
 
 InstanceList globalInstanceList;
 
@@ -13,7 +14,7 @@ int sched_algo(struct ThreadPool *thread, TableData *tData)
     short algoIndex;
 
     if(!tData){
-        DEBUG_ERR(__func__, "table data is uninitlised!");
+        Log().error(__func__, "table data is uninitlised!");
         return EXIT_FAILURE;
     }
 
@@ -21,8 +22,9 @@ int sched_algo(struct ThreadPool *thread, TableData *tData)
     proc = avial_algo[algoIndex](tData);
     scheduleTask(thread, proc, tData, tData->priority);
 
-    DEBUG_MSG(__func__, "rows:", tData->metadata->rows, " Cols:",tData->metadata->columns);
-    DEBUG_MSG(__func__, "Sched algorihm type:",algoIndex);
+    Log().info(__func__, "rows:", tData->metadata->rows, " Cols:", 
+        tData->metadata->columns);
+    Log().info(__func__, "Sched algorihm type:", algoIndex);
 
     return EXIT_SUCCESS;
 }

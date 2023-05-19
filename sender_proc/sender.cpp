@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include "../include/packet.hpp"
 #include "../include/debug_rp.hpp"
-#include "../include/debug_rp.hpp"
+#include "../include/logger.hpp"
 #include "../socket/socket.hpp"
 #include "sender.hpp"
 
@@ -120,14 +120,14 @@ json getPacket(void)
     if(computeID.empty())
     {
         if(initSender.isFlagSet()){
-            DEBUG_MSG(__func__,"worker ID not set yet");
+            Log().info(__func__,"worker ID not set yet");
             while(computeID.empty());
             if(!computeID.empty()){
                 initSender.resetFlag();
                 packet = create_packet(fwdStack.popForwardStack());
             }
         } else {
-            DEBUG_MSG(__func__, "initial handshake packet");
+            Log().info(__func__, "initial handshake packet");
             packet["head"] = P_HANDSHAKE;
             packet["id"] = "";
             initSender.setFlag();
@@ -136,7 +136,7 @@ json getPacket(void)
         //Get packet to be sent to the server
         packet = create_packet(fwdStack.popForwardStack());
     }
-    DEBUG_MSG(__func__, "sender packet ready");
+    Log().info(__func__, "sender packet ready");
 
     return packet;
 }

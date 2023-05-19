@@ -6,6 +6,7 @@
 #include "sched.hpp"
 #include "../include/process.hpp"
 #include "../include/debug_rp.hpp"
+#include "../include/logger.hpp"
 
 //this var needs refactor should make it local scope
 std::uint8_t allocatedThreads;
@@ -52,14 +53,14 @@ struct JobTimer* init_timer(struct QueueJob* job)
     jTimer->jobShouldPause = 0;
 
     if(!job->proc->pause_proc){
-        DEBUG_MSG(__func__, "The job is non preemtable");  
+        Log().schedINFO(__func__, "The job is non preemtable");  
         return jTimer;   
     }
 
     jTimer->allowedCpuSlice = job->cpuSliceMs;
     pthread_create(&timerThread, NULL, start_job_timer, (void*)jTimer);
-    DEBUG_MSG(__func__,"job timer created with timer set for:",
-                jTimer->allowedCpuSlice,"ns");
+    Log().schedINFO(__func__,"job timer created with timer set for:",
+        jTimer->allowedCpuSlice,"ns");
 
     return jTimer;
 }
@@ -78,7 +79,7 @@ int get_total_empty_slots(void)
                 totalSlots++;
         }
     }
-    DEBUG_MSG(__func__, "Total slots in queue:", totalSlots);
+    Log().schedINFO(__func__, "Total slots in queue:", std::to_string(totalSlots));
     return totalSlots;
 }
 
@@ -111,7 +112,7 @@ struct ThreadQueue* get_quickest_queue(void)
             lowestWaitTime = totalWaitTime;
         }
     }
-    DEBUG_MSG(__func__, "Thread ID:", threadID, 
+    Log().schedINFO(__func__, "Thread ID:", threadID, 
                     " Total wait time:", lowestWaitTime);
     return list[threadID];
 }
@@ -122,14 +123,14 @@ struct QueueJob* init_job(TaskData pTable)
     job->jobStatus = JOB_PENDING;
     job->jobErrorHandle = 0;
     job->cpuSliceMs = get_cpu_slice(pTable.priority);
-    DEBUG_MSG(__func__, "job inited with cts:",job->cpuSliceMs);
+    Log().schedINFO(__func__, "job inited with cts:", job->cpuSliceMs);
     return job;
 }
 
 void dealloc_job(struct QueueJob* job)
 {
     delete job;
-    DEBUG_MSG(__func__, "deallocated job");
+    Log().schedINFO(__func__, "deallocated job");
 }
 
 void *sched_task(void *ptr)
@@ -141,7 +142,7 @@ void *sched_task(void *ptr)
     int i, j, qSlots;
 
     if(threadPoolHead == NULL){
-        DEBUG_ERR(__func__, "thread head is uninited cant procced any further!");
+        Log().schedINFO(__func__, "thread head is uninited cant procced any further!");
         return 0;
     }
 
@@ -152,7 +153,7 @@ void *sched_task(void *ptr)
         {
             if(threadPoolHead->threadPoolCount > 0)
             {
-                DEBUG_MSG(__func__, "scheulding jobs...");
+                Log().schedINFO(__func__, "scheulding jobs...");
                 queue = get_quickest_queue();
                 for(i = 0; i < QUEUE_SIZE; i++)
                 {
@@ -170,8 +171,8 @@ void *sched_task(void *ptr)
                         queue->queueHead[i] = job;
                         queue->qSlotDone[i] = 0;
                         queue->totalJobsInQueue++;
-                        DEBUG_MSG(__func__, "job inserted at slot:", j,
-                            " total pending jobs:", queue->totalJobsInQueue + 0);
+                        Log().schedINFO(__func__, "job inserted at slot:", j,
+                            " total pending jobs:", std::to_string(queue->totalJobsInQueue));
                         break;
                     }
                 }
@@ -189,13 +190,14 @@ void *thread_task(void *ptr)
     struct JobTimer *timer;
     int head = 0;
     bool done;
+    std::string threadID = std::to_string(queue->threadID);
 
     if(!queue)
     {
-        DEBUG_ERR(__func__, "Queue not initilized exiting");
+        Log().schedERR(__func__, "Thread queue not initilized exiting");
         return 0;
     }
-    DEBUG_MSG(__func__, "ThreadID:", queue->threadID + 0, " started successfully");
+    Log().schedINFO(__func__, "ThreadID:", threadID, " started successfully");
 
     while(!queue->threadShouldStop)
     {
@@ -203,7 +205,7 @@ void *thread_task(void *ptr)
         {
             job = queue->queueHead[head];
             timer = init_timer(job);
-            DEBUG_MSG(__func__, "ThreadID:", queue->threadID + 0, 
+            Log().schedINFO(__func__, "ThreadID:", threadID, 
             " job slot in execution:", head);
             while(!timer->jobShouldPause)
             {
@@ -218,11 +220,11 @@ void *thread_task(void *ptr)
                 }
                 job->jobStatus = job->proc->start_proc(job->args);
                 if(job->jobStatus == JOB_DONE){
-                    DEBUG_MSG(__func__, "Job done and awaiting to finish");
+                    Log().schedINFO(__func__, "ThreadID:", threadID, " Job done and awaiting to finish");
                     break;
                 } else if (job->jobStatus == JOB_FAILED){
                     //must also do process error handling at the moment not implimented
-                    DEBUG_MSG(__func__, "Error encountered set error handling");
+                    Log().schedINFO(__func__, "ThreadID:", threadID, " Error encountered set error handling");
                     job->jobErrorHandle = 1;
                     break;
                 }
@@ -249,7 +251,7 @@ int init_sched(struct ThreadPool *thread, std::uint8_t max_thread)
         task_thread = new pthread_t;
         queue = new ThreadQueue;
         if(queue == NULL){
-            DEBUG_ERR(__func__,"queue alloc failed");
+            Log().schedERR(__func__,"queue alloc failed");
             return EXIT_FAILURE;
         }
 
@@ -262,7 +264,7 @@ int init_sched(struct ThreadPool *thread, std::uint8_t max_thread)
         queue->totalJobsInQueue = 0;
         queue->threadID = i;
         list[i] = queue;
-        DEBUG_MSG(__func__, "thread queue:", i, " inited successfully");
+        Log().schedINFO(__func__, "thread queue:", i, " inited successfully");
         pthread_create(task_thread, NULL, thread_task, (void*)queue);
     }
     pthread_create(&sched_thread, NULL, sched_task, (void*)thread);

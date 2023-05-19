@@ -2,6 +2,7 @@
 #include "sqlite_database_access.hpp"
 #include "../include/debug_rp.hpp"
 #include "../data_processor/data_processor.hpp"
+#include "../include/logger.hpp"
 
 static int colNum;
 
@@ -11,7 +12,7 @@ int SqliteDatabaseAccess::initDatabase()
     
     rc = sqlite3_open("csv.db", &db);
     if(rc != SQLITE_OK){
-        DEBUG_ERR(__func__,"DB open failed");
+        Log().error(__func__,"DB open failed");
         return 1;
     }
     return 0;
@@ -22,7 +23,7 @@ SqliteDatabaseAccess::~SqliteDatabaseAccess()
     int rc;
     rc = sqlite3_close(db);
     if(rc != SQLITE_OK){
-        DEBUG_ERR(__func__,"DB open failed");
+        Log().error(__func__,"DB open failed");
     }
 }
 
@@ -48,7 +49,7 @@ std::string* SqliteDatabaseAccess::getRowValues(TableData* tData, int rowNum)
     
     rc = sqlite3_exec(db, rowCmd.c_str(), rowCallback, feilds, &sqlErrMsg);
     if(rc != SQLITE_OK){
-        DEBUG_ERR(__func__, "failed to fetch values");
+        Log().error(__func__, "failed to fetch values");
         //DEBUG_ERR(__func__, *sqlErrMsg);
         if(sqlErrMsg)
             sqlite3_free(sqlErrMsg);
@@ -99,7 +100,7 @@ int SqliteDatabaseAccess::writeValue(const char * sqlQuery)
     
     rc = sqlite3_exec(db, sqlQuery,NULL , 0, &sqlErrMsg);
     if(rc != SQLITE_OK){
-        DEBUG_ERR(__func__, sqlQuery," :db write command failed reason:" );
+        Log().error(__func__, sqlQuery," :db write command failed reason:" );
         sqlite3_free(sqlErrMsg);
     }
 
@@ -134,7 +135,7 @@ std::string* SqliteDatabaseAccess::readValue(const char* sqlQuery, int column)
     colNum = column;
     rc = sqlite3_exec(db, sqlQuery,read_callback , (void*)str, &sqlErrMsg);
     if(rc != SQLITE_OK){
-        DEBUG_ERR(__func__, "db write command failed:");
+        Log().error(__func__, "db write command failed:");
         //DEBUG_ERR(__func__, sqlQuery);
         sqlite3_free(sqlErrMsg);
         return NULL;
@@ -163,7 +164,7 @@ std::string* SqliteDatabaseAccess::getColumnNames(std::string tableID, int cols)
 
     rc = sqlite3_exec(db, sqlQuery.c_str(), column_head_callback, colNames, NULL);
     if(rc != SQLITE_OK){
-        DEBUG_ERR(__func__, "db get command failed:");
+        Log().error(__func__, "db get command failed:");
         //DEBUG_ERR(__func__, sqlQuery);
         sqlite3_free(sqlErrMsg);
         return NULL;

@@ -6,6 +6,7 @@
 #include "../include/task.hpp"
 #include "../include/debug_rp.hpp"
 #include "../include/packet.hpp"
+#include "../include/logger.hpp"
 #include "../sender_proc/sender.hpp"
 #include "../instance/instance_list.hpp"
 #include "algorithm_scheduler.hpp"
@@ -44,7 +45,7 @@ void CandidateElimination::compare(std::vector<std::string> valueList)
     int i;
     
     //positive training examples
-    //DEBUG_MSG(__func__, input[targetCol]);
+    //Log().info(__func__, input[targetCol]);
     if(boost::iequals(valueList[targetCol], confirmValue))
     {
         for(i = 0; i < cols; i++)
@@ -56,7 +57,7 @@ void CandidateElimination::compare(std::vector<std::string> valueList)
                 g[i] = "?";
             }
         }
-        //DEBUG_MSG(__func__, "Yes:", getS());
+        //Log().info(__func__, "Yes:", getS());
     //negative training examples
     } else {
         for(i = 0; i < cols; i++)
@@ -64,7 +65,7 @@ void CandidateElimination::compare(std::vector<std::string> valueList)
             if(!boost::iequals(s[i], valueList[i]))
                 g[i] = s[i];
         }
-        //DEBUG_MSG(__func__, "No:", getG());
+        //Log().info(__func__, "No:", getG());
     }
 }
 
@@ -107,13 +108,13 @@ JobStatus candidate_elimination_start(void *data)
     feild = ce->fileDataBaseAccess->getRowValueList(tData->metadata->currentRow);
     if(feild.size() == tData->metadata->columns)
         ce->compare(feild);
-    else DEBUG_ERR(__func__, "doesn't match column count :", feild.size());
+    else Log().error(__func__, "doesn't match column count :", feild.size());
     tData->metadata->currentRow++;
     return JOB_PENDING;
 }
 
 JobStatus candidate_elimination_pause(void *data){
-    DEBUG_MSG(__func__, "pause process");
+    Log().info(__func__, "pause process");
     return JOB_PENDING;
 }
 
@@ -125,7 +126,7 @@ JobStatus candidate_elimination_end(void *data, JobStatus status)
     std::string g = ce->getG();
     std::string final = s + ":" + g;
     send_packet(final, tData->tableID, FRES_SEND, tData->priority);
-    DEBUG_MSG(__func__, "end process S:",s, " G:", g, " for table:", tData->tableID); 
+    Log().info(__func__, "end process S:",s, " G:", g, " for table:", tData->tableID); 
     delete ce;
     //Deallocate both table data and whatever was allocated in this algo before
     //winding up with the process, else we will leak memeory.

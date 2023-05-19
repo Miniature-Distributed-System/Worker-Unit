@@ -1,6 +1,7 @@
 #include "forward_stack.hpp"
 #include "../include/packet.hpp"
 #include "../include/debug_rp.hpp"
+#include "../include/logger.hpp"
 
 ForwardStack fwdStack;
 AwaitStack awaitStack;
@@ -19,7 +20,7 @@ int ForwardStack::pushToForwardStack(std::string data, std::string tableID,
     sem_wait(&stackLock);
     senderStack.push_back(item);
     sem_post(&stackLock);
-    DEBUG_MSG(__func__, "fwd stack current count:", senderStack.size());
+    Log().info(__func__, "fwd stack current count:", senderStack.size());
     return 0;
 }
 
@@ -39,7 +40,7 @@ int ForwardStack::pushFrontForwardStack(std::string data, std::string tableID,
     sem_wait(&stackLock);
     senderStack.push_front(item);
     sem_post(&stackLock);
-    DEBUG_MSG(__func__, "fwd stack current count:", senderStack.size());
+    Log().info(__func__, "fwd stack current count:", senderStack.size());
     return 0;
 }
 
@@ -54,7 +55,7 @@ fwd_stack_bundle ForwardStack::popForwardStack(void)
     struct fwd_stack_bundle *item, exportItem;
 
     if(senderStack.empty()){
-        DEBUG_MSG(__func__, "Sender sink is empty");
+        Log().info(__func__, "Sender sink is empty");
         return exportItem;
     }
 
@@ -80,7 +81,7 @@ fwd_stack_bundle ForwardStack::popForwardStack(void)
         senderStack.pop_front();
         delete item;
     }
-    DEBUG_MSG(__func__, "Forward stack current count:", senderStack.size());
+    Log().info(__func__, "Forward stack current count:", senderStack.size());
     sem_post(&stackLock);
     return exportItem;
 }
@@ -161,7 +162,7 @@ int AwaitStack::matchItemWithAwaitStack(int statusCode, std::string tableID)
                             goto ack_packet;
                         break;
                     default:
-                        DEBUG_ERR(__func__,"unknown statuscode:", statusCode);
+                        Log().debug(__func__,"unknown statuscode:", statusCode);
                         sem_post(&stackLock);
                         return -1;
                 }
@@ -169,7 +170,7 @@ int AwaitStack::matchItemWithAwaitStack(int statusCode, std::string tableID)
         }
     }
     sem_post(&stackLock);
-    DEBUG_MSG(__func__, "duplicate packet received");
+    Log().info(__func__, "duplicate packet received");
     return -1;
 
 ack_packet:
@@ -199,7 +200,7 @@ void AwaitStack::cleanupAwaitStack()
 bool AwaitStack::isAwaitStackFree()
 {
     if(index <= TOTAL_DIFFRED_PACKETS){
-        DEBUG_MSG(__func__, "Await stack is free");
+        Log().info(__func__, "Await stack is free");
         return true;
     }
     return false;

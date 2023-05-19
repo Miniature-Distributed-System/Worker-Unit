@@ -1,8 +1,9 @@
 #include "../include/debug_rp.hpp"
-#include "../algorithm/instance.hpp"
+#include "../instance/instance.hpp"
 #include "../instance/instance_list.hpp"
 #include "data_parser.hpp"
 #include "../services/sqlite_database_access.hpp"
+#include "../include/logger.hpp"
 
 int countColumns(std::string data){
     int i = -1;
@@ -12,7 +13,7 @@ int countColumns(std::string data){
             cols++;
     }
     //count the last col as it doesn't end with ','
-    DEBUG_MSG(__func__, "number of columns:", cols+1);
+    Log().info(__func__, "number of columns:", cols+1);
     return cols + 1;
 }
 
@@ -64,7 +65,7 @@ int InstanceDataParser::insertIntoTable(std::string data, int startIndex)
     if(rc != SQLITE_OK){
         std::string *temp = sqliteDatabaseAccess->readValue(verifyTableQuery.c_str(), -1);
         if(temp == NULL){
-            DEBUG_ERR(__func__, "Failed to insert table into database");
+            Log().error(__func__, "Failed to insert table into database");
             return EXIT_FAILURE;
         }
     }
@@ -100,7 +101,7 @@ int InstanceDataParser::insertIntoTable(std::string data, int startIndex)
             rows++;
         }
     }
-    DEBUG_MSG(__func__, "total rows inserted into table:",rows);
+    Log().info(__func__, "total rows inserted into table:",rows);
     return 0;
 }
 
@@ -109,7 +110,7 @@ void InstanceDataParser::dropTable()
 {
     int rc;
 
-    DEBUG_MSG(__func__, "dropping current table in database...");
+    Log().info(__func__, "dropping current table in database...");
     dropTableQuery = "DROP TABLE " + tableId + ";";
     //We don't give a knock is it fails as we are already failing at this point
     sqliteDatabaseAccess->writeValue(dropTableQuery.c_str());
@@ -119,7 +120,6 @@ void InstanceDataParser::constructInstanceObjects(std::uint8_t algoType)
 {
     Instance *instance = new Instance(tableId, algoType, columns, rows);
     globalInstanceList.addInstance(instance);
-    DEBUG_MSG(__func__, "added instance to list");
 }
 
 ReceiverStatus InstanceDataParser::processInstancePacket(std::string &tableID)
@@ -134,7 +134,7 @@ ReceiverStatus InstanceDataParser::processInstancePacket(std::string &tableID)
         algoType = packet["body"]["algotype"];
         
     }catch(json::exception e){
-        DEBUG_ERR(__func__, e.what());
+        Log().info(__func__, e.what());
         return P_ERROR;
     }
     
@@ -143,7 +143,6 @@ ReceiverStatus InstanceDataParser::processInstancePacket(std::string &tableID)
     columns = countColumns(bodyData);    
     bodyDataStart = createSqlCmds(columns, bodyData);
 
-    DEBUG_MSG(__func__, "inserting into: ", tableId);
     //create table and insert into table;
     if(insertIntoTable(bodyData, bodyDataStart) == EXIT_FAILURE){
         //drop table before we fail
@@ -153,7 +152,7 @@ ReceiverStatus InstanceDataParser::processInstancePacket(std::string &tableID)
 
     //initilze and construct table & data_processor bundle
     constructInstanceObjects(algoType);
-    DEBUG_MSG(__func__, "instance data parsing done for: ", tableId);
+    Log().info(__func__, "instance data parsing done for: ", tableId);
     
     return P_SUCCESS;
 }

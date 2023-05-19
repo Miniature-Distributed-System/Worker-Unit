@@ -7,6 +7,7 @@
 #include <string>
 #include "ws_client.hpp"
 #include "../include/debug_rp.hpp"
+#include "../include/logger.hpp"
 #include "socket.hpp"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
@@ -22,7 +23,7 @@ json ws_client_launch(struct socket *soc, json packet){
         std::string host = soc->hostname;
         const auto port = soc->port;
         std::string text = packet.dump();
-        DEBUG_MSG(__func__, "conn with"," hostname:", host, " port-no:", port);
+        Log().info(__func__, "conn with"," hostname:", host, " port-no:", port);
 
         // The io_context is required for all I/O
         net::io_context ioc;
@@ -74,7 +75,7 @@ json ws_client_launch(struct socket *soc, json packet){
         outJs = json::parse(data_buffers.c_str());
 
     } catch(std::exception const& e) {
-        DEBUG_ERR(__func__, "Error: ", e.what());
+        Log().error(__func__, "Error: ", e.what());
     }
     return outJs;
 }

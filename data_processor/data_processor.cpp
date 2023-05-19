@@ -8,6 +8,7 @@
 #include "../include/debug_rp.hpp"
 #include "../include/task.hpp"
 #include "../include/flag.h"
+#include "../include/logger.hpp"
 #include "../services/sqlite_database_access.hpp"
 #include "../services/file_database_access.hpp"
 #include "../algorithm/algorithm_scheduler.hpp"
@@ -50,7 +51,7 @@ DataProcessor::DataProcessor(struct ThreadPool* thread,
 {
     //CSV Rows begins data after 0th row
     curRow = 1;
-    DEBUG_MSG(__func__, "tdata:", this->tableData->instanceType);
+    Log().info(__func__, "tdata:", this->tableData->instanceType);
     initDone.initFlag(false);
     dataCleanPhase.initFlag(false);
 }
@@ -62,10 +63,10 @@ DataProcessor::~DataProcessor()
 
 int DataProcessor::initlize()
 {
-    DEBUG_MSG(__func__, "table data:", tableData->instanceType);
+    Log().info(__func__, "table data:", tableData->instanceType);
     Instance instance = globalInstanceList.getInstanceFromId(this->tableData->instanceType);
     if(instance.getId().empty()){
-        DEBUG_ERR(__func__, "invalid instance choosen: ", tableData->instanceType);
+        Log().error(__func__, "invalid instance choosen: ", tableData->instanceType);
         return -1;
     }
 
@@ -78,7 +79,7 @@ int DataProcessor::initlize()
     fileDataBaseAccess = new FileDataBaseAccess(tableData->tableID, RW_FILE);
     initDone.setFlag();
     colHeaders = fileDataBaseAccess->getColumnNamesList();
-    DEBUG_MSG(__func__, "Data processor setup and ready for validtaion/processing");
+    Log().info(__func__, "Data processor setup and ready for validtaion/processing");
     return 0;
 }
 
@@ -87,10 +88,10 @@ std::string DataProcessor::validateFeild(std::string feild)
 {
     std::string* temp;
     int i ,totalColumns;
-    
+
     temp = instanceData->getPossibleFields(curCol);
     if(temp == NULL){
-        DEBUG_ERR(__func__, "Instance data for instance column index: ", curCol);
+        Log().error(__func__, "Instance data for instance column index: ", curCol);
         return feild;
     }
     totalColumns = instanceData->getTotalRows();
@@ -103,7 +104,7 @@ std::string DataProcessor::validateFeild(std::string feild)
     }
 
     //worst case scenario
-    DEBUG_MSG(__func__, "feild does not exist:", feild);
+    Log().info(__func__, "feild does not exist:", feild);
     return "NaN";
 }
 
@@ -137,7 +138,7 @@ int DataProcessor::processSql(std::vector<std::string> feildList)
         temp.push_back(str);
     }
     if(temp != feildList){
-        DEBUG_MSG(__func__, "row:", curRow);
+        Log().info(__func__, "row:", curRow);
         fileDataBaseAccess->writeRowValueList(temp, curRow);
     }
 
@@ -166,7 +167,7 @@ JobStatus process_data_start(void *data)
         // Keep incrementing until we run out of records to delete
         rc = dataProc->fileDataBaseAccess->deleteDuplicateRecords(dataProc->curRow++);
         if(rc == -3){
-            DEBUG_MSG(__func__,"All duplicate data deleted");
+            Log().info(__func__,"All duplicate data deleted");
             tData->metadata->currentColumn = 0;
             tData->metadata->rows = dataProc->fileDataBaseAccess->getTotalRows() - 1;
             return JOB_DONE;
@@ -202,7 +203,7 @@ JobStatus process_data_finalize(void *data, JobStatus status)
 
     //Send the cleaned data back to server via fwd stack
     getCleanedTable = dataProc->fileDataBaseAccess->getBlob();
-    DEBUG_MSG(__func__, getCleanedTable);
+    Log().info(__func__, getCleanedTable);
     send_packet(getCleanedTable, tData->tableID, INTR_SEND, tData->priority);
     //Schedule the algorithm to process our cleaned data
     sched_algo(dataProc->thread, tData);
@@ -222,7 +223,7 @@ int init_data_processor(struct ThreadPool* thread, DataProcessContainer containe
 {
     DataProcessor *dpContainer = new DataProcessor(thread, container);
     scheduleTask(thread, data_proc, dpContainer, container.tData->priority);
-    DEBUG_MSG(__func__, "initilized data processor");
+    Log().info(__func__, "initilized data processor");
 
     return 0;
 }

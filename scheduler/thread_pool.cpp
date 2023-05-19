@@ -3,6 +3,7 @@
 #include "sched.hpp"
 #include "../include/packet.hpp"
 #include "../include/debug_rp.hpp"
+#include "../include/logger.hpp"
 #include "../sender_proc/sender.hpp"
 
 /* This function returns how much the process of a certain 
@@ -35,7 +36,7 @@ int insert_node(struct ThreadPool* threadPoolHead,
     
     sem_wait(&threadPoolHead->threadPool_mutex);
     if(threadPoolHead->threadPoolCount >= MAX_POOL_SIZE){
-        DEBUG_ERR(__func__,"Max pool limit reached!");
+        Log().info(__func__,"Max pool limit reached!");
         sem_post(&threadPoolHead->threadPool_mutex);
         return EXIT_FAILURE;
     }
@@ -47,7 +48,7 @@ int insert_node(struct ThreadPool* threadPoolHead,
     
     //Single node in list
     if(curHead == NULL){
-        DEBUG_MSG(__func__, "first node of thread pool created");
+        Log().info(__func__, "first node of thread pool created");
         threadPoolHead->headNode = node;
         node->next = NULL;
     }
@@ -58,7 +59,7 @@ int insert_node(struct ThreadPool* threadPoolHead,
             {
                 if(curHead->pData->starveCounter >=
                         get_starve_limit(curHead->pData->priority)){
-                            DEBUG_MSG(__func__, "node is starved skipping...");
+                            Log().info(__func__, "node is starved skipping...");
                             continue;
                         }
                 else{
@@ -74,7 +75,7 @@ int insert_node(struct ThreadPool* threadPoolHead,
             }
 
             if(curHead->next == NULL){
-                DEBUG_MSG(__func__, "add to bottom of list");
+                Log().info(__func__, "add to bottom of list");
                 curHead->next = node;
                 break;
             }
@@ -83,7 +84,7 @@ int insert_node(struct ThreadPool* threadPoolHead,
     }
 
     threadPoolHead->threadPoolCount++;
-    DEBUG_MSG(__func__, "pushed into pool, threadPoolCount:",
+    Log().info(__func__, "pushed into pool, threadPoolCount:",
                 threadPoolHead->threadPoolCount + 0);
     sem_post(&threadPoolHead->threadPool_mutex);
     
@@ -98,7 +99,7 @@ void delete_node(struct ThreadPool* threadPoolHead)
     //This condition should always be false if its true we fucked up somewhere
     if(threadPoolHead->threadPoolCount < 1)
     {
-        DEBUG_ERR(__func__,"Thread pool is already empty!");
+        Log().info(__func__,"Thread pool is already empty!");
         threadPoolHead->threadPoolCount = 0;
         sem_post(&threadPoolHead->threadPool_mutex);
         return;
@@ -110,7 +111,7 @@ void delete_node(struct ThreadPool* threadPoolHead)
     threadPoolHead->headNode = nextHead;
     threadPoolHead->threadPoolCount--;
 
-    DEBUG_MSG(__func__,"popped node from thread pool cur cnt:", 
+    Log().info(__func__,"popped node from thread pool cur cnt:", 
             threadPoolHead->threadPoolCount + 0);
     sem_post(&threadPoolHead->threadPool_mutex);
 }
@@ -151,7 +152,7 @@ TaskData thread_pool_pop(struct ThreadPool* threadPoolHead)
     struct ThreadPoolNode *tempHead;
     
     if(!threadPoolHead->headNode){
-        DEBUG_ERR(__func__, "list is empty");
+        Log().debug(__func__, "list is empty");
         return temp;
     }
     
@@ -162,7 +163,7 @@ TaskData thread_pool_pop(struct ThreadPool* threadPoolHead)
     threadPoolHead->threadPoolCount--;
     delete tempHead->pData;
     delete tempHead;
-    DEBUG_MSG(__func__, "popping job from pool pcnt:", 
+    Log().info(__func__, "popping job from pool pcnt:", 
                 threadPoolHead->threadPoolCount + 0);
 
     return temp;
@@ -173,7 +174,7 @@ struct ThreadPool* init_thread_pool()
     struct ThreadPool* threadPoolHead = new ThreadPool;
 
     if(!threadPoolHead){
-        DEBUG_ERR(__func__,"Failed to alloc thread pool memory");
+        Log().error(__func__,"Failed to alloc thread pool memory");
         return NULL;
     }
 
@@ -202,6 +203,6 @@ void exit_thread_pool(struct ThreadPool* threadPoolHead){
         delete temp;
     }
     sem_destroy(&threadPoolHead->threadPool_mutex);
-    DEBUG_MSG(__func__, "de-allocated thread pool data");
+    Log().info(__func__, "de-allocated thread pool data");
 }
 

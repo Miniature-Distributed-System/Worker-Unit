@@ -5,6 +5,7 @@
 #include "../receiver_proc/receiver.hpp"
 #include "../sender_proc/sender.hpp"
 #include "../include/debug_rp.hpp"
+#include "../include/logger.hpp"
 
 pthread_cond_t socket_cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
@@ -41,7 +42,7 @@ void *launch_client_socket_QS(void *data)
     DEBUG_MSG(__func__, "quick send mode connection: packet:", socketContainer->packet);
     init_receiver(socketContainer->soc->thread, ws_client_launch(socketContainer->soc, socketContainer->packet));
     inQSMode.resetFlag();
-    DEBUG_MSG(__func__, "exited quicksend mode");
+    Log().info(__func__, "exited quicksend mode");
     return 0;
 }
 
@@ -53,7 +54,7 @@ void* socket_task(void *data)
     json packet;
     void *res;
 
-    DEBUG_MSG(__func__, "socket thread running");
+    Log().info(__func__, "socket thread running");
     while(!soc->socketShouldStop)
     {
         //get the latest packet to be sent to the server
@@ -80,7 +81,7 @@ void* socket_task(void *data)
         }
         //sleep(2);
     }
-    DEBUG_MSG(__func__, "Shutting down socket");
+    Log().info(__func__, "Shutting down socket");
     return 0;
 }
 
@@ -100,7 +101,7 @@ struct socket* init_socket(ThreadPool *thread, std::string args[])
     soc->hostname = hostname;
     soc->port = port;
     soc->socketShouldStop = 0;
-    DEBUG_MSG(__func__, "socket initlized");
+    Log().info(__func__, "socket initlized");
     pthread_create(&socketThread, NULL, socket_task, soc);
 
     return soc;
