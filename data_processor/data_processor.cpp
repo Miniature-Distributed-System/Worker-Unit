@@ -196,8 +196,9 @@ JobStatus process_data_finalize(void *data, JobStatus status)
     std::string getCleanedTable;
 
     if(status == JOB_FAILED){
-        send_packet(dataProc->getErrorString(),tData->tableID, 
-                        DAT_ERR, tData->priority);
+        send_packet(dataProc->getErrorString(), tData->tableID, DAT_ERR, tData->priority);
+        // Cleanup before early exit
+        dealloc_table_dat(tData);
         return JOB_FINISHED;
     }
 
