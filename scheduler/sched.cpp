@@ -7,6 +7,7 @@
 #include "../include/process.hpp"
 #include "../include/debug_rp.hpp"
 #include "../include/logger.hpp"
+#include "../configs.hpp"
 
 //this var needs refactor should make it local scope
 std::uint8_t allocatedThreads;
@@ -70,7 +71,7 @@ int get_total_empty_slots(void)
     struct ThreadQueue* queue;
     int i, j, totalSlots = 0;
 
-    for(i = 0; i < allocatedThreads; i++)
+    for(i = 0; i < globalConfigs.getTotalThreadCount(); i++)
     {
         queue = list[i];
         for(j = 0; j < QUEUE_SIZE; j++)
@@ -90,7 +91,7 @@ struct ThreadQueue* get_quickest_queue(void)
     std::uint64_t totalWaitTime, lowestWaitTime = INT_MAX, waitTime;
     int i,j;
 
-    for(i = 0; i < allocatedThreads; i++)
+    for(i = 0; i < globalConfigs.getTotalThreadCount(); i++)
     {
         queue = list[i];
         totalWaitTime = waitTime = 0;
@@ -98,7 +99,7 @@ struct ThreadQueue* get_quickest_queue(void)
         if(queue->totalJobsInQueue >= QUEUE_SIZE)
             continue;
         
-        for(j = 0; j < allocatedThreads; j++)
+        for(j = 0; j < globalConfigs.getTotalThreadCount(); j++)
         {
             if(!queue->qSlotDone[i])
             {
@@ -246,7 +247,7 @@ int init_sched(struct ThreadPool *thread, std::uint8_t max_thread)
     int i,j, ret, pid;
 
     allocatedThreads = max_thread;
-    for(i = 0; i < allocatedThreads; i++)
+    for(i = 0; i < globalConfigs.getTotalThreadCount(); i++)
     {
         task_thread = new pthread_t;
         queue = new ThreadQueue;
@@ -278,7 +279,7 @@ void exit_sched(void)
     int i;
 
     //wait for already queued tasks to complete and empty
-    while(get_total_empty_slots() - (allocatedThreads * QUEUE_SIZE)){
+    while(get_total_empty_slots() - (globalConfigs.getTotalThreadCount() * QUEUE_SIZE)){
         sleep(2);
     }
 
