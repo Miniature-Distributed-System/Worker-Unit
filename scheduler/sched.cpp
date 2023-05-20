@@ -41,6 +41,7 @@ void* start_job_timer(void *data)
     tim.tv_nsec = jTimer->allowedCpuSlice;
     tim.tv_sec = 0;
     nanosleep(&tim, NULL);
+    if(jTimer)
     jTimer->jobShouldPause = 0;
 
     return 0;
