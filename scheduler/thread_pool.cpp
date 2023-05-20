@@ -5,6 +5,7 @@
 #include "../include/debug_rp.hpp"
 #include "../include/logger.hpp"
 #include "../sender_proc/sender.hpp"
+#include "../services/stats_engine.hpp"
 
 /* This function returns how much the process of a certain 
  * priority can be starved. 
@@ -141,6 +142,8 @@ int scheduleTask(struct ThreadPool *threadPoolHead, ProcessStates *newProc,
     
     //DEBUG_MSG(__func__,"insert node");
     rc = insert_node(threadPoolHead, newProcTab);
+    statsEngine.updateThreadStats(newProcTab->priority, TASK_IN);
+    statsEngine.updateTimerBefore();
     pthread_cond_signal(&cond);
     
     return rc;
@@ -166,6 +169,9 @@ TaskData thread_pool_pop(struct ThreadPool* threadPoolHead)
     Log().info(__func__, "popping job from pool pcnt:", 
                 threadPoolHead->threadPoolCount + 0);
 
+    statsEngine.updateThreadStats(temp.priority, TASK_OUT);
+    statsEngine.updateTimerAfter();
+    
     return temp;
 }
 
