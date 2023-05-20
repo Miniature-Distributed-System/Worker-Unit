@@ -52,8 +52,7 @@ struct JobTimer* init_timer(struct QueueJob* job)
     struct JobTimer* jTimer = new JobTimer;
     jTimer->jobShouldPause = 0;
 
-    if(!job->proc->pause_proc){
-        Log().schedINFO(__func__, "The job is non preemtable");  
+    if(!job->cpuSliceMs){ 
         return jTimer;   
     }
 
