@@ -232,10 +232,56 @@ struct QueueJob* init_job(TaskData pTable)
     return job;
 }
 
-void dealloc_job(struct QueueJob* job)
+int get_empty_thread_queue()
 {
-    delete job;
-    Log().schedINFO(__func__, "deallocated job");
+    for(int i = 0; i < globalConfigs.getTotalThreadCount(); i++){
+        if(!threadQueueList->at(i)->getTotalWaitTime())
+            return i;
+    }
+
+    return -1;
+}
+
+int get_busiest_thread_queue()
+{
+    int busiestThreadId = -1;
+    int largestWaitTime = 0;
+
+    for(int i = 0; i < globalConfigs.getTotalThreadCount(); i++){
+        // Don't bother if there is only one job in queue
+        if(threadQueueList->at(i)->getTotalJobsInQueue() < 2)
+            continue;
+        int tempWaitTime = threadQueueList->at(i)->getTotalWaitTime();
+        if(tempWaitTime > largestWaitTime)
+            busiestThreadId = i;
+    }
+
+    return busiestThreadId;
+}
+
+void rebalance_thread_queues()
+{
+    if(get_total_empty_slots() <= 0)
+        return;
+
+    // Loop until all threads are equavalently balanced
+    for(int i = 0; i < globalConfigs.getTotalThreadCount() - 1; i++){
+        // Find an idle thread id
+        int freeThreadId = get_empty_thread_queue();
+        if(freeThreadId < 0)
+            break;  // No idle threads present no need to idle balance
+        //Find thread id with the most filled queue
+        int busiestThreadId = get_busiest_thread_queue();
+        if(busiestThreadId == freeThreadId || busiestThreadId < 0)
+            return; // This means the load is balanced and no more rebalancing is required
+        Log().schedINFO(__func__, "rebalancing ThreadID:", freeThreadId, " with ThreadID:", busiestThreadId);
+        // Pop any non running job from busiest thread onto the freest thread queue and balance them out
+        while(threadQueueList->at(freeThreadId)->getTotalWaitTime() < 
+            threadQueueList->at(busiestThreadId)->getTotalWaitTime()){
+                if(threadQueueList->at(freeThreadId)->addNewTask(threadQueueList->at(busiestThreadId)->popJob()))
+                    break;
+        }        
+    }   
 }
 
 void *sched_task(void *ptr)
@@ -270,8 +316,7 @@ void *sched_task(void *ptr)
                 threadQueueList->at(threadId)->addNewTask(init_job(proc));
             }
         }
-            }
-        }
+        rebalance_thread_queues();
         pthread_cond_wait(&cond, &mutex);
     }
     return 0;
