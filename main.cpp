@@ -5,6 +5,7 @@
 #include "socket/socket.hpp"
 #include "instance/instance_list.hpp"
 #include "services/sqlite_database_access.hpp"
+#include "configs.hpp"
 
 void menu(){
     std::cout << "\n=========Control Menu==========" << std::endl;
@@ -22,7 +23,7 @@ int main()
     struct socket *soc;
     std::string net[2] = {"0.0.0.0", "8080"};
     std::string hostname, port;
-    std::uint8_t tNum;
+    int threadCount;
     std::cout << "---------------------------Start Menu--------------------------"<<std::endl;
     std::cout << "Enter Hostname: ";
     std::cin >> hostname;
@@ -40,12 +41,9 @@ int main()
     sqliteDatabaseAccess->initDatabase();
     std::cout <<"Inited database" << std::endl;
     thread = init_thread_pool();
-    std::cout << "Enter thread count (max:"<<MAX_THREAD - 1<<"): ";
-    std::cin >> tNum;
-    tNum = (tNum > MAX_THREAD || tNum <= 0) ? 2 : tNum;
-    std::cout << "Initing " << tNum << " Threads..." << std::endl;
-    init_sched(thread, tNum);
-    std::cout << "Initing and starting sockets..." << std::endl;
+    std::cin >> threadCount;
+    
+    globalConfigs = Configs(threadCount, hostname, port);
     soc = init_socket(thread, net);
 
     while(1){
