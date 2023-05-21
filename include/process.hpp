@@ -4,9 +4,10 @@
 #include "task.hpp"
 
 struct ProcessStates {
-    JobStatus (*start_proc)(void*);
-    JobStatus (*pause_proc)(void*);
-    JobStatus (*end_proc)(void*, JobStatus);
+    JobStatus (*start_proc)(void* );
+    JobStatus (*pause_proc)(void* );
+    void (*end_proc)(void* );
+    void (*fail_proc)(void* );
 };
 
 struct TaskData {
