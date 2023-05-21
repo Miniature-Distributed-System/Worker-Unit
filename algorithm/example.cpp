@@ -13,9 +13,8 @@ JobStatus example_pause_process(void *data){
     return JOB_DONE;
 }
 
-JobStatus example_end_process(void *data, JobStatus status){
+void example_end_process(void *data){
     Log().info(__func__, "Example end process");
-    return JOB_FINISHED;
 }
 
 struct ProcessStates* example_proc = new ProcessStates{

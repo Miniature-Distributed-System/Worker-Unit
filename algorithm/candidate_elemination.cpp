@@ -118,7 +118,7 @@ JobStatus candidate_elimination_pause(void *data){
     return JOB_PENDING;
 }
 
-JobStatus candidate_elimination_end(void *data, JobStatus status)
+void candidate_elimination_end(void *data)
 {
     TableData* tData = (TableData*)data;
     CandidateElimination *ce = (CandidateElimination*)tData->args;
@@ -132,8 +132,6 @@ JobStatus candidate_elimination_end(void *data, JobStatus status)
     //winding up with the process, else we will leak memeory.
     instanceList.dereferenceInstance(tData->tableID);
     dealloc_table_dat(tData);
-
-    return JOB_FINISHED;
 }
 
 struct ProcessStates *ce_algorithm = new ProcessStates{
