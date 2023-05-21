@@ -199,37 +199,40 @@ JobStatus process_data_pause(void *data)
     return JOB_PENDING;
 }
 
-JobStatus process_data_finalize(void *data, JobStatus status)
+void process_data_finalize(void *data)
 {
     DataProcessor *dataProc = (DataProcessor*)data;
-    struct TableData *tData = dataProc->tableData;
+    TableData *tData = dataProc->tableData;
     std::string selectAll = "SELECT * FROM " + tData->tableID + ";";
     std::string getCleanedTable;
 
-    if(status == JOB_FAILED){
-        send_packet(dataProc->getErrorString(), tData->tableID, DAT_ERR, tData->priority);
-        // Cleanup before early exit
-        dealloc_table_dat(tData);
-        return JOB_FINISHED;
-    }
-
     //Send the cleaned data back to server via fwd stack
     getCleanedTable = dataProc->fileDataBaseAccess->getBlob();
-    Log().info(__func__, getCleanedTable);
+    //Log().info(__func__, getCleanedTable);
     send_packet(getCleanedTable, tData->tableID, INTR_SEND, tData->priority);
     //Schedule the algorithm to process our cleaned data
     sched_algo(dataProc->thread, tData);
 
     //Deallocate memory and cleanup
     delete dataProc;
+}
 
-    return JOB_FINISHED;
+void process_data_failed(void *data)
+{
+    DataProcessor *dataProc = (DataProcessor*)data;
+    TableData *tData = dataProc->tableData;
+    
+    Log().debug(__func__, "server will be notified of wrong data");
+    send_packet(dataProc->getErrorString(), tData->tableID, DAT_ERR, tData->priority);
+    // Cleanup before exit
+    dealloc_table_dat(tData);
 }
 
 struct ProcessStates* data_proc = new ProcessStates {
     .start_proc = process_data_start,
     .pause_proc = process_data_pause,
-    .end_proc = process_data_finalize
+    .end_proc = process_data_finalize,
+    .fail_proc = process_data_failed
 };
 
 int init_data_processor(struct ThreadPool* thread, DataProcessContainer container)
