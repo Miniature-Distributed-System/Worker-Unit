@@ -276,8 +276,7 @@ int init_receiver(struct ThreadPool* thread, json pkt)
     Receiver *recv = new Receiver(thread, pkt);
     int rc = 0;
 
-    //DEBUG_MSG(__func__, "init receiver");
-    //Schedule the receiver task on the task pool
-    scheduleTask(thread, receiver_proc, (void*)recv, HIGH_PRIORITY);
+    // Schedule the receiver task on the task pool as non preemtable aka can't be put on hold/pause
+    scheduleTask(thread, receiver_proc, (void*)recv, NON_PREEMTABLE);
     return 0;
 }
