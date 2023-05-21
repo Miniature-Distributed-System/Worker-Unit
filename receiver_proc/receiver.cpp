@@ -195,8 +195,8 @@ ReceiverStatus Receiver::identifyPacketType()
         if(packetHead & SP_DATA_SENT){
             if(validatePacketBodyType() != P_ERROR){
                 if(isUserData.isFlagSet()){
-                   UserDataParser userDataParser(packet);
-                   rc = userDataParser.processDataPacket(tableId, &dataProcContainer);
+                    UserDataParser userDataParser(packet);
+                    rc = userDataParser.processDataPacket(tableId, &dataProcContainer);
                 } else {
                     InstanceDataParser instanceDataParser(packet);
                     rc = instanceDataParser.processInstancePacket(tableId);
@@ -228,45 +228,47 @@ ReceiverStatus Receiver::identifyPacketType()
 JobStatus receiver_proccess(void *data)
 {
     Receiver *recv = (Receiver*)data;
-    recv->receiverStatus = recv->identifyPacketType();
-
+    // recv->receiverStatus = recv->identifyPacketType();
+    if(recv->identifyPacketType() == P_ERROR)
+        return JOB_FAILED;
     return JOB_DONE;
 }
 
-JobStatus receiver_finalize(void *data, JobStatus signal)
+void receiver_finalize(void *data)
 {
     struct Receiver *recv = (struct Receiver*) data;
-    
-    if(recv->receiverStatus == P_ERROR){
-        // tableID itself is corrupt or it was a status signal that was lost in transmission
-        if(recv->tableId.empty()){
-            Log().debug(__func__, "packet data fields corrupted, resend packet");
-            send_packet("","", RECV_ERR, HIGH_PRIORITY);
-        } else {
-            Log().debug(__func__, "packet corrupted, resend packet");
-            send_packet("", instanceList.getInstanceActualName(recv->tableId), RECV_ERR, HIGH_PRIORITY);
-        }
-    } else if(recv->receiverStatus == P_SUCCESS){
-        // notify server data received successfully
-        Log().info(__func__,"packet received successfully");
-        if(recv->isUserData.isFlagSet())
-            send_packet("", recv->tableId, DAT_RECVD, DEFAULT_PRIORITY);
-        else
-            send_packet("", instanceList.getInstanceActualName(recv->tableId), DAT_RECVD, DEFAULT_PRIORITY);
-        // container should not be derefrenced after this as its dellocated by dataprocessor
-        if(recv->isUserData.isFlagSet())
-            init_data_processor(recv->thread, recv->dataProcContainer);
-    }
-    /* if neither of the cases where true then no need to send any respone to server. empty packet is sent by default if 
-       fwd stack is empty else queued packets are sent out to server. */
+    // notify server data received successfully
+    Log().info(__func__,"packet received successfully");
+    if(recv->isUserData.isFlagSet())
+        send_packet("", recv->tableId, DAT_RECVD, DEFAULT_PRIORITY);
+    // No need to send data if it was a acknowledge or handshake data
+    else if(!recv->tableId.empty())
+        send_packet("", instanceList.getInstanceActualName(recv->tableId), DAT_RECVD, DEFAULT_PRIORITY);
+    // container should not be derefrenced after this as its dellocated by dataprocessor
+    if(recv->isUserData.isFlagSet())
+        init_data_processor(recv->thread, recv->dataProcContainer);
     delete recv;
-    
-    return JOB_FINISHED;
 }
+
+void receiver_fail(void *data)
+{
+    struct Receiver *recv = (struct Receiver*) data;
+
+    // tableID itself is corrupt or it was a status signal that was lost in transmission
+    if(recv->tableId.empty()){
+        Log().debug(__func__, "packet data fields corrupted, resend packet");
+        send_packet("","", RECV_ERR, HIGH_PRIORITY);
+    } else {
+        Log().debug(__func__, "packet corrupted, resend packet");
+        send_packet("", instanceList.getInstanceActualName(recv->tableId), RECV_ERR, HIGH_PRIORITY);
+    }
+    delete recv;
+};
 
 struct ProcessStates* receiver_proc = new ProcessStates {
     .start_proc = receiver_proccess,
-    .end_proc = receiver_finalize
+    .end_proc = receiver_finalize,
+    .fail_proc = receiver_fail
 };
 
 int init_receiver(struct ThreadPool* thread, json pkt)
