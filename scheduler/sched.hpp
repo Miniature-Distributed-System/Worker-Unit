@@ -22,41 +22,51 @@ struct JobTimer {
 };
 
 enum TaskExecutionStatus {
-    RUNNING,
+    RUNNING = 0,
     WAITING,
+    FINALIZE,
     DONE
 };
 
-struct QueueJob {
-    struct ProcessStates *proc;
-    void *args;
-    std::uint64_t cpuSliceMs;
-    JobStatus jobStatus;
-    TaskExecutionStatus taskStatus;
-    bool jobErrorHandle;
-    QueueJob(struct ProcessStates* proc, void* args){
-        this->proc = proc;
-        this->args = args;
-        taskStatus = WAITING;
-    }
+class QueueJob {
+        struct ProcessStates *proc;
+        void *args;
+        std::uint64_t cpuSliceMs;
+        TaskExecutionStatus taskStatus;
+    public:
+        Flag jobErrorHandle;
+        QueueJob(struct ProcessStates* proc, void* args){
+            this->proc = proc;
+            this->args = args;
+            taskStatus = WAITING;
+            jobErrorHandle.initFlag(false);
+            cpuSliceMs = 0;
+        }
+        void setCpuTimeSlice(std::uint64_t cpuTimeSlice) { this->cpuSliceMs = cpuSliceMs; }
+        std::uint64_t getCpuTimeSlice() { return cpuSliceMs; } 
+        JobStatus runStartProcess() { return proc->start_proc(args); }
+        JobStatus runPauseProcess() { return proc->pause_proc(args); }
+        void runEndProcess() { proc->end_proc(args); }
+        void runFailProcess() { proc->fail_proc(args); }
+        void updateTaskStatus(TaskExecutionStatus status){ taskStatus = status; }
+        TaskExecutionStatus getTaskStatus() { return taskStatus; }
 };
 
 class ThreadQueue {
         unsigned int threadID;
         int head;
         sem_t threadResourceLock;
-        struct QueueJob *jobQueue[QUEUE_SIZE];
+        QueueJob *jobQueue[QUEUE_SIZE];
         Flag jobSlotDone[QUEUE_SIZE];
         Flag threadShouldStop;
         int totalJobsInQueue;
     public:
         ThreadQueue(){}
         ThreadQueue(unsigned int threadID);
-        struct QueueJob* getNextTask();
-        struct QueueJob* popJob();
-        void markTaskAsPreempted();
+        QueueJob* getNextTask();
+        QueueJob* popJob();
         void markTaskAsComplete();
-        int addNewTask(struct QueueJob *job);
+        int addNewTask(QueueJob *job);
         void flushFinishedJobs();
         int getTotalJobsInQueue();
         bool shouldStop();

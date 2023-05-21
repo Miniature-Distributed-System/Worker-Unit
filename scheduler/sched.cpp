@@ -40,7 +40,7 @@ ThreadQueue::ThreadQueue(unsigned int threadID){
     totalJobsInQueue = head = 0;
 }
 
-int ThreadQueue::addNewTask(struct QueueJob* job)
+int ThreadQueue::addNewTask(QueueJob* job)
 {
     if(!job)
         return -1;
@@ -58,13 +58,12 @@ int ThreadQueue::addNewTask(struct QueueJob* job)
     return -1;
 }
 
-struct QueueJob* ThreadQueue::getNextTask()
+QueueJob* ThreadQueue::getNextTask()
 {
     sem_wait(&threadResourceLock);
     for(int i = 0; i < QUEUE_SIZE; i++){
         head = ++head % QUEUE_SIZE;
         if(!jobSlotDone[head].isFlagSet()){
-            jobQueue[head]->taskStatus = RUNNING;
             sem_post(&threadResourceLock);
             return jobQueue[head];
         }
@@ -74,32 +73,27 @@ struct QueueJob* ThreadQueue::getNextTask()
     return NULL;
 }
 
-struct QueueJob* ThreadQueue::popJob()
+QueueJob* ThreadQueue::popJob()
 {
     sem_wait(&threadResourceLock);
     for(int i = 0; i < QUEUE_SIZE; i++){
-        if(!jobSlotDone[i].isFlagSet() && jobQueue[i]->taskStatus != RUNNING){
-            struct QueueJob *job = jobQueue[i];
-            jobSlotDone[i].setFlag();
-            totalJobsInQueue--;
-            jobQueue[i] = NULL;
-            sem_post(&threadResourceLock);
-            return job;
+        if(!jobSlotDone[i].isFlagSet() && jobQueue[i]->getTaskStatus() != RUNNING && 
+            jobQueue[i]->getTaskStatus() != FINALIZE){
+                QueueJob *job = jobQueue[i];
+                jobSlotDone[i].setFlag();
+                totalJobsInQueue--;
+                jobQueue[i] = NULL;
+                sem_post(&threadResourceLock);
+                return job;
         }
     }
     sem_post(&threadResourceLock);
     return NULL;
 }
 
-void ThreadQueue::markTaskAsPreempted()
-{
-    if(jobQueue[head]->taskStatus != DONE)
-        jobQueue[head]->taskStatus = WAITING;
-}
-
 void ThreadQueue::markTaskAsComplete()
 {
-    jobQueue[head]->taskStatus = DONE;
+    jobQueue[head]->updateTaskStatus(DONE);
     jobSlotDone[head].setFlag();
     totalJobsInQueue--;
     Log().schedINFO(__func__, "job slot:", head, " marked as complete, jobs pending:", totalJobsInQueue);
@@ -132,7 +126,7 @@ int ThreadQueue::getTotalWaitTime()
 
     for(int i = 0; i < QUEUE_SIZE; i++){
         if(!jobSlotDone[i].isFlagSet() && jobQueue[i]){
-            totalWaitTime += jobQueue[i]->cpuSliceMs != 0 ?  jobQueue[i]->cpuSliceMs : 999;
+            totalWaitTime += jobQueue[i]->getCpuTimeSlice() ?  jobQueue[i]->getCpuTimeSlice() : 999;
         }
     }
     return totalWaitTime;
@@ -162,17 +156,17 @@ void* start_job_timer(void *data)
     return 0;
 }
 
-struct JobTimer* init_timer(struct QueueJob* job)
+struct JobTimer* init_timer(QueueJob* job)
 {
     pthread_t timerThread;
     struct JobTimer* jTimer = new JobTimer;
     jTimer->jobShouldPause = 0;
 
-    if(!job->cpuSliceMs){ 
+    if(!job->getCpuTimeSlice()){ 
         return jTimer;   
     }
 
-    jTimer->allowedCpuSlice = job->cpuSliceMs;
+    jTimer->allowedCpuSlice = job->getCpuTimeSlice();
     pthread_create(&timerThread, NULL, start_job_timer, (void*)jTimer);
     Log().schedINFO(__func__,"job timer created with timer set for:",
         jTimer->allowedCpuSlice,"ns");
@@ -221,14 +215,11 @@ int get_quickest_queue(void)
     return threadID;
 }
 
-struct QueueJob* init_job(TaskData pTable)
+QueueJob* init_job(TaskData pTable)
 {
-    struct QueueJob *job = new QueueJob(pTable.proc, pTable.args);
-    job->jobStatus = JOB_PENDING;
-    job->taskStatus = WAITING;
-    job->jobErrorHandle = 0;
-    job->cpuSliceMs = get_cpu_slice(pTable.priority);
-    Log().schedINFO(__func__, "job inited with cts:", job->cpuSliceMs + 0);
+    QueueJob *job = new QueueJob(pTable.proc, pTable.args);
+    job->setCpuTimeSlice(get_cpu_slice(pTable.priority));
+    Log().schedINFO(__func__, "job inited with cts:", job->getCpuTimeSlice() + 0);
     return job;
 }
 
@@ -289,7 +280,7 @@ void *sched_task(void *ptr)
     struct ThreadPool* threadPoolHead = (struct ThreadPool*)ptr;
     struct ThreadQueue* queue;
     TaskData proc;
-    struct QueueJob* job;
+    QueueJob* job;
     int i, j, qSlots, threadId;
 
     if(threadPoolHead == NULL){
@@ -325,8 +316,6 @@ void *sched_task(void *ptr)
 void *thread_task(void *ptr)
 {
     struct ThreadQueue *queue = (ThreadQueue*)ptr;
-    struct QueueJob *job;
-    struct JobTimer *timer;
     std::string threadID = std::to_string(queue->getThreadId());
 
     if(!queue){
@@ -337,34 +326,40 @@ void *thread_task(void *ptr)
 
     while(!queue->shouldStop())
     {
-        job = queue->getNextTask();
+        QueueJob *job = queue->getNextTask();
         if(!job)
             continue;
-        timer = init_timer(job);
+
+        if(job->getTaskStatus() == FINALIZE)
+        {
+            if(job->jobErrorHandle.isFlagSet())
+                job->runFailProcess();
+            else
+                job->runEndProcess();
+
+            queue->markTaskAsComplete();
+            //signal scheduler to wake up
+            pthread_cond_signal(&cond);
+            continue;
+        }
+
+        job->updateTaskStatus(RUNNING);
+        struct JobTimer *timer = init_timer(job);
         while(!timer->jobShouldPause)
         {
-            if(job->jobStatus == JOB_DONE || job->jobStatus == JOB_FAILED)
-            {
-                job->jobStatus = job->proc->end_proc(job->args, job->jobStatus);
-                queue->markTaskAsComplete();
-                //signal scheduler to wake up
-                pthread_cond_signal(&cond);  
+            JobStatus status = job->runStartProcess();
+            if(status == JOB_DONE){
+                job->updateTaskStatus(FINALIZE);
+                goto cleanup;
+            } else if (status == JOB_FAILED){
+                job->updateTaskStatus(FINALIZE);
+                job->jobErrorHandle.setFlag();
                 goto cleanup;
             }
-            job->jobStatus = job->proc->start_proc(job->args);
-            if(job->jobStatus == JOB_DONE){
-                Log().schedINFO(__func__, "ThreadID:", threadID, " Job done and awaiting to finish");
-                break;
-            } else if (job->jobStatus == JOB_FAILED){
-                //must also do process error handling at the moment not implimented
-                Log().schedINFO(__func__, "ThreadID:", threadID, " Error encountered set error handling");
-                job->jobErrorHandle = 1;
-                break;
-            }
         }
-        queue->markTaskAsPreempted();
-        if(job->proc->pause_proc && timer->jobShouldPause)
-            job->proc->pause_proc(job->args);
+        job->updateTaskStatus(WAITING);
+        if(job->getCpuTimeSlice() && timer->jobShouldPause)
+            job->runPauseProcess();
 cleanup:
         delete timer;
     }
