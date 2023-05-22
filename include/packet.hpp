@@ -13,12 +13,13 @@ enum compute_packet_status {
 };
 
 enum packet_code {
-    RECV_ERR = 0,   //Receiver error
-    DAT_ERR,
-    DAT_RECVD,       //Received csv data
-    INTR_SEND,      //Sending intermidiate data
-    FRES_SEND,      //Sending result data
-    SEIZE,          //Sender is seizing accepting any new csv for processing
+    RECV_ERR = 0,   // Receiver error
+    RESET_TIMER,    // Receiver is still processing the user data
+    DAT_ERR,        // Receiver encountered error parsing json data
+    DAT_RECVD,      // Received csv data
+    INTR_SEND,      // Sending intermidiate data
+    FRES_SEND,      // Sending result data
+    SEIZE,          // Sender is seizing accepting any new csv for processing
     DAT_NULL = 100,
 };
 
