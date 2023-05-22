@@ -168,6 +168,11 @@ std::vector<std::string> FileDataBaseAccess::getRowValueList(int rowIndex)
         return empty;
     }
 
+    if(rowIndex < 0){
+        std::vector<std::string> empty;
+        return empty;
+    }
+
     std::list<std::string> resultData;
     std::string data;
 
@@ -221,6 +226,9 @@ int FileDataBaseAccess::writeRowValue(std::string value, int rowIndex, int colum
         return -3;
     }
 
+    if(rowIndex < 0)
+        return -1;
+
     std::string data;
     std::string replacementString;
     int k = 0;
@@ -258,6 +266,9 @@ int FileDataBaseAccess::writeRowValueList(std::vector<std::string> valueList, in
         return -3;
     }
 
+    if(rowIndex < 0)
+        return -1;
+
     std::string rowString = valueList[0];
     for(int i = 1; i < valueList.size(); i++)
         rowString += "," + valueList[i];
@@ -276,6 +287,9 @@ std::string FileDataBaseAccess::getRowValue(int rowIndex, int columnIndex)
          Log().error(__func__, "File is deleted and can't be accessed");
          return "";
     }
+
+    if(rowIndex < 0)
+        return "";
 
     std::string data;
     int k;
@@ -309,6 +323,9 @@ int FileDataBaseAccess::deleteDuplicateRecords(int rowIndex)
         Log().info(__func__, "Deuplicate rows deletion has come to end of record");
         return -3;
     }
+
+    if(rowIndex < 0)
+        return -1;
         
     auto iterator = readWriteData.begin();
     int k = 0;
