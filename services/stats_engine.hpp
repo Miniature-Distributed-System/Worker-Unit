@@ -1,6 +1,7 @@
 #ifndef STATS_H
 #define STATS_H
 #include <vector>
+#include <list>
 #include <semaphore.h>
 #include <chrono>
 #include "../include/task.hpp"
@@ -20,8 +21,8 @@ class StatisticsEngine {
         double averageQueueTime;    // Holds the average value of time vector
         std::vector<int> taskCountVector;   // Gives the current task map in thread queue
         std::vector<int> queueTimeVector;   // Stores average times of thread tasks 
-        std::vector<std::chrono::high_resolution_clock::time_point> timeBefore;
-        std::vector<std::chrono::high_resolution_clock::time_point> timeAfter;
+        std::list<std::chrono::high_resolution_clock::time_point> timeBefore;
+        std::chrono::high_resolution_clock::time_point timeAfter;
     public:
         StatisticsEngine(){};
         StatisticsEngine(int threadCount, int statisticsArraySize);
