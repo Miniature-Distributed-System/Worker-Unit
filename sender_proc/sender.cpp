@@ -3,6 +3,7 @@
 #include "../include/debug_rp.hpp"
 #include "../include/logger.hpp"
 #include "../socket/socket.hpp"
+#include "../services/stats_engine.hpp"
 #include "sender.hpp"
 
 /* send_packet(): sends the data passed as arguments to the forward port/ sender stack.
@@ -100,6 +101,8 @@ json create_packet(struct fwd_stack_bundle item)
             quickSendMode.resetFlag();
     }
     
+    packet["stats"] = statsEngine.toJson();
+
     //DEBUG_MSG(__func__, "packet created body: ", packet.dump(), " status code: ", statusCode);
 
     return packet;
