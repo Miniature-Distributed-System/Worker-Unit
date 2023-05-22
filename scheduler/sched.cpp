@@ -305,7 +305,7 @@ void *sched_task(void *ptr)
                 if(proc.args == NULL || proc.proc == NULL)
                     break;  // unlikely to happen but if it does better safe than sorry
                 threadQueueList->at(threadId)->addNewTask(init_job(proc));
-            }
+            } else break;
         }
         rebalance_thread_queues();
         pthread_cond_wait(&cond, &mutex);
