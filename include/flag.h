@@ -3,13 +3,14 @@
 #include <atomic>
 
 class Flag{
-    std::atomic_bool bit;
+    bool bit = {0};
     public:
     inline void initFlag(bool);
     inline void setFlag();
     inline void resetFlag();
     inline bool isFlagSet();
 };
+
 inline void Flag::initFlag(bool state = false){
     if(state)
         bit = 1;
