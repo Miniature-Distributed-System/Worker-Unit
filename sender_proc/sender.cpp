@@ -64,9 +64,8 @@ json create_packet(struct fwd_stack_bundle item)
 
     //Here we onlt append head to the packet
     if(seizeMode.isFlagSet()){
-         /* curfew isnt lifted unless seizeMode is explicitly unset by core 
-           processes. This may be set due to either node being overloaded or
-           the node shutdown sequence being singnalled by the user. */
+         /* curfew isnt lifted unless seizeMode is explicitly unset by core processes. This may be set due to either 
+         node being overloaded or the node shutdown sequence being singnalled by the user. */
         packet["head"] = getPacketHead(statusCode) | P_SEIZE;
     } else if(quickSendMode.isFlagSet()){
         // stack is not empty that means there is one more item behind this current item, so proceed to quicksend mode
@@ -82,9 +81,11 @@ json create_packet(struct fwd_stack_bundle item)
     switch(statusCode)
     {
         case RECV_ERR:
+        case DAT_ERR:
             packet["body"]["id"] = item.tableID.c_str();
             packet["body"]["data"] = item.data.c_str();
             break;
+        case RESET_TIMER:
         case DAT_RECVD:
             packet["body"]["id"] = item.tableID.c_str();
             packet["body"]["priority"] = item.priority;
