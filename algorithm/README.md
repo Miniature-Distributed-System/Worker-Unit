@@ -1,9 +1,9 @@
 ## Creating and Adding Custom Algorithms
 
 Creating custom algorithms for worker/compute unit has a set method and rules to be followed. These rules are made as easy and understandable by this guide.
-The `example.cpp` and `example.hpp` give us an idea of how to strcuture our code.
-Algorithms have two stages:-
-1. Split stage
+The `example.cpp` and `example.hpp` give us an idea of base structure of code. We need to build our algorithm on top of this structure. 
+Algorithms have been divided into:-
+1. Split Stage
 2. Aggrigate Stage.
 
 
@@ -182,3 +182,30 @@ AlgorithmFinalize *finalize = (AlgorithmFinalize*)data;
 NOTE:- I have not mentioned pause process we still need a dummy method to be mentioned as its necessary at the moment will be deleted soon.
 
 With this it would mark the end of pipeline and results will be safely delivered to the server.
+
+## Testing
+Now to Test this we have a specialized websocket in `/test` directory which simulates the server with test data. 
+The Array is of form json. We can replace the data in the `data` feild with out dataset and rules to test out the algorithm.
+- `data`: Contains either Rule dataset or process dataset
+- `instanceId`: Name of Rule dataset(can put some dummy value)
+- `priority`: Priority of dataset(put some dummy value here)
+- `tableid`: Contains the name of to be processed dataset
+- `algotype`: Index of your algorithm
+
+```cpp
+std::string dataArr[3] = {
+    "{\"head\":1,\"id\":\"cu0000\",\"body\":{}}",
+    "{\"head\":2,\"id\":\"cu0000\",\"body\":{\"instanceid\":\"instance1\",\"algotype\":1,\"data\":\"sky,airtemp,humidity,wind,water,forecast,enjoysport\\nsunny,warm,normal,strong,warm,same,yes\\ncloudy,cold,high,weak,same,change,no\\nrainy,normal,NaN,NaN,cool,NaN,NaN\\n\"}}",
+    "{\"head\":2,\"id\":\"cu0000\",\"body\":{\"tableid\":\"myTable2\",\"priority\":2,\"instancetype\":\"instance1\",\"data\":\"sky,airtemp,humidity,wind,water,forecast,enjoysport\\nsunny,warm,normal,strong,warm,same,yes\\nsunny,warm,high,strong,warm,same,yes\\nrainy,cold,high,strong,cool,change,no\\nsunny,warm,high,strong,cool,change,yes\\nsunny,warm,normal,strong,warm,change,yes\\nsunny,warm,normal,weak,warm,same,yes\\nrainy,cold,high,strong,warm,same,no\\nsunny,warm,normal,weak,warm,change,yes\\nrainy,cold,normal,strong,cold,same,no\\nsunny,warm,normal,strong,warm,same,yes\"}}"
+};
+```
+End of record/line is delimited with newline character `\n`.
+
+- First element of array is the handshake packet so don't touch that. 
+- Second element is Rule Packet which needs to be replaced with your rules. 
+- The Third/last element is the To be processed Dataset to be replaced with your dataset. 
+
+Run the websocket and then the websocket test server. The websocket will automatically feed all data and if you want to pop out all queued packets of Worker/Compute
+unit just send some dummy values in 'write data' input of websocket to check all packets received from Worker.
+
+The results can also be viewed in terminal which is coloured to help identify processes in the worker.
