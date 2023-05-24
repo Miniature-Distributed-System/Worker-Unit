@@ -6,8 +6,11 @@ enum Foreground {
     FG_GREEN    = 32,
     FG_GOLD     = 33,
     FG_BLUE     = 34,
+    FG_MAGNETA  = 35,
+    FG_CYAN     = 36,
     FG_GREY     = 90,
     FG_YELLLOW  = 93,
+    FG_LMAGNETA = 95,
     FG_DEFAULT  = 39
 };
 enum Background {

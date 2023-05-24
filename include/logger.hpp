@@ -50,6 +50,26 @@ class Log{
                 colorCoder(": " + DEBUG(args...).str(), ALL, FG_RED, BG_DARKGREY) << std::endl;
             std::cout << ostring.str();
         };
+        
+        template<typename... Args>
+        void dataProcInfo(std::string fun_name, Args... args){
+            std::ostringstream ostring;
+            ostring << colorCoder(currentDateTime(), ALL, FG_YELLLOW, BG_DARKGREY) << 
+                colorCoder(" I ", BOLD, FG_GREEN, BG_DEFAULT) <<
+                colorCoder(fun_name, BOLD, FG_CYAN, BG_DEFAULT) <<
+                colorCoder(": " + DEBUG(args...).str(), ALL, FG_CYAN, BG_DEFAULT) << std::endl;
+            std::cout << ostring.str();
+        };
+
+        template<typename... Args>
+        void taskPoolInfo(std::string fun_name, Args... args){
+            std::ostringstream ostring;
+            ostring << colorCoder(currentDateTime(), ALL, FG_YELLLOW, BG_DARKGREY) << 
+                colorCoder(" I ", BOLD, FG_GREEN, BG_DEFAULT) <<
+                colorCoder(fun_name, BOLD, FG_MAGNETA, BG_DEFAULT) <<
+                colorCoder(": " + DEBUG(args...).str(), ALL, FG_MAGNETA, BG_DEFAULT) << std::endl;
+            std::cout << ostring.str();
+        };
 
         template<typename... Args>
         void info(std::string fun_name, Args... args){
