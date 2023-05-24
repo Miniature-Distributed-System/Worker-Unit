@@ -8,31 +8,32 @@
 #include "../include/packet.hpp"
 #include "../include/logger.hpp"
 #include "../sender_proc/sender.hpp"
-#include "../instance/instance_list.hpp"
+#include "../services/sqlite_database_access.hpp"
 #include "algorithm_scheduler.hpp"
 #include "candidate_elemination.hpp"
+#include "ce_finalize.hpp"
 
-CandidateElimination::CandidateElimination(int columns, TableData *tableData)
+CandidateElimination::CandidateElimination(std::string tableId, std::string instanceId, int start, int end, 
+    int columns) : columns(columns - 1), start(start), end(end), tableId(tableId)
 {
-    this->tableName = tableData->tableID;
-    cols = columns - 1;
     targetCol = columns - 1;
-    s = new std::string[cols];
-    g = new std::string[cols];
 
-    for(int i = 0; i < cols; i++){
-        s[i] = "*";
-        g[i] = "?";
+    for(int i = 0; i < columns - 1; i++){
+        s.push_back("*");
+        g.push_back("*");
     }
-    std::string* columnValues = sqliteDatabaseAccess->getColumnNames(tableData->instanceType, columns);
+    std::string* columnValues = sqliteDatabaseAccess->getColumnNames(instanceId, columns);
     if(columnValues){
         std::string targetColumnName = columnValues[columns - 1];
-        confirmValue = sqliteDatabaseAccess->getColumnValues(tableData->instanceType, targetColumnName, 2)[0];
+        confirmValue = sqliteDatabaseAccess->getColumnValues(instanceId, targetColumnName, 2)[0];
         if(confirmValue.empty())
             confirmValue = "yes";
     } else confirmValue = "yes";
     
-    fileDataBaseAccess = new FileDataBaseAccess(tableName, READ_FILE);
+    columns--;
+    fileDataBaseAccess = new FileDataBaseAccess(tableId, READ_FILE);
+    totalNegatives = totalPositives = 0;
+    startSet.initFlag(false);
 }
 
 CandidateElimination::~CandidateElimination()
@@ -48,7 +49,8 @@ void CandidateElimination::compare(std::vector<std::string> valueList)
     //Log().info(__func__, input[targetCol]);
     if(boost::iequals(valueList[targetCol], confirmValue))
     {
-        for(i = 0; i < cols; i++)
+        totalPositives++;
+        for(i = 0; i < columns; i++)
         {
             if(s[i] == "*")
                 s[i] = valueList[i]; 
@@ -60,56 +62,62 @@ void CandidateElimination::compare(std::vector<std::string> valueList)
         //Log().info(__func__, "Yes:", getS());
     //negative training examples
     } else {
-        for(i = 0; i < cols; i++)
+        totalNegatives++;
+        for(i = 0; i < columns; i++)
         {
-            if(!boost::iequals(s[i], valueList[i]))
+            if(!boost::iequals(s[i], valueList[i]) && !boost::iequals(g[i], "?"))
                 g[i] = s[i];
+            else 
+                g[i] = "?";
         }
         //Log().info(__func__, "No:", getG());
     }
 }
 
-std::string CandidateElimination::getS()
+int CandidateElimination::getNextRow()
 {
-    int i;
-    std::string finalStr;
-    
-    for(i = 0; i < cols; i++){
-        finalStr += s[i];
-        if(i < cols -1)
-            finalStr += ",";
-    }
-
-    return finalStr;
+    if(start <= end)
+        return start++;
+    return -1;
 }
 
-std::string CandidateElimination::getG()
+std::vector<std::string> CandidateElimination::getFirstPostive()
 {
-    int i;
-    std::string finalStr;
-    
-    for(i = 0; i < cols; i++){
-        finalStr += g[i];
-        if(i < cols -1)
-            finalStr += ",";
-    }
+    int startRow = start;
 
-    return finalStr;
+    while(startRow <= end){
+        std::vector<std::string> feild = fileDataBaseAccess->getRowValueList(startRow++);
+        if(feild.size() == columns + 1){
+            if(boost::iequals(feild[targetCol], confirmValue))
+                return feild;
+        }
+    }
+    std::vector<std::string> empty;
+    return empty;
 }
 
 JobStatus candidate_elimination_start(void *data)
 {
-    TableData* tData = (TableData*)data;
-    CandidateElimination *ce = (CandidateElimination*)tData->args;
+    CandidateElimination *ce = (CandidateElimination*)data;
     std::vector<std::string> feild;
-    
-    if(tData->metadata->currentRow >= tData->metadata->rows)
-        return JOB_DONE;
-    feild = ce->fileDataBaseAccess->getRowValueList(tData->metadata->currentRow);
-    if(feild.size() == tData->metadata->columns)
+
+    if(!ce->startSet.isFlagSet()){
+        feild = ce->getFirstPostive();
+        if(feild.empty())
+            return JOB_DONE;
         ce->compare(feild);
-    else Log().error(__func__, "doesn't match column count :", feild.size());
-    tData->metadata->currentRow++;
+        ce->startSet.setFlag();
+        return JOB_PENDING;
+    }
+    
+    int rowIndex = ce->getNextRow();
+    if(rowIndex < 0)
+        return JOB_DONE;
+
+    feild = ce->fileDataBaseAccess->getRowValueList(rowIndex);
+    if(feild.size() == ce->getColumnsCount() + 1)
+        ce->compare(feild);
+    else Log().debug(__func__, "doesn't match column count :", feild.size());
     return JOB_PENDING;
 }
 
@@ -120,18 +128,22 @@ JobStatus candidate_elimination_pause(void *data){
 
 void candidate_elimination_end(void *data)
 {
-    TableData* tData = (TableData*)data;
-    CandidateElimination *ce = (CandidateElimination*)tData->args;
-    std::string s = ce->getS();
-    std::string g = ce->getG();
-    std::string final = s + ":" + g;
-    send_packet(final, tData->tableID, FRES_SEND, tData->priority);
-    Log().info(__func__, "end process S:",s, " G:", g, " for table:", tData->tableID); 
+    CandidateElimination *ce = (CandidateElimination*)data;
+    CeResultExportObject *resObj = new CeResultExportObject();
+
+    resObj->totalColumns = ce->getColumnsCount();
+    std::string str;
+    for(int i = 0; i < ce->getS().size(); i++){
+        str += " " + ce->getS()[i];
+    }
+    Log().info(__func__, "Str:",str);
+    resObj->s = ce->getS();
+    resObj->g = ce->getG();
+    resObj->totalPositives = ce->getTotalPositives() - 1;
+    resObj->totalNegatives = ce->getTotalNegatives();
+    
+    update_algo_result(ce->tableId, resObj);
     delete ce;
-    //Deallocate both table data and whatever was allocated in this algo before
-    //winding up with the process, else we will leak memeory.
-    instanceList.dereferenceInstance(tData->tableID);
-    dealloc_table_dat(tData);
 }
 
 struct ProcessStates *ce_algorithm = new ProcessStates{
@@ -140,9 +152,9 @@ struct ProcessStates *ce_algorithm = new ProcessStates{
     .end_proc = candidate_elimination_end
 };
 
-ProcessStates* init_ce_algorithm(TableData* tData)
+AlgorithmExportPackage init_ce_algorithm(std::string tableId, std::string instanceId, int start, int end, int columns)
 {
-    CandidateElimination *ce = new CandidateElimination(tData->metadata->columns, tData);
-    tData->args = ce;
-    return ce_algorithm;
+    CandidateElimination *ce = new CandidateElimination(tableId, instanceId, start, end, columns);
+    AlgorithmExportPackage finalizePackage(ce_algorithm, ce);
+    return finalizePackage;
 }

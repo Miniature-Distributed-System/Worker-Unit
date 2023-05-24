@@ -2,6 +2,7 @@
 #include "../include/process.hpp"
 #include "../include/debug_rp.hpp"
 #include "../include/logger.hpp"
+#include "algorithm_scheduler.hpp"
 
 JobStatus example_start_process(void *data){
     Log().info(__func__, "Example start process");
@@ -23,7 +24,13 @@ struct ProcessStates* example_proc = new ProcessStates{
     .end_proc = example_end_process
 };
 
-ProcessStates* init_example_algo(TableData* tableData)
+AlgorithmExportPackage init_example_algo(std::string tableId, std::string instanceId, int start, int end, int columns)
 {
-    return example_proc;
+    return AlgorithmExportPackage(example_proc, NULL);
 }
+
+AlgorithmExportPackage init_example_finalize(std::vector<void *>, std::string, TaskPriority)
+{
+    return AlgorithmExportPackage(example_proc, NULL);
+}
+
