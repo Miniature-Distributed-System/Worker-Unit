@@ -92,31 +92,6 @@ int insert_node(struct ThreadPool* threadPoolHead,
     return 0;
 }
 
-void delete_node(struct ThreadPool* threadPoolHead)
-{
-    struct ThreadPoolNode *curHead, *nextHead;
-
-    sem_wait(&threadPoolHead->threadPool_mutex);
-    //This condition should always be false if its true we fucked up somewhere
-    if(threadPoolHead->threadPoolCount < 1)
-    {
-        Log().info(__func__,"Thread pool is already empty!");
-        threadPoolHead->threadPoolCount = 0;
-        sem_post(&threadPoolHead->threadPool_mutex);
-        return;
-    }
-    
-    curHead = threadPoolHead->headNode;
-    nextHead = curHead->next;
-    delete curHead;
-    threadPoolHead->headNode = nextHead;
-    threadPoolHead->threadPoolCount--;
-
-    Log().info(__func__,"popped node from thread pool cur cnt:", 
-            threadPoolHead->threadPoolCount + 0);
-    sem_post(&threadPoolHead->threadPool_mutex);
-}
-
 /* This function initilises the process table for the submitted
  * process along with null checks. Once inited the process table
  * is pushed into the thread_pool.
