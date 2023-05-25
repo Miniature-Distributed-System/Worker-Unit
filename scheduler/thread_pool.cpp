@@ -84,6 +84,8 @@ int insert_node(struct ThreadPool* threadPoolHead,
         }
     }
 
+    statsEngine.updateThreadStats(procTable->priority, TASK_IN);
+    statsEngine.updateTimerBefore();
     threadPoolHead->threadPoolCount++;
     Log().taskPoolInfo(__func__, "pushed into pool, threadPoolCount:",
                 threadPoolHead->threadPoolCount + 0);
@@ -115,10 +117,8 @@ int scheduleTask(struct ThreadPool *threadPoolHead, ProcessStates *newProc,
     newProcTab->priority = prior;
     newProcTab->starveCounter = 0;
     
-    //DEBUG_MSG(__func__,"insert node");
     rc = insert_node(threadPoolHead, newProcTab);
-    statsEngine.updateThreadStats(newProcTab->priority, TASK_IN);
-    statsEngine.updateTimerBefore();
+
     pthread_cond_signal(&cond);
     Log().taskPoolInfo(__func__,"insert node:",threadPoolHead->threadPoolCount + 0);
 
