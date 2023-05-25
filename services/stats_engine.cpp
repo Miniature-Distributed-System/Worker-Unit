@@ -60,12 +60,11 @@ void StatisticsEngine::updateTimerAfter()
 {
     sem_wait(&timerAfterLock);
     timeAfter = std::chrono::high_resolution_clock::now();
-    //Log().info(__func__, "average time:", std::chrono::duration_cast<std::chrono::milliseconds>
-        (timeAfter - timeBefore.front()).count());
     queueTimeVector.push_back(std::chrono::duration_cast<std::chrono::milliseconds>
         (timeAfter - timeBefore.front()).count());
     sem_wait(&timerBeforeLock);
-    timeBefore.pop_front();
+    if(!timeBefore.size())
+        timeBefore.pop_front();
     sem_post(&timerBeforeLock);
     if(queueTimeVector.size() >= statisticsArraySize)
             calculateAvgTimerVector();
