@@ -37,7 +37,7 @@ int insert_node(struct ThreadPool* threadPoolHead,
     
     sem_wait(&threadPoolHead->threadPool_mutex);
     if(threadPoolHead->threadPoolCount >= MAX_POOL_SIZE){
-        Log().info(__func__,"Max pool limit reached!");
+        Log().taskPoolInfo(__func__,"Max pool limit reached!");
         sem_post(&threadPoolHead->threadPool_mutex);
         return EXIT_FAILURE;
     }
@@ -49,7 +49,7 @@ int insert_node(struct ThreadPool* threadPoolHead,
     
     //Single node in list
     if(curHead == NULL){
-        Log().info(__func__, "first node of thread pool created");
+        Log().taskPoolInfo(__func__, "first node of thread pool created");
         threadPoolHead->headNode = node;
         node->next = NULL;
     }
@@ -60,7 +60,7 @@ int insert_node(struct ThreadPool* threadPoolHead,
             {
                 if(curHead->pData->starveCounter >=
                         get_starve_limit(curHead->pData->priority)){
-                            Log().info(__func__, "node is starved skipping...");
+                            Log().taskPoolInfo(__func__, "node is starved skipping...");
                             continue;
                         }
                 else{
@@ -76,7 +76,7 @@ int insert_node(struct ThreadPool* threadPoolHead,
             }
 
             if(curHead->next == NULL){
-                Log().info(__func__, "add to bottom of list");
+                Log().taskPoolInfo(__func__, "add to bottom of list");
                 curHead->next = node;
                 break;
             }
@@ -85,7 +85,7 @@ int insert_node(struct ThreadPool* threadPoolHead,
     }
 
     threadPoolHead->threadPoolCount++;
-    Log().info(__func__, "pushed into pool, threadPoolCount:",
+    Log().taskPoolInfo(__func__, "pushed into pool, threadPoolCount:",
                 threadPoolHead->threadPoolCount + 0);
     sem_post(&threadPoolHead->threadPool_mutex);
     
@@ -145,7 +145,8 @@ int scheduleTask(struct ThreadPool *threadPoolHead, ProcessStates *newProc,
     statsEngine.updateThreadStats(newProcTab->priority, TASK_IN);
     statsEngine.updateTimerBefore();
     pthread_cond_signal(&cond);
-    
+    Log().taskPoolInfo(__func__,"insert node:",threadPoolHead->threadPoolCount + 0);
+
     return rc;
 }
 
@@ -166,8 +167,7 @@ TaskData thread_pool_pop(struct ThreadPool* threadPoolHead)
     threadPoolHead->threadPoolCount--;
     delete tempHead->pData;
     delete tempHead;
-    Log().info(__func__, "popping job from pool pcnt:", 
-                threadPoolHead->threadPoolCount + 0);
+    Log().taskPoolInfo(__func__, "popping job from pool threadPoolCount:", threadPoolHead->threadPoolCount + 0);
 
     statsEngine.updateThreadStats(temp.priority, TASK_OUT);
     statsEngine.updateTimerAfter();
@@ -209,6 +209,6 @@ void exit_thread_pool(struct ThreadPool* threadPoolHead){
         delete temp;
     }
     sem_destroy(&threadPoolHead->threadPool_mutex);
-    Log().info(__func__, "de-allocated thread pool data");
+    Log().taskPoolInfo(__func__, "de-allocated thread pool data");
 }
 
