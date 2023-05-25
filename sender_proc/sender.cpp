@@ -4,6 +4,7 @@
 #include "../include/logger.hpp"
 #include "../socket/socket.hpp"
 #include "../services/stats_engine.hpp"
+#include "../configs.hpp"
 #include "sender.hpp"
 
 /* send_packet(): sends the data passed as arguments to the forward port/ sender stack.
@@ -121,12 +122,12 @@ json getPacket(void)
     std::string body;
 
     //If there are no items it must be the first time we are starting out
-    if(computeID.empty())
+    if(globalConfigs.getWorkerId().empty())
     {
         if(initSender.isFlagSet()){
             Log().info(__func__,"worker ID not set yet");
-            while(computeID.empty());
-            if(!computeID.empty()){
+            while(globalConfigs.getWorkerId().empty());
+            if(!globalConfigs.getWorkerId().empty()){
                 initSender.resetFlag();
                 packet = create_packet(fwdStack.popForwardStack());
             }

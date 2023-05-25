@@ -6,6 +6,7 @@ class Configs{
         int totalAvailableThreads;
         std::string hostName;
         std::string portNumber;
+        std::string workerId;
     public:
         Configs(){}
         Configs(int totalAvailableThreads, std::string hostName, std::string portNumber) : 
@@ -13,6 +14,8 @@ class Configs{
         int getTotalThreadCount(){ return totalAvailableThreads; }
         std::string getHostName(){ return hostName; }
         std::string getPortNumber(){ return portNumber; }
+        std::string getWorkerId() { return workerId; }
+        void setWorkerId(std::string id) { workerId = id; }
 };
 
 extern Configs globalConfigs;

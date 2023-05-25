@@ -10,6 +10,7 @@
 #include "../include/task.hpp"
 #include "../include/debug_rp.hpp"
 #include "../include/logger.hpp"
+#include "../configs.hpp"
 #include "data_parser.hpp"
 #include "receiver.hpp"
 
@@ -189,7 +190,7 @@ ReceiverStatus Receiver::identifyPacketType()
     if(validatePacketHead() == P_VALID){
         packetHead = packet["head"];
         if(packetHead & SP_HANDSHAKE){
-            computeID = packet["id"];
+            globalConfigs.setWorkerId(packet["id"]);
             rc = P_EMPTY;
         }
         if(packetHead & SP_DATA_SENT){

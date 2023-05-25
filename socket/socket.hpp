@@ -5,7 +5,6 @@
 #include "../include/flag.h"
 
 extern pthread_cond_t socket_cond;
-extern std::string computeID;
 extern pthread_t wsClientThread;
 extern Flag quickSendMode;
 extern Flag seizeMode;
