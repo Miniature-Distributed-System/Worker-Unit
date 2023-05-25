@@ -9,13 +9,11 @@
 
 pthread_cond_t socket_cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-std::string computeID;
 pthread_t wsClientThread;
 Flag quickSendMode;
 Flag seizeMode;
 Flag inQSMode;
 Flag wsLock;
-Flag initSender;
 
 struct SocketContainer {
     json packet;
@@ -61,7 +59,7 @@ void* socket_task(void *data)
         if(!wsLock.isFlagSet())
         {
             wsLock.setFlag(); 
-            packet = getPacket();
+            packet = senderSink.popPacket();
             container->packet = packet;
             //create thread and wait for results
             pthread_create(&wsClientThread, NULL, launch_client_socket, container);
@@ -69,7 +67,7 @@ void* socket_task(void *data)
         else if(quickSendMode.isFlagSet() && !inQSMode.isFlagSet())
         {
             inQSMode.setFlag();
-            packet = getPacket();
+            packet = senderSink.popPacket();
             // This thread should not lock in any case
             int head = packet["head"];
             head |= P_QSEND;
@@ -96,7 +94,6 @@ struct socket* init_socket(ThreadPool *thread, std::string args[])
     inQSMode.initFlag();
     quickSendMode.initFlag();
     seizeMode.initFlag();
-    initSender.initFlag();
     soc->thread = thread;
     soc->hostname = hostname;
     soc->port = port;
@@ -109,7 +106,7 @@ struct socket* init_socket(ThreadPool *thread, std::string args[])
 
 void exit_socket(struct socket *soc)
 {
-    while(fwdStack.getForwardStackSize()){
+    while(!senderSink.isForwardStackEmpty()){
         sleep(2);
     }
     soc->socketShouldStop = 1;

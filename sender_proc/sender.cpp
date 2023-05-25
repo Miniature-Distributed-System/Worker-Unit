@@ -7,11 +7,11 @@
 #include "../configs.hpp"
 #include "sender.hpp"
 
-/* send_packet(): sends the data passed as arguments to the forward port/ sender stack.
+/* pushPacket(): sends the data passed as arguments to the forward port/ sender stack.
  * This queuded data is eventually converted into packet and sent out to the server. We can send various types of
  * packets refer packet.hpp for more details.
 */
-int send_packet(std::string data, std::string tableID, packet_code statusCode, TaskPriority priority)
+int SenderSink::pushPacket(std::string data, std::string tableID, packet_code statusCode, TaskPriority priority)
 {
     //We want to immidiatly tell server that node processing service is suspended
     if(statusCode == SEIZE)
@@ -52,11 +52,11 @@ compute_packet_status getPacketHead(packet_code status)
     }
 }
 
-/* create_packet(): internal method which is used to create packets from fwd_stack_bundle() items.
+/* create_packet(): internal method which is used to create packets from ForwardStackPackage() items.
  * it creates the packets structure with the appropriate body, head and id fields. it creates default packets if the
  * item passed is found to be null.
 */
-json create_packet(struct fwd_stack_bundle item)
+json create_packet(struct ForwardStackPackage item)
 {
     json packet;
     packet_code statusCode;
@@ -71,13 +71,13 @@ json create_packet(struct fwd_stack_bundle item)
     } else if(quickSendMode.isFlagSet()){
         // stack is not empty that means there is one more item behind this current item, so proceed to quicksend mode
         packet["head"] = getPacketHead(statusCode) | P_QSEND;
-        if(fwdStack.isForwardStackEmpty())
+        if(senderSink.isForwardStackEmpty())
             quickSendMode.resetFlag();
     } else {
         packet["head"] = getPacketHead(statusCode);
     }
 
-    packet["id"] = computeID.c_str();
+    packet["id"] = globalConfigs.getWorkerId().c_str();
     //Here we append rest of the fields to packet
     switch(statusCode)
     {
@@ -110,13 +110,18 @@ json create_packet(struct fwd_stack_bundle item)
     return packet;
 }
 
+int SenderSink::matchItemInAwaitStack(int statusCode, std::string tableID)
+{
+    return fwdStack.awaitStack.matchItemWithAwaitStack(statusCode, tableID);
+}
+
 /* getPacket(): This is used to get the next packet to the socket.
 * It calls various methods to create a packet with appropriate fields using the ForwardStack which have the queued
-* items that are to be sent to the server. sends default packet if the computeID variable is empty, this is done 
+* items that are to be sent to the server. sends default packet if the workerId variable is empty, this is done 
 * because without a an allocated name we cant procceed further. We need a name to identify ourself and tell server
 * that a certain packet came from this node and the packet needs to be acknowledged to that node only.
 */
-json getPacket(void)
+json SenderSink::popPacket(void)
 {
     json packet;
     std::string body;

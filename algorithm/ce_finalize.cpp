@@ -82,7 +82,7 @@ void ce_finalize_end_process(void *data)
     CeFinalize *ce_finalize = (CeFinalize*)data;
     std::string finalString = ce_finalize->getFinalResult();
     Log().info(__func__, "final result is:", finalString);
-    send_packet(finalString, ce_finalize->tableId, FRES_SEND, ce_finalize->taskPriority);
+    senderSink.pushPacket(finalString, ce_finalize->tableId, FRES_SEND, ce_finalize->taskPriority);
     delete ce_finalize;
 }
 

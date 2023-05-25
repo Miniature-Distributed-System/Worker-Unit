@@ -3,16 +3,13 @@
 #include "../include/debug_rp.hpp"
 #include "../include/logger.hpp"
 
-ForwardStack fwdStack;
-AwaitStack awaitStack;
-
-/* pushToForwardStack(): maps the data passed to an fwd_stack_bundle() struct and then pushes the item
+/* pushToForwardStack(): maps the data passed to an ForwardStackPackage() struct and then pushes the item
  * to the rear or end of stack. This item wil be popped out last. This is used for all normal packets.
 */
 int ForwardStack::pushToForwardStack(std::string data, std::string tableID, 
                 packet_code statusCode, int priority)
 {
-    struct fwd_stack_bundle *item = new fwd_stack_bundle;
+    struct ForwardStackPackage *item = new ForwardStackPackage;
     item->statusCode = statusCode;
     item->priority = priority;
     item->data = data;
@@ -24,7 +21,7 @@ int ForwardStack::pushToForwardStack(std::string data, std::string tableID,
     return 0;
 }
 
-/* pushFrontForwardStack(): maps the data passed to an fwd_stack_bundle() struct and then pushes the item
+/* pushFrontForwardStack(): maps the data passed to an ForwardStackPackage() struct and then pushes the item
  * to the forward or top of stack. This item wil be popped out first. This is used mostly for the seize opertaion
  * where the server needs to be told that the compute node will not take any more packets. It can also be used for
  * sending highest priority items to server.
@@ -32,7 +29,7 @@ int ForwardStack::pushToForwardStack(std::string data, std::string tableID,
 int ForwardStack::pushFrontForwardStack(std::string data, std::string tableID,
                 packet_code statusCode, int priority)
 {
-    struct fwd_stack_bundle *item = new fwd_stack_bundle;
+    struct ForwardStackPackage *item = new ForwardStackPackage;
     item->statusCode = statusCode;
     item->priority = priority;
     item->data = data;
@@ -50,9 +47,9 @@ int ForwardStack::pushFrontForwardStack(std::string data, std::string tableID,
  * The objects are allocated and now sent as stack items the reson behing this is stack needs to be used judiciously
  * compared to the heap, the data feilds hold large data and needs more space so only use it when required.
 */
-fwd_stack_bundle ForwardStack::popForwardStack(void)
+ForwardStackPackage ForwardStack::popForwardStack(void)
 {
-    struct fwd_stack_bundle *item, exportItem;
+    struct ForwardStackPackage *item, exportItem;
 
     if(senderStack.empty()){
         Log().info(__func__, "Sender sink is empty");
@@ -71,7 +68,7 @@ fwd_stack_bundle ForwardStack::popForwardStack(void)
             exportItem.copyPointerObject(item);
         } else {
             /* if above can't be achived then just send non ackable packets to server */
-            item = fwdStack.getNonackableItem();
+            item = getNonackableItem();
             exportItem.copyPointerObject(item);
             delete item;
         }
@@ -105,11 +102,11 @@ int ForwardStack::isForwardStackEmpty()
  * Until all items in the await stack is acknowledged this method is called, in place of popForwardStack().
  * Therefore in every send we are still emptying the sender stack and is non is present we just give out null.
 */
-fwd_stack_bundle* ForwardStack::getNonackableItem()
+ForwardStackPackage* ForwardStack::getNonackableItem()
 {
     sem_wait(&stackLock);
     for(auto i = senderStack.begin(); i != senderStack.end(); i++){
-        struct fwd_stack_bundle* item = *i;
+        struct ForwardStackPackage* item = *i;
         if(item->statusCode != INTR_SEND || item->statusCode != FRES_SEND){
             senderStack.remove(item);
             sem_post(&stackLock);
@@ -124,13 +121,13 @@ fwd_stack_bundle* ForwardStack::getNonackableItem()
  * The packets are pushed if await stack still has space for more packets. It returns -1 if it cant push any more
  * items to stack. 
 */
-int AwaitStack::pushToAwaitStack(struct fwd_stack_bundle *item)
+int AwaitStack::pushToAwaitStack(struct ForwardStackPackage *item)
 {
-    struct await_stack_bundle *awtItem;
+    struct AwaitStackPackage *awtItem;
     if(index >= TOTAL_DIFFRED_PACKETS)
         return -1;
     sem_wait(&stackLock);
-    awtItem = new await_stack_bundle;
+    awtItem = new AwaitStackPackage;
     awtItem->fwd_element = item;
     awaitStack[index] = awtItem;
     index++;

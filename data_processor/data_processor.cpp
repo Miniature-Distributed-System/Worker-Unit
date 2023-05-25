@@ -208,8 +208,8 @@ void process_data_finalize(void *data)
 
     //Send the cleaned data back to server via fwd stack
     getCleanedTable = dataProc->fileDataBaseAccess->getBlob();
-    //Log().info(__func__, getCleanedTable);
-    send_packet(getCleanedTable, tData->tableID, INTR_SEND, tData->priority);
+    //Log().dataProcInfo(__func__, getCleanedTable);
+    senderSink.pushPacket(getCleanedTable, tData->tableID, INTR_SEND, tData->priority);
     //Schedule the algorithm to process our cleaned data
     sched_algo(dataProc->thread, tData);
 
@@ -223,7 +223,7 @@ void process_data_failed(void *data)
     TableData *tData = dataProc->tableData;
     
     Log().debug(__func__, "server will be notified of wrong data");
-    send_packet(dataProc->getErrorString(), tData->tableID, DAT_ERR, tData->priority);
+    senderSink.pushPacket(dataProc->getErrorString(), tData->tableID, DAT_ERR, tData->priority);
     // Cleanup before exit
     dealloc_table_dat(tData);
 }

@@ -3,6 +3,7 @@
 #include "scheduler/thread_pool.hpp"
 #include "scheduler/sched.hpp"
 #include "socket/socket.hpp"
+#include "sender_proc/sender.hpp"
 #include "instance/instance_list.hpp"
 #include "services/stats_engine.hpp"
 #include "services/sqlite_database_access.hpp"
@@ -20,6 +21,7 @@ SqliteDatabaseAccess *sqliteDatabaseAccess;
 DataBaseInstanceList instanceList;
 StatisticsEngine statsEngine;
 Configs globalConfigs;
+SenderSink senderSink;
 
 int main()
 {

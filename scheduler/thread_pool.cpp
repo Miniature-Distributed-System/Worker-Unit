@@ -196,7 +196,7 @@ void exit_thread_pool(struct ThreadPool* threadPoolHead){
 
     /* send the seize packet which will let server know that node is about to 
        shutdown and no more csv data should be sent to node for processing. */
-    send_packet("", "", SEIZE, HIGH_PRIORITY);
+    senderSink.pushPacket("", "", SEIZE, HIGH_PRIORITY);
     //wait for task queue to empty itself before teardown
     while(threadPoolHead->threadPoolCount){
         sleep(2);

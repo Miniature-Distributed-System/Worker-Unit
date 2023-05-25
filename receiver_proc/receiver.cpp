@@ -205,11 +205,11 @@ ReceiverStatus Receiver::identifyPacketType()
             }
         }
         if(packetHead & SP_INTR_ACK){
-            if(awaitStack.matchItemWithAwaitStack(SP_INTR_ACK, packet["id"]))
+            if(senderSink.matchItemInAwaitStack(SP_INTR_ACK, packet["id"]))
                 rc = P_OK;
             else rc = P_EMPTY;
         }else if(packetHead & SP_FRES_ACK){
-            if(awaitStack.matchItemWithAwaitStack(SP_FRES_ACK, packet["id"]))
+            if(senderSink.matchItemInAwaitStack(SP_FRES_ACK, packet["id"]))
                 rc = P_OK;
             else rc = P_EMPTY;
         }
@@ -241,10 +241,10 @@ void receiver_finalize(void *data)
     // notify server data received successfully
     Log().info(__func__,"packet received successfully");
     if(recv->isUserData.isFlagSet())
-        send_packet("", recv->tableId, DAT_RECVD, DEFAULT_PRIORITY);
+        senderSink.pushPacket("", recv->tableId, DAT_RECVD, recv->dataProcContainer.tData->priority);
     // No need to send data if it was a acknowledge or handshake data
     else if(!recv->tableId.empty())
-        send_packet("", instanceList.getInstanceActualName(recv->tableId), DAT_RECVD, DEFAULT_PRIORITY);
+        senderSink.pushPacket("", instanceList.getInstanceActualName(recv->tableId), DAT_RECVD, DEFAULT_PRIORITY);
     // container should not be derefrenced after this as its dellocated by dataprocessor
     if(recv->isUserData.isFlagSet())
         init_data_processor(recv->thread, recv->dataProcContainer);
@@ -258,10 +258,10 @@ void receiver_fail(void *data)
     // tableID itself is corrupt or it was a status signal that was lost in transmission
     if(recv->tableId.empty()){
         Log().debug(__func__, "packet data fields corrupted, resend packet");
-        send_packet("","", RECV_ERR, HIGH_PRIORITY);
+        senderSink.pushPacket("","", RECV_ERR, HIGH_PRIORITY);
     } else {
         Log().debug(__func__, "packet corrupted, resend packet");
-        send_packet("", instanceList.getInstanceActualName(recv->tableId), RECV_ERR, HIGH_PRIORITY);
+        senderSink.pushPacket("", instanceList.getInstanceActualName(recv->tableId), RECV_ERR, HIGH_PRIORITY);
     }
     delete recv;
 };

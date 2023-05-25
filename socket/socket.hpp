@@ -8,7 +8,6 @@ extern pthread_cond_t socket_cond;
 extern pthread_t wsClientThread;
 extern Flag quickSendMode;
 extern Flag seizeMode;
-extern Flag initSender;
 
 struct socket{
     struct ThreadPool *thread;
