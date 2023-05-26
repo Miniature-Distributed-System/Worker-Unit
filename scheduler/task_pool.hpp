@@ -2,8 +2,10 @@
 #define THREAD_H
 #include <semaphore.h>
 #include <cstdint>
+#include <list>
 
 #include "../include/process.hpp"
+#include "../include/flag.h"
 
 //change this later lol
 #define MAX_POOL_SIZE 10
@@ -14,6 +16,26 @@
 struct ThreadPoolNode {
     struct TaskData *pData;
     struct ThreadPoolNode *next;
+};
+
+struct TaskData {
+    ProcessStates *proc;
+    void *args;
+    TaskPriority priority;
+    std::uint16_t starveCounter;
+    TaskData(){
+        proc = NULL;
+        args = NULL;
+    };
+};
+
+class TaskPool {
+        std::list<TaskData> taskSink;
+        sem_t sinkLock;
+    public:
+        int pushTask(TaskData procTable);
+        int popTask(TaskData &taskData);
+        int getTaskSinkSize() { return taskSink.size(); }
 };
 
 struct ThreadPool {
@@ -30,7 +52,8 @@ class ThreadStructExport {
         TaskData& operator*(){ return *thread; } 
 };
 
+extern TaskPool taskPool;
 ThreadPool* init_thread_pool();
 void exit_thread_pool(struct ThreadPool*);
-TaskData thread_pool_pop(struct ThreadPool*);
+int getScheduledTask(TaskData &taskData);
 #endif
