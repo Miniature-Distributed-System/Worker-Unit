@@ -22,6 +22,7 @@ DataBaseInstanceList instanceList;
 StatisticsEngine statsEngine;
 Configs globalConfigs;
 SenderSink senderSink;
+TaskPool taskPool;
 
 int main()
 {
@@ -46,7 +47,6 @@ int main()
     sqliteDatabaseAccess->initDatabase();
     std::cout <<"Inited database" << std::endl;
 
-    thread = init_thread_pool();
     std::cout << "Inited task pool" << std::endl;
 
     std::cout << "\033[1;33;49mEnter thread count (max:"<<MAX_THREAD - 1<<"): \033[0m";
@@ -55,13 +55,13 @@ int main()
     globalConfigs = Configs(threadCount, hostname, port);
 
     threadCount = (threadCount > MAX_THREAD || threadCount <= 0) ? 2 : threadCount;
-    init_sched(thread, threadCount);
+    init_sched(threadCount);
     std::cout << "Inited " << threadCount << " Threads" << std::endl;
 
     statsEngine = StatisticsEngine(threadCount, 10);
     std::cout << "Inited Stats Engine" << std::endl;
 
-    soc = init_socket(thread, net);
+    soc = init_socket();
     std::cout << "Inited and running sockets" << std::endl;
 
     std::cout << "\033[1;97;49m---------------------------DEBUGGER START--------------------------\033[0m" << std::endl;

@@ -1,11 +1,13 @@
 #include <pthread.h>
 #include <unistd.h>
-#include "socket.hpp"
-#include "ws_client.hpp"
-#include "../receiver_proc/receiver.hpp"
-#include "../sender_proc/sender.hpp"
 #include "../include/debug_rp.hpp"
 #include "../include/logger.hpp"
+#include "../receiver_proc/receiver.hpp"
+#include "../sender_proc/sender.hpp"
+#include "../scheduler/task_pool.hpp"
+#include "../configs.hpp"
+#include "socket.hpp"
+#include "ws_client.hpp"
 
 pthread_cond_t socket_cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
@@ -28,7 +30,7 @@ void *launch_client_socket(void *data)
     SocketContainer *socketContainer = (SocketContainer*)data;
     //validate the received packets and process them
     DEBUG_MSG(__func__, "normal mode connection: packet: ", socketContainer->packet);
-    init_receiver(socketContainer->soc->thread, ws_client_launch(socketContainer->soc, socketContainer->packet));
+    init_receiver(ws_client_launch(socketContainer->soc, socketContainer->packet));
     wsLock.resetFlag();
     return 0;
 }
@@ -38,7 +40,7 @@ void *launch_client_socket_QS(void *data)
     SocketContainer *socketContainer = (SocketContainer*)data;
     //validate the received packets and process them
     DEBUG_MSG(__func__, "quick send mode connection: packet:", socketContainer->packet);
-    init_receiver(socketContainer->soc->thread, ws_client_launch(socketContainer->soc, socketContainer->packet));
+    init_receiver(ws_client_launch(socketContainer->soc, socketContainer->packet));
     inQSMode.resetFlag();
     Log().info(__func__, "exited quicksend mode");
     return 0;
@@ -83,20 +85,17 @@ void* socket_task(void *data)
     return 0;
 }
 
-struct socket* init_socket(ThreadPool *thread, std::string args[])
+struct socket* init_socket()
 {
     pthread_t socketThread;
     struct socket* soc = new socket;
-    std::string hostname = args[0];
-    std::string port = args[1];
 
     wsLock.initFlag();
     inQSMode.initFlag();
     quickSendMode.initFlag();
     seizeMode.initFlag();
-    soc->thread = thread;
-    soc->hostname = hostname;
-    soc->port = port;
+    soc->hostname = globalConfigs.getHostName();
+    soc->port = globalConfigs.getPortNumber();
     soc->socketShouldStop = 0;
     Log().info(__func__, "socket initlized");
     pthread_create(&socketThread, NULL, socket_task, soc);

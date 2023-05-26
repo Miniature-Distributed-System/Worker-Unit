@@ -30,10 +30,9 @@ class DataProcessor {
         Flag dataCleanPhase;
         std::uint64_t curRow = 1;
         TableData *tableData;
-        ThreadPool *thread;
         FileDataBaseAccess *fileDataBaseAccess;
         
-        DataProcessor(ThreadPool*, DataProcessContainer);
+        DataProcessor(DataProcessContainer);
         ~DataProcessor();
         int initlize();
         int processSql(std::vector<std::string> feildList);
@@ -46,8 +45,7 @@ class DataProcessor {
 
 };
 
-DataProcessor::DataProcessor(struct ThreadPool* thread,
-                DataProcessContainer container) : tableData(container.tData), thread(thread)
+DataProcessor::DataProcessor(DataProcessContainer container) : tableData(container.tData)
 {
     //CSV Rows begins data after 0th row
     curRow = 1;
@@ -235,11 +233,11 @@ struct ProcessStates* data_proc = new ProcessStates {
     .fail_proc = process_data_failed
 };
 
-int init_data_processor(struct ThreadPool* thread, DataProcessContainer container)
+int init_data_processor(DataProcessContainer container)
 {
-    DataProcessor *dpContainer = new DataProcessor(thread, container);
-    scheduleTask(thread, data_proc, dpContainer, container.tData->priority);
-    Log().info(__func__, "initilized data processor");
+    DataProcessor *dpContainer = new DataProcessor(container);
+    scheduleTask(data_proc, dpContainer, container.tData->priority);
+    Log().dataProcInfo(__func__, "initilized data processor");
 
     return 0;
 }

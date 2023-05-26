@@ -4,10 +4,10 @@
 #include <unistd.h>
 #include <bits/stdc++.h>
 #include "sched.hpp"
-#include "../include/process.hpp"
 #include "../include/debug_rp.hpp"
 #include "../include/logger.hpp"
 #include "../configs.hpp"
+#include "task_pool.hpp"
 
 bool schedulerShouldStop = 0;
 pthread_cond_t  cond  = PTHREAD_COND_INITIALIZER;
@@ -32,6 +32,25 @@ int get_cpu_slice(TaskPriority prior)
     return rc;
 }
 
+JobStatus QueueJob::runStartProcess()
+{
+    return proc->start_proc(args);
+}
+
+JobStatus QueueJob::runPauseProcess()
+{
+    return proc->pause_proc(args);
+}
+
+void QueueJob::runEndProcess()
+{
+    proc->end_proc(args);
+}
+
+void QueueJob::runFailProcess()
+{ 
+    proc->fail_proc(args); 
+}
 ThreadQueue::ThreadQueue(unsigned int threadID){
     this->threadID = threadID;
     sem_init(&threadResourceLock, 0, 1);
@@ -277,16 +296,10 @@ void rebalance_thread_queues()
 
 void *sched_task(void *ptr)
 {
-    struct ThreadPool* threadPoolHead = (struct ThreadPool*)ptr;
     struct ThreadQueue* queue;
-    TaskData proc;
+    TaskData taskData;
     QueueJob* job;
     int i, j, qSlots, threadId;
-
-    if(threadPoolHead == NULL){
-        Log().schedINFO(__func__, "thread head is uninited can't proceed any further!");
-        return 0;
-    }
 
     while(!schedulerShouldStop)
     {
@@ -295,16 +308,15 @@ void *sched_task(void *ptr)
             threadQueueList->at(i)->flushFinishedJobs();
         for(j = 0; j < qSlots; j++)
         {
-            if(threadPoolHead->threadPoolCount > 0)
+            if(taskPool.getTaskSinkSize() > 0)
             {
                 Log().schedINFO(__func__, "scheulding jobs...");
                 threadId = get_quickest_queue();
                 if(threadId < 0)
                     break;  // No more space on thread queue, try again later
-                proc = thread_pool_pop(threadPoolHead);
-                if(proc.args == NULL || proc.proc == NULL)
+                if(getScheduledTask(taskData))
                     break;  // unlikely to happen but if it does better safe than sorry
-                threadQueueList->at(threadId)->addNewTask(init_job(proc));
+                threadQueueList->at(threadId)->addNewTask(init_job(taskData));
             } else break;
         }
         rebalance_thread_queues();
@@ -367,10 +379,9 @@ cleanup:
     return 0;
 }
 
-int init_sched(struct ThreadPool *thread, std::uint8_t max_thread)
+int init_sched(std::uint8_t max_thread)
 {
     pthread_t sched_thread, *task_thread;
-    struct ThreadPool* threadPoolHead;
     int i,j, ret, pid;
 
     threadQueueList = new std::vector<ThreadQueue*>;
@@ -382,7 +393,7 @@ int init_sched(struct ThreadPool *thread, std::uint8_t max_thread)
         Log().schedINFO(__func__, "thread queue:", i, " inited successfully");
         pthread_create(task_thread, NULL, thread_task, threadQueueList->at(i));
     }
-    pthread_create(&sched_thread, NULL, sched_task, (void*)thread);
+    pthread_create(&sched_thread, NULL, sched_task, NULL);
 
     return 0;
 }

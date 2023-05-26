@@ -3,8 +3,8 @@
 #include <semaphore.h>
 #include <vector>
 #include "../include/task.hpp"
-#include "thread_pool.hpp"
 #include "../include/flag.h"
+#include "../include/process.hpp"
 
 #define QUEUE_SIZE 4
 #define MAX_THREAD 10
@@ -29,7 +29,7 @@ enum TaskExecutionStatus {
 };
 
 class QueueJob {
-        struct ProcessStates *proc;
+        ProcessStates *proc;
         void *args;
         std::uint64_t cpuSliceMs;
         TaskExecutionStatus taskStatus;
@@ -44,10 +44,10 @@ class QueueJob {
         }
         void setCpuTimeSlice(std::uint64_t cpuTimeSlice) { this->cpuSliceMs = cpuSliceMs; }
         std::uint64_t getCpuTimeSlice() { return cpuSliceMs; } 
-        JobStatus runStartProcess() { return proc->start_proc(args); }
-        JobStatus runPauseProcess() { return proc->pause_proc(args); }
-        void runEndProcess() { proc->end_proc(args); }
-        void runFailProcess() { proc->fail_proc(args); }
+        JobStatus runStartProcess();
+        JobStatus runPauseProcess();
+        void runEndProcess();
+        void runFailProcess();
         void updateTaskStatus(TaskExecutionStatus status){ taskStatus = status; }
         TaskExecutionStatus getTaskStatus() { return taskStatus; }
 };
@@ -76,6 +76,6 @@ class ThreadQueue {
 
 extern std::vector<ThreadQueue*> *threadQueueList;
 extern bool schedulerShouldStop;
-int init_sched(struct ThreadPool *, std::uint8_t);
+int init_sched(std::uint8_t);
 void exit_sched(void);
 #endif

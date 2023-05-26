@@ -11,7 +11,6 @@
 #define TOT_ALGO 2
 
 struct AlgorithmPackage {
-    ThreadPool* threadPool;
     TableData* tableData;
     std::vector<void *> resultVectors;
 };
@@ -27,7 +26,7 @@ struct AlgorithmExportPackage {
 
 extern std::map<std::string, AlgorithmPackage *> algorithmResultMap;
 
-int sched_algo(ThreadPool* threadPool,TableData* tableData);
+int sched_algo(TableData* tableData);
 int update_algo_result(std::string tableId, void *algorithmExportResult);
 void dealloc_table_dat(TableData *tData);
 

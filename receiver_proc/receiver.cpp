@@ -1,15 +1,16 @@
 #include <string>
 
-#include "../instance/instance_list.hpp"
-#include "../socket/socket.hpp"
-#include "../services/sqlite_database_access.hpp"
-#include "../instance/instance.hpp"
-#include "../data_processor/data_processor.hpp"
 #include "../include/packet.hpp"
 #include "../include/process.hpp"
 #include "../include/task.hpp"
 #include "../include/debug_rp.hpp"
 #include "../include/logger.hpp"
+#include "../instance/instance_list.hpp"
+#include "../socket/socket.hpp"
+#include "../services/sqlite_database_access.hpp"
+#include "../instance/instance.hpp"
+#include "../data_processor/data_processor.hpp"
+#include "../scheduler/task_pool.hpp"
 #include "../configs.hpp"
 #include "data_parser.hpp"
 #include "receiver.hpp"
@@ -22,11 +23,10 @@ class Receiver
         std::uint8_t packetStatus;
         json packet;
     public:
-        Receiver(struct ThreadPool*, json);
+        Receiver(json);
         std::string tableId;
         ReceiverStatus receiverStatus;
         Flag isUserData;
-        ThreadPool *thread;
         DataProcessContainer dataProcContainer;
 
         ReceiverStatus validatePacketHead();
@@ -124,9 +124,8 @@ static json instancePacketSchema = R"(
 }
 )"_json;
 
-Receiver::Receiver(struct ThreadPool* thread, json packet)
+Receiver::Receiver(json packet)
 {
-    this->thread = thread;
     this->packet = packet;
     isUserData.initFlag();
 }
@@ -247,7 +246,7 @@ void receiver_finalize(void *data)
         senderSink.pushPacket("", instanceList.getInstanceActualName(recv->tableId), DAT_RECVD, DEFAULT_PRIORITY);
     // container should not be derefrenced after this as its dellocated by dataprocessor
     if(recv->isUserData.isFlagSet())
-        init_data_processor(recv->thread, recv->dataProcContainer);
+        init_data_processor(recv->dataProcContainer);
     delete recv;
 }
 
@@ -272,12 +271,12 @@ struct ProcessStates* receiver_proc = new ProcessStates {
     .fail_proc = receiver_fail
 };
 
-int init_receiver(struct ThreadPool* thread, json pkt)
+int init_receiver(json pkt)
 {
-    Receiver *recv = new Receiver(thread, pkt);
+    Receiver *recv = new Receiver(pkt);
     int rc = 0;
 
     // Schedule the receiver task on the task pool as non preemtable aka can't be put on hold/pause
-    scheduleTask(thread, receiver_proc, (void*)recv, NON_PREEMTABLE);
+    scheduleTask(receiver_proc, (void*)recv, NON_PREEMTABLE);
     return 0;
 }

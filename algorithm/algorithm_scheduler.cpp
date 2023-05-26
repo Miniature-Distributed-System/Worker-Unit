@@ -10,7 +10,7 @@
 
 InstanceList globalInstanceList;
 
-int sched_algo(struct ThreadPool *thread, TableData *tData)
+int sched_algo(TableData *tData)
 {
     ProcessStates* proc;
     short algoIndex;
@@ -27,19 +27,18 @@ int sched_algo(struct ThreadPool *thread, TableData *tData)
     int startRowNumber = 1;
     AlgorithmPackage *algoPackage = new AlgorithmPackage;
     algoPackage->tableData = tData;
-    algoPackage->threadPool = thread;
     algorithmResultMap.insert(std::make_pair(tData->tableID, algoPackage));
 
     // Divide dataset based on total threads available
     for(int i = 1; i < totalThreads; i++){
         AlgorithmExportPackage package = avial_algo[algoIndex](tData->tableID, tData->instanceType, startRowNumber, endRowNumber * i, tData->metadata->columns);
-        scheduleTask(thread, package.proc, package.args, tData->priority);
+        scheduleTask(package.proc, package.args, tData->priority);
         startRowNumber = endRowNumber * i + 1;
         Log().info(__func__, "end loop:", startRowNumber);
     }
     // Also account for odd number of rows
     AlgorithmExportPackage package = avial_algo[algoIndex](tData->tableID, tData->instanceType, startRowNumber, tData->metadata->rows, tData->metadata->columns);
-    scheduleTask(thread, package.proc, package.args, tData->priority);
+    scheduleTask(package.proc, package.args, tData->priority);
     Log().info(__func__, "end:", startRowNumber);
 
     Log().info(__func__, "rows:", tData->metadata->rows, " Cols:", 
@@ -67,8 +66,7 @@ int update_algo_result(std::string tableId, void *algorithmExportResult)
                 .getLinkedAlgorithm();
             AlgorithmExportPackage finalizeExportPackage = avialable_finalize_algo[algoIndex]
                 (iterator->second->resultVectors, tableData->tableID, tableData->priority);
-            scheduleTask(iterator->second->threadPool, finalizeExportPackage.proc, finalizeExportPackage.args, 
-                NON_PREEMTABLE);
+            scheduleTask(finalizeExportPackage.proc, finalizeExportPackage.args, NON_PREEMTABLE);
             Log().info(__func__, "tableId:", tableData->tableID, 
                 " finalize method scheduled priority:", tableData->priority);
             // Cleanup everything
