@@ -50,7 +50,7 @@ DataProcessor::DataProcessor(DataProcessContainer container) : tableData(contain
 {
     //CSV Rows begins data after 0th row
     curRow = 1;
-    Log().info(__func__, "tdata:", this->tableData->instanceType);
+    Log().dataProcInfo(__func__, "tdata:", this->tableData->instanceType);
     initDone.initFlag(false);
     dataCleanPhase.initFlag(false);
 }
@@ -62,7 +62,7 @@ DataProcessor::~DataProcessor()
 
 int DataProcessor::initlize()
 {
-    Log().info(__func__, "table data:", tableData->instanceType);
+    Log().dataProcInfo(__func__, "table data:", tableData->instanceType);
     Instance instance = globalInstanceList.getInstanceFromId(this->tableData->instanceType);
     if(instance.getId().empty()){
         Log().error(__func__, "invalid instance choosen: ", tableData->instanceType);
@@ -78,7 +78,7 @@ int DataProcessor::initlize()
     fileDataBaseAccess = new FileDataBaseAccess(tableData->tableID, RW_FILE);
     initDone.setFlag();
     colHeaders = fileDataBaseAccess->getColumnNamesList();
-    Log().info(__func__, "Data processor setup and ready for validtaion/processing");
+    Log().dataProcInfo(__func__, "Data processor setup and ready for validtaion/processing");
     return 0;
 }
 
@@ -103,7 +103,7 @@ std::string DataProcessor::validateFeild(std::string feild)
     }
 
     //worst case scenario
-    Log().info(__func__, "feild does not exist:", feild);
+    Log().dataProcInfo(__func__, "feild does not exist:", feild);
     return "NaN";
 }
 
@@ -137,7 +137,7 @@ int DataProcessor::processSql(std::vector<std::string> feildList)
         temp.push_back(str);
     }
     if(temp != feildList){
-        Log().info(__func__, "row:", curRow);
+        Log().dataProcInfo(__func__, "row:", curRow);
         fileDataBaseAccess->writeRowValueList(temp, curRow);
     }
 
@@ -166,7 +166,7 @@ JobStatus process_data_start(void *data)
         // Keep incrementing until we run out of records to delete
         rc = dataProc->fileDataBaseAccess->deleteDuplicateRecords(dataProc->curRow++);
         if(rc == -3){
-            Log().info(__func__,"All duplicate data deleted");
+            Log().dataProcInfo(__func__,"All duplicate data deleted");
             tData->metadata->currentColumn = 0;
             tData->metadata->rows = dataProc->fileDataBaseAccess->getTotalRows() - 1;
             return JOB_DONE;
@@ -193,7 +193,7 @@ JobStatus process_data_pause(void *data)
     TableData *tData = dataProc->tableData;
     // This is just an update packet sent to server informing it the data is still being processed
     if(dataProc)
-        send_packet("", tData->tableID, RESET_TIMER, tData->priority);
+        senderSink.pushPacket("", tData->tableID, RESET_TIMER, tData->priority);
 
     return JOB_PENDING;
 }
@@ -210,7 +210,7 @@ void process_data_finalize(void *data)
     //Log().dataProcInfo(__func__, getCleanedTable);
     senderSink.pushPacket(getCleanedTable, tData->tableID, INTR_SEND, tData->priority);
     //Schedule the algorithm to process our cleaned data
-    sched_algo(dataProc->thread, tData);
+    sched_algo(tData);
 
     //Deallocate memory and cleanup
     delete dataProc;
