@@ -10,17 +10,6 @@ struct ProcessStates {
     void (*fail_proc)(void* );
 };
 
-struct TaskData {
-    struct ProcessStates *proc;
-    void *args;
-    TaskPriority priority;
-    std::uint16_t starveCounter;
-    TaskData(){
-        proc = NULL;
-        args = NULL;
-    };
-};
-
 struct TableMetadata {
     std::uint64_t rows;
     std::uint64_t columns;
@@ -49,7 +38,6 @@ struct TableData {
     }
 };
 
-int scheduleTask(struct ThreadPool *thread, struct ProcessStates* proc, 
-                void *args, TaskPriority priority);
+int scheduleTask(struct ProcessStates* proc, void *args, TaskPriority priority);
 
 #endif
