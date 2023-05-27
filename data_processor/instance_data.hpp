@@ -5,6 +5,7 @@
 #include "../algorithm/algorithm_scheduler.hpp"
 #include "../instance/instance_list.hpp"
 #include "../instance/instance.hpp"
+#include "../services/file_database_access.hpp"
 
 class InstanceData {
         Instance instance;

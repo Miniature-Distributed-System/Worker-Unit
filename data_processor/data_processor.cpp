@@ -13,6 +13,7 @@
 #include "../services/file_database_access.hpp"
 #include "../algorithm/algorithm_scheduler.hpp"
 #include "../sender_proc/sender.hpp"
+#include "../scheduler/task_pool.hpp"
 #include "data_processor.hpp"
 #include "instance_data.hpp"
 
