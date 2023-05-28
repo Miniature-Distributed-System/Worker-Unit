@@ -33,6 +33,7 @@ class TaskPool {
         std::list<TaskData> taskSink;
         sem_t sinkLock;
     public:
+        TaskPool();
         int pushTask(TaskData procTable);
         int popTask(TaskData &taskData);
         int getTaskSinkSize() { return taskSink.size(); }
