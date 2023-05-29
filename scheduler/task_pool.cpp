@@ -20,6 +20,11 @@ int get_starve_limit(int prior)
     }
 }
 
+TaskPool::TaskPool()
+{
+    Log().info(__func__, "taskPool init");
+    sem_init(&sinkLock, 0, 1);
+}
 
 int TaskPool::pushTask(TaskData taskData)
 {
