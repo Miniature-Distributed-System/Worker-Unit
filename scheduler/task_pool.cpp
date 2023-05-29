@@ -29,28 +29,30 @@ TaskPool::TaskPool()
 int TaskPool::pushTask(TaskData taskData)
 {
     sem_wait(&sinkLock);
+
     if(taskSink.size() == 0){
         taskSink.push_back(taskData);
-    }
-    for(auto i = taskSink.begin(); i != taskSink.end(); i++)
-    {
-        TaskData iteratedData = *i;
-        if(iteratedData.priority < taskData.priority){
-            for(auto j = i; j != taskSink.end(); j++){
-                // Task priority is promoted once its starved in its priority level
-                if((*j).starveCounter > get_starve_limit((*j).starveCounter)){
-                    (*j).priority - 1;
-                    (*j).starveCounter = 0;
-                } else {
-                    (*j).starveCounter++;
+    } else {
+         for(auto i = taskSink.begin(); i != taskSink.end(); i++)
+        {
+            TaskData iteratedData = *i;
+            if(iteratedData.priority < taskData.priority){
+                for(auto j = i; j != taskSink.end(); j++){
+                    // Task priority is promoted once its starved in its priority level
+                    if((*j).starveCounter > get_starve_limit((*j).starveCounter)){
+                        (*j).priority - 1;
+                        (*j).starveCounter = 0;
+                    } else {
+                        (*j).starveCounter++;
+                    }
                 }
+                taskSink.insert(i, taskData);
+                sem_post(&sinkLock);
+                return 0;
             }
-            taskSink.insert(i, taskData);
-            sem_post(&sinkLock);
-            return 0;
         }
+        taskSink.push_back(taskData);
     }
-    taskSink.push_back(taskData);
     sem_post(&sinkLock);
     return 0;
 }
