@@ -13,11 +13,6 @@
 #define PRIOR_2_STRVLMT 6
 #define PRIOR_3_STRVLMT 8
 
-struct ThreadPoolNode {
-    struct TaskData *pData;
-    struct ThreadPoolNode *next;
-};
-
 struct TaskData {
     ProcessStates *proc;
     void *args;
@@ -39,22 +34,7 @@ class TaskPool {
         int getTaskSinkSize() { return taskSink.size(); }
 };
 
-struct ThreadPool {
-    struct ThreadPoolNode *headNode;
-    std::uint8_t threadPoolCount;
-    sem_t threadPool_mutex;
-};
-
-class ThreadStructExport {
-        TaskData *thread; 
-    public:
-        explicit ThreadStructExport(TaskData *thread = NULL) { this->thread = thread;}
-        ~ThreadStructExport(){ delete thread; }
-        TaskData& operator*(){ return *thread; } 
-};
-
 extern TaskPool taskPool;
-ThreadPool* init_thread_pool();
 void exit_thread_pool(struct ThreadPool*);
 int getScheduledTask(TaskData &taskData);
 #endif
