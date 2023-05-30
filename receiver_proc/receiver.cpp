@@ -46,18 +46,11 @@ static json packetSchema = R"(
       "id": {
           "description": "CU identification number",
           "type": "string"
-      },
-      "body":{
-        "description": "data holder object",
-        "type": "object",
-        "properties": {
-        }
       }
     },
     "required": [
                  "head",
-                 "id",
-                 "body"
+                 "id"
                  ],
     "type": "object"
 }
@@ -127,7 +120,7 @@ static json instancePacketSchema = R"(
 Receiver::Receiver(json packet)
 {
     this->packet = packet;
-    isUserData.initFlag();
+    isUserData.initFlag(false);
 }
 
 // validatePacketHead(): validates the packet and returns the error code depending on output of validator
@@ -154,7 +147,7 @@ ReceiverStatus Receiver::validatePacketBodyType()
 
     try {
         auto defaultPatch = validator.validate(packet["body"]);
-        Log().info(__func__, packet["tableid"].dump(), " is a data packet.");
+        Log().info(__func__, "received message is a data packet.");
         isUserData.setFlag();
         return P_VALID;
     } catch (const std::exception &e) {
@@ -163,7 +156,7 @@ ReceiverStatus Receiver::validatePacketBodyType()
         validator.set_root_schema(instancePacketSchema);
         try{
             auto defaultPatch = validator.validate(packet["body"]);
-            Log().info(__func__, packet["instanceid"].dump(), " is a instance packet.");
+            Log().info(__func__, "received message is a instance packet.");
             return P_VALID;
         }catch(const std::exception &e){
             Log().debug(__func__, "body field is not Instance data ", e.what());
