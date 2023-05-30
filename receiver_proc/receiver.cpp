@@ -189,39 +189,37 @@ ReceiverStatus Receiver::identifyPacketType()
     if(validatePacketHead() == P_VALID){
         packetHead = packet["head"];
         if(packetHead & SP_HANDSHAKE){
-            globalConfigs.setWorkerId(packet["id"]);
-            rc = P_EMPTY;
+            try{
+                std::string workerId = packet["id"];
+                globalConfigs.setWorkerId(workerId);
+                return P_EMPTY;
+            }catch(std::exception &e){
+                Log().error(__func__, "failed to set worker ID");
+                return P_ERROR;
+            }
         }
         if(packetHead & SP_DATA_SENT){
             if(validatePacketBodyType() != P_ERROR){
                 if(isUserData.isFlagSet()){
                     UserDataParser userDataParser(packet);
-                    rc = userDataParser.processDataPacket(tableId, &dataProcContainer);
+                    return userDataParser.processDataPacket(tableId, &dataProcContainer);
                 } else {
                     InstanceDataParser instanceDataParser(packet);
-                    rc = instanceDataParser.processInstancePacket(tableId);
+                    return instanceDataParser.processInstancePacket(tableId);
                 }
             }
         }
         if(packetHead & SP_INTR_ACK){
             if(senderSink.matchItemInAwaitStack(SP_INTR_ACK, packet["id"]))
-                rc = P_OK;
-            else rc = P_EMPTY;
+                return P_OK;
+            else return P_EMPTY;
         }else if(packetHead & SP_FRES_ACK){
             if(senderSink.matchItemInAwaitStack(SP_FRES_ACK, packet["id"]))
-                rc = P_OK;
-            else rc = P_EMPTY;
-        }
-        if(rc == P_ERROR){
-            /*If rc value did not change since entering this block then the 
-              header code does not match any of the above and is unknown so drop 
-              that packet. */
-
-            //TO-DO: This needs reimplimentaion at server level
-            Log().debug(__func__,"invalid packet header code");
-            rc = P_ERROR;
+                return P_OK;
+            else return P_EMPTY;
         }
     }
+    Log().debug(__func__, "invalid header code/packet type detected");
     return rc;
 }
 
