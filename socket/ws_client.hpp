@@ -5,6 +5,6 @@
 
 using json = nlohmann::json;
 
-extern json ws_client_launch(struct socket*, json);
+extern json ws_client_launch(json packet);
 
 #endif

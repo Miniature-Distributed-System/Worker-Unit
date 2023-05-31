@@ -8,7 +8,7 @@
 #include "ws_client.hpp"
 #include "../include/debug_rp.hpp"
 #include "../include/logger.hpp"
-#include "socket.hpp"
+#include "../configs.hpp"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -16,12 +16,12 @@ namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-json ws_client_launch(struct socket *soc, json packet){
+json ws_client_launch(json packet){
     json outJs;
     try
     {
-        std::string host = soc->hostname;
-        const auto port = soc->port;
+        std::string host = globalConfigs.getHostName();
+        const auto port = globalConfigs.getPortNumber();
         std::string text = packet.dump();
         Log().info(__func__, "conn with"," hostname:", host, " port-no:", port);
 
