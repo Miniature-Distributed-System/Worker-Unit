@@ -1,6 +1,6 @@
 #include <unistd.h>
 #include <cassert>
-#include "scheduler/thread_pool.hpp"
+#include "algorithm/algorithm_scheduler.hpp"
 #include "scheduler/sched.hpp"
 #include "socket/socket.hpp"
 #include "sender_proc/sender.hpp"
@@ -23,6 +23,7 @@ StatisticsEngine statsEngine;
 Configs globalConfigs;
 SenderSink senderSink;
 TaskPool taskPool;
+std::map<std::string, AlgorithmPackage *> algorithmResultMap;
 
 int main()
 {
