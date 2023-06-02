@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <cassert>
 #include "algorithm/algorithm_scheduler.hpp"
+#include "scheduler/task_pool.hpp"
 #include "scheduler/sched.hpp"
 #include "socket/socket.hpp"
 #include "sender_proc/sender.hpp"
