@@ -104,7 +104,7 @@ The `.pause_process` will be called by the scheduler when your algorithm runs ou
 the Sender unit a message to server telling it that Dataset is still being processed updating server about the status of Processing.
 ```cpp
 YourObject *yourSavedObj = (YourObject*)data;
-send_packet("", yourSavedObj->tableId, RESET_TIMER, DEFAULT_PRIORITY);
+senderSink.pushPacket("", yourSavedObj->tableId, RESET_TIMER, DEFAULT_PRIORITY);
 ```
 
 ### End Process
@@ -175,7 +175,7 @@ The End Process will send the result to Sender Unit and cleanup.
 AlgorithmFinalize *finalize = (AlgorithmFinalize*)data;
   std::string finalString = finalize->getFinalResult();
   Log().info(__func__, "final result is:", finalString);
-  send_packet(finalString, finalize->tableId, FRES_SEND, finalize->taskPriority);
+  senderSink.pushPacket(finalString, finalize->tableId, FRES_SEND, finalize->taskPriority);
 }
 ```
 
