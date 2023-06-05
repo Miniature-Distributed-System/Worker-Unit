@@ -10,7 +10,6 @@
 
 InstanceList globalInstanceList;
 
-
 /* sched_algo(): schedules the next stage in data processing in pipeline.
 * This method takes tableData and splits the data into number of threads available. These split data are fed to the 
 * algorithm that is specified for processing of given data. These split stages are indipenedent of each other. The
@@ -54,10 +53,10 @@ int sched_algo(TableData *tData)
     return EXIT_SUCCESS;
 }
 
-/* update_algo_result(): This updates the map for the respective algorithm and tracks all split algorithm processes.
+/* update_algo_result(): Keeps track of all split stage and schedules aggrigate phase when all splits are done.
 * This method updates the counter which keeps track of all split stages for a given data and once all split stages
-* have completed/updated the result, this method schedules the final stage or aggrigate stages. It also deallocates all
-* resources that were used during these split scheduling and tracking processes
+* have completed/updated the result, this method schedules the final/aggrigate stage. It also deallocates all
+* resources that were used during these split scheduling and tracking processes.
 */
 int update_algo_result(std::string tableId, void *algorithmExportResult)
 {
@@ -79,7 +78,7 @@ int update_algo_result(std::string tableId, void *algorithmExportResult)
                 (iterator->second->resultVectors, tableData->tableID, tableData->priority);
             scheduleTask(finalizeExportPackage.proc, finalizeExportPackage.args, NON_PREEMTABLE);
             Log().info(__func__, "tableId:", tableData->tableID, 
-                " finalize method scheduled priority:", tableData->priority);
+                " finalize process scheduled with priority:", tableData->priority);
             // Cleanup everything
             instanceList.dereferenceInstance(tableData->tableID);
             dealloc_table_dat(tableData);
