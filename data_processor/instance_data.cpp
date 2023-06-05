@@ -46,7 +46,7 @@ std::string* InstanceData::validateColumns()
         return NULL;
     }
 
-    Log().info(__func__, "Columns validation successfull!");
+    Log().dataProcInfo(__func__, "Columns validation successfull!");
     return result;
 }
 
@@ -58,13 +58,13 @@ int InstanceData::initlizeData()
     if(columnNames == NULL)
         return -1;
     for(int i = 0; i < instance.getTotalColumns(); i++){
-        Log().info(__func__, "TableId:", instance.getId(), " ColName:", columnNames[i]);
+        //Log().dataProcInfo(__func__, "TableId:", instance.getId(), " ColName:", columnNames[i]);
         //Any failures here would be unfortunate and not correctable
         str = sqliteDatabaseAccess->getColumnValues(instance.getId(), columnNames[i], instance.getTotalRows());
         instanceDataMatrix.push_back(str);
     }
 
-    Log().info(__func__, "data initilize success!");
+    Log().dataProcInfo(__func__, "data initilize success!");
     return 0;
 }
 
