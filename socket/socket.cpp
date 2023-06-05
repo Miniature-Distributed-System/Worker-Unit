@@ -30,7 +30,7 @@ void *launch_client_socket(void *data)
     SocketContainer *socketContainer = (SocketContainer*)data;
     //validate the received packets and process them
     DEBUG_MSG(__func__, "normal mode connection: packet: ", socketContainer->packet);
-    init_receiver(ws_client_launch(socketContainer->soc, socketContainer->packet));
+    init_receiver(ws_client_launch(socketContainer->packet));
     wsLock.resetFlag();
     return 0;
 }
@@ -40,7 +40,7 @@ void *launch_client_socket_QS(void *data)
     SocketContainer *socketContainer = (SocketContainer*)data;
     //validate the received packets and process them
     DEBUG_MSG(__func__, "quick send mode connection: packet:", socketContainer->packet);
-    init_receiver(ws_client_launch(socketContainer->soc, socketContainer->packet));
+    init_receiver(ws_client_launch(socketContainer->packet));
     inQSMode.resetFlag();
     Log().info(__func__, "exited quicksend mode");
     return 0;
