@@ -144,9 +144,10 @@ public:
         buffer_.consume(buffer_.size());
         // Read a message into our buffer
         std::string str = "hello";
-        if(iterationCount < 3)
+        if(iterationCount < 3){
             str = dataArr[iterationCount++];
-        else {
+            sleep(1);
+        } else {
             std::cout << "Write Message:";
             std::cin >> str;
         }
