@@ -38,61 +38,58 @@ struct JsonContainer {
 
 void *launch_client_socket(void *data)
 {
-    SocketContainer *socketContainer = (SocketContainer*)data;
-    //validate the received packets and process them
-    DEBUG_MSG(__func__, "normal mode connection: packet: ", socketContainer->packet);
-    init_receiver(ws_client_launch(socketContainer->packet));
-    wsLock.resetFlag();
+    JsonContainer *jsonContainer = (JsonContainer*)data;
+    if(jsonContainer->socType == NORMAL){
+        Log().info(__func__, "normal mode packet: ", jsonContainer->packet.dump());
+    } else {
+        Log().info(__func__, "quick mode packet: ", jsonContainer->packet.dump());
+    }
+    json packet = ws_client_launch(jsonContainer->packet);
+    init_receiver(packet);
+    if(jsonContainer->socType == NORMAL){
+        globalSocket.resetFlag(SOC_NORMAL_MODE);
+    } else {
+        globalSocket.resetFlag(SOC_QUICKSEND_MODE);
+}
+
     return 0;
 }
 
-void *launch_client_socket_QS(void *data)
-{
-    SocketContainer *socketContainer = (SocketContainer*)data;
-    //validate the received packets and process them
-    DEBUG_MSG(__func__, "quick send mode connection: packet:", socketContainer->packet);
-    init_receiver(ws_client_launch(socketContainer->packet));
-    inQSMode.resetFlag();
-    Log().info(__func__, "exited quicksend mode");
-    return 0;
-}
 
 void* socket_task(void *data)
 {
-    struct socket *soc = (struct socket*)data;
-    SocketContainer *container = new SocketContainer(soc);
-    SocketContainer *quickModeContainer = new SocketContainer(soc);;
-    json packet;
-    void *res;
+    JsonContainer *nModeContainer = new JsonContainer(NORMAL);
+    JsonContainer *qModeContainer = new JsonContainer(QUICKSEND);
+    pthread_t wsClientThread;
 
-    Log().info(__func__, "socket thread running");
-    while(!soc->socketShouldStop)
+    Log().info(__func__, "socket thread running...");
+    while(!globalSocket.getSocketStopStatus())
     {
-        //get the latest packet to be sent to the server
-        if(!wsLock.isFlagSet())
+        int socStatus = globalSocket.getSocketStatus();
+        if(!(socStatus & SOC_NORMAL_MODE))
         {
-            wsLock.setFlag(); 
-            packet = senderSink.popPacket();
-            container->packet = packet;
-            //create thread and wait for results
-            pthread_create(&wsClientThread, NULL, launch_client_socket, container);
+            
+            globalSocket.setFlag(SOC_NORMAL_MODE);
+            nModeContainer->packet = senderSink.popPacket();
+            pthread_create(&wsClientThread, NULL, launch_client_socket, nModeContainer);
         }
-        else if(quickSendMode.isFlagSet() && !inQSMode.isFlagSet())
+        else if((socStatus & SOC_SETQS) && !(socStatus & SOC_QUICKSEND_MODE))
         {
-            inQSMode.setFlag();
-            packet = senderSink.popPacket();
-            // This thread should not lock in any case
+            globalSocket.setFlag(SOC_QUICKSEND_MODE);
+            json packet = senderSink.popPacket();
+            //TO-DO: This code should be moved to sender.cpp
             int head = packet["head"];
             head |= P_QSEND;
             packet["head"] = head;
-            quickModeContainer->packet = packet;
-            //DEBUG_MSG(__func__, "quick mode packet:",  quickModeContainer->packet.dump());
-            // create thread and wait for results
-            pthread_create(&wsClientThread, NULL, launch_client_socket_QS, quickModeContainer);
+            qModeContainer->packet = packet;
+            pthread_create(&wsClientThread, NULL, launch_client_socket, qModeContainer);
         }
-        //sleep(2);
     }
+
+    delete nModeContainer;
+    delete qModeContainer;
     Log().info(__func__, "Shutting down socket");
+
     return 0;
 }
 
