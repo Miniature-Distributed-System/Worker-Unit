@@ -17,11 +17,22 @@ Flag seizeMode;
 Flag inQSMode;
 Flag wsLock;
 
-struct SocketContainer {
+enum SocType {
+    NORMAL,
+    QUICKSEND
+};
+
+struct socket {
+    std::string hostname;
+    std::string port;
+    bool socketShouldStop;
+};
+
+struct JsonContainer {
     json packet;
-    socket *soc;
-    SocketContainer(socket *soc){
-        this->soc = soc;
+    SocType socType;
+    JsonContainer(SocType socType){
+        this->socType = socType;
     }
 };
 
@@ -85,7 +96,56 @@ void* socket_task(void *data)
     return 0;
 }
 
-struct socket* init_socket()
+Socket::Socket()
+{
+    quickSendMode.initFlag(false);
+    seizeMode.initFlag(false);
+    inQSMode.initFlag(false);
+    wsLock.initFlag(false);
+    socketShouldStop.initFlag(false);
+    sem_init(&flagLock, 0 ,1);
+}
+
+int Socket::getSocketStatus()
+{
+    int status = SOC_DEFAULT;
+    if(seizeMode.isFlagSet())
+        status |= SOC_SEIZE;
+    if(quickSendMode.isFlagSet())
+        status |= SOC_SETQS;
+    if(wsLock.isFlagSet())
+        status |= SOC_NORMAL_MODE;
+    if(inQSMode.isFlagSet())
+        status |= SOC_QUICKSEND_MODE;
+
+    return status;
+}
+
+void Socket::setFlag(SocketStatus statusFlag)
+{
+    sem_wait(&flagLock);
+    switch(statusFlag){
+        case SOC_SEIZE: seizeMode.setFlag();break;
+        case SOC_SETQS: quickSendMode.setFlag();break;
+        case SOC_NORMAL_MODE: wsLock.setFlag();break;
+        case SOC_QUICKSEND_MODE: inQSMode.setFlag();break;
+        default:Log().debug(__func__, "setting unknown flag");break;
+    }
+    sem_post(&flagLock);
+}
+
+void Socket::resetFlag(SocketStatus statusFlag)
+{
+    sem_wait(&flagLock);
+    switch(statusFlag){
+        case SOC_SEIZE: seizeMode.resetFlag();break;
+        case SOC_SETQS: quickSendMode.resetFlag();break;
+        case SOC_NORMAL_MODE: wsLock.resetFlag();break;
+        case SOC_QUICKSEND_MODE: inQSMode.resetFlag();break;
+        default:Log().debug(__func__, "re-setting unknown flag");break;
+    }
+    sem_post(&flagLock);
+}
 {
     pthread_t socketThread;
     struct socket* soc = new socket;

@@ -8,10 +8,21 @@ extern pthread_t wsClientThread;
 extern Flag quickSendMode;
 extern Flag seizeMode;
 
-struct socket{
-    std::string port;
-    std::string hostname;
-    bool socketShouldStop;
+};
+
+class Socket {
+        Flag quickSendMode;
+        Flag seizeMode;
+        Flag inQSMode;
+        Flag wsLock;
+        Flag socketShouldStop;
+        sem_t flagLock;
+    public:
+        Socket();
+        int getSocketStatus();
+        void setFlag(SocketStatus statusFlag);
+        void resetFlag(SocketStatus statusFlag);
+        bool getSocketStopStatus() { return socketShouldStop.isFlagSet(); }
 };
 
 struct socket* init_socket();
