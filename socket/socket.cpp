@@ -9,13 +9,7 @@
 #include "socket.hpp"
 #include "ws_client.hpp"
 
-pthread_cond_t socket_cond = PTHREAD_COND_INITIALIZER;
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_t wsClientThread;
-Flag quickSendMode;
-Flag seizeMode;
-Flag inQSMode;
-Flag wsLock;
 
 enum SocType {
     NORMAL,
@@ -143,21 +137,12 @@ void Socket::resetFlag(SocketStatus statusFlag)
     }
     sem_post(&flagLock);
 }
+
+void init_socket()
 {
     pthread_t socketThread;
-    struct socket* soc = new socket;
-
-    wsLock.initFlag();
-    inQSMode.initFlag();
-    quickSendMode.initFlag();
-    seizeMode.initFlag();
-    soc->hostname = globalConfigs.getHostName();
-    soc->port = globalConfigs.getPortNumber();
-    soc->socketShouldStop = 0;
     Log().info(__func__, "socket initlized");
-    pthread_create(&socketThread, NULL, socket_task, soc);
-
-    return soc;
+    pthread_create(&socketThread, NULL, socket_task, NULL);
 }
 
 void exit_socket(struct socket *soc)
@@ -165,6 +150,5 @@ void exit_socket(struct socket *soc)
     while(!senderSink.isForwardStackEmpty()){
         sleep(2);
     }
-    soc->socketShouldStop = 1;
     pthread_cancel(wsClientThread);
 }
