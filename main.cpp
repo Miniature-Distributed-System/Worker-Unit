@@ -24,12 +24,12 @@ StatisticsEngine statsEngine;
 Configs globalConfigs;
 SenderSink senderSink;
 TaskPool taskPool;
+Socket globalSocket;
 std::map<std::string, AlgorithmPackage *> algorithmResultMap;
 
 int main()
 {
     struct ThreadPool *thread;
-    struct socket *soc;
     std::string net[2] = {"0.0.0.0", "8080"};
     std::string hostname, port;
     int threadCount;
@@ -63,7 +63,7 @@ int main()
     statsEngine = StatisticsEngine(threadCount, 10);
     std::cout << "Inited Stats Engine" << std::endl;
 
-    soc = init_socket();
+    init_socket();
     std::cout << "Inited and running sockets" << std::endl;
 
     std::cout << "\033[1;97;49m---------------------------DEBUGGER START--------------------------\033[0m" << std::endl;
