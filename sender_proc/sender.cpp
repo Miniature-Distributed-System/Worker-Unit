@@ -18,7 +18,8 @@ int SenderSink::pushPacket(std::string data, std::string tableID, packet_code st
         fwdStack.pushFrontForwardStack(data, tableID, statusCode, priority);
     else {
         fwdStack.pushToForwardStack(data, tableID, statusCode, priority);
-        quickSendMode.setFlag();
+        //quickSendMode.setFlag();
+        globalSocket.setFlag(SOC_SETQS);
     }
     return 0;
 }
@@ -45,7 +46,7 @@ compute_packet_status getPacketHead(packet_code status)
             return P_FINAL_RES;
         case SEIZE:
             //let the server know there is a curfew in the compute node
-            seizeMode.setFlag();
+            globalSocket.setFlag(SOC_SEIZE);
             return P_SEIZE;
         default:
             return P_RESET;
@@ -64,15 +65,16 @@ json create_packet(struct ForwardStackPackage item)
     statusCode = item.statusCode;
 
     //Here we onlt append head to the packet
-    if(seizeMode.isFlagSet()){
+    int socketStatus = globalSocket.getSocketStatus();
+    if(socketStatus & SOC_SEIZE){
          /* curfew isnt lifted unless seizeMode is explicitly unset by core processes. This may be set due to either 
          node being overloaded or the node shutdown sequence being singnalled by the user. */
         packet["head"] = getPacketHead(statusCode) | P_SEIZE;
-    } else if(quickSendMode.isFlagSet()){
+    } else if(socketStatus & SOC_SETQS){
         // stack is not empty that means there is one more item behind this current item, so proceed to quicksend mode
         packet["head"] = getPacketHead(statusCode) | P_QSEND;
         if(senderSink.isForwardStackEmpty())
-            quickSendMode.resetFlag();
+            globalSocket.setFlag(SOC_SETQS);
     } else {
         packet["head"] = getPacketHead(statusCode);
     }
@@ -100,7 +102,7 @@ json create_packet(struct ForwardStackPackage item)
             break;
         default:
             //this should exit from spitfire mode and slow down the up/down data send rate between server and node.
-            quickSendMode.resetFlag();
+            globalSocket.setFlag(SOC_SETQS);
     }
     
     packet["stats"] = statsEngine.toJson();
