@@ -24,6 +24,8 @@ class Socket {
         Flag wsLock;
         Flag socketShouldStop;
         sem_t flagLock;
+        pthread_t wsClientThread;
+
     public:
         Socket();
         void init();

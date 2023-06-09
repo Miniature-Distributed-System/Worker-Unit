@@ -9,8 +9,6 @@
 #include "socket.hpp"
 #include "ws_client.hpp"
 
-pthread_t wsClientThread;
-
 enum SocType {
     NORMAL,
     QUICKSEND
@@ -44,7 +42,7 @@ void *launch_client_socket(void *data)
         globalSocket.resetFlag(SOC_NORMAL_MODE);
     } else {
         globalSocket.resetFlag(SOC_QUICKSEND_MODE);
-}
+    }
 
     return 0;
 }
