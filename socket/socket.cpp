@@ -138,17 +138,16 @@ void Socket::resetFlag(SocketStatus statusFlag)
     sem_post(&flagLock);
 }
 
-void init_socket()
+void Socket::init()
 {
     pthread_t socketThread;
     Log().info(__func__, "socket initlized");
     pthread_create(&socketThread, NULL, socket_task, NULL);
 }
 
-void exit_socket(struct socket *soc)
+void Socket::exit()
 {
     while(!senderSink.isForwardStackEmpty()){
         sleep(2);
     }
-    pthread_cancel(wsClientThread);
 }

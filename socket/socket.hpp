@@ -26,6 +26,8 @@ class Socket {
         sem_t flagLock;
     public:
         Socket();
+        void init();
+        void exit();
         int getSocketStatus();
         void setFlag(SocketStatus statusFlag);
         void resetFlag(SocketStatus statusFlag);

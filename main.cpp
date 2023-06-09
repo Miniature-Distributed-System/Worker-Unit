@@ -63,7 +63,7 @@ int main()
     statsEngine = StatisticsEngine(threadCount, 10);
     std::cout << "Inited Stats Engine" << std::endl;
 
-    init_socket();
+    globalSocket.init();
     std::cout << "Inited and running sockets" << std::endl;
 
     std::cout << "\033[1;97;49m---------------------------DEBUGGER START--------------------------\033[0m" << std::endl;
