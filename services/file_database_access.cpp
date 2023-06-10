@@ -77,11 +77,12 @@ int FileDataBaseAccess::writeBlob(std::string data)
 {
     if(fileDeleted.isFlagSet()){
         Log().info(__func__, "File was deleted and won't save any changes");
-        return -1;
+        return ACCESS_DENIED;
     }
 
     if(accessMode == READ_FILE)
-        throw "Write not permitted in read mode";
+        return INVALID_ACCESS_MODE;
+
     readWriteData = split_string_by_newline(data);
     dataModified.setFlag();
 
@@ -126,7 +127,7 @@ int FileDataBaseAccess::getTotalColumns()
 {
     if(fileDeleted.isFlagSet()){
         Log().error(__func__, "File is deleted and can't be accessed");
-        return -1;
+        return ACCESS_DENIED;
     }
         
     std::string data;
@@ -214,20 +215,27 @@ int FileDataBaseAccess::writeRowValue(std::string value, int rowIndex, int colum
 {
     if(fileDeleted.isFlagSet()){
          Log().error(__func__, "File is deleted and can't be accessed");
-         return -1;
+         return ACCESS_DENIED;
     }
 
     if(accessMode == READ_FILE){
         Log().error(__func__, "Writing is not allowed in read mode");
-        return -2;
+        return INVALID_ACCESS_MODE;
     }
-    if(readWriteData.size() < rowIndex){
-        Log().debug(__func__, "row index exceeds total rows present in CSV");
-        return -3;
+    if(rowIndex > readWriteData.size()){
+        Log().debug(__func__, "row index has overflowed");
+        return ROW_INDEX_OVERFLOW;
+    }
+
+    if(columnIndex > getTotalColumns()){
+        Log().debug(__func__, "column index has overflowed");
+        return COLUMN_INDEX_OVERFLOW;
     }
 
     if(rowIndex < 0)
-        return -1;
+        return ROW_INDEX_UNDERFLOW;
+    if(columnIndex < 0)
+        return COLUMN_INDEX_UNDERFLOW;
 
     std::string data;
     std::string replacementString;
@@ -254,20 +262,20 @@ int FileDataBaseAccess::writeRowValueList(std::vector<std::string> valueList, in
 {
     if(fileDeleted.isFlagSet()){
          Log().error(__func__, "File is deleted and can't be accessed");
-         return -1;
+         return ACCESS_DENIED;
     }
 
     if(accessMode == READ_FILE){
         Log().error(__func__, "Writing is not allowed in read mode");
-        return -2;
+        return INVALID_ACCESS_MODE;
     }
-    if(readWriteData.size() < rowIndex){
-        Log().debug(__func__, "row index exceeds total rows present in CSV");
-        return -3;
+    if(rowIndex > readWriteData.size()){
+        Log().debug(__func__, "row index has overflowed");
+        return ROW_INDEX_OVERFLOW;
     }
 
     if(rowIndex < 0)
-        return -1;
+        return ROW_INDEX_UNDERFLOW;
 
     std::string rowString = valueList[0];
     for(int i = 1; i < valueList.size(); i++)
@@ -288,7 +296,19 @@ std::string FileDataBaseAccess::getRowValue(int rowIndex, int columnIndex)
          return "";
     }
 
+    if(rowIndex > readWriteData.size()){
+        Log().debug(__func__, "row index has overflowed");
+        return "";
+    }
+
+    if(columnIndex > getTotalColumns()){
+        Log().debug(__func__, "column index has overflowed");
+        return "";
+    }
+
     if(rowIndex < 0)
+        return "";
+    if(columnIndex < 0)
         return "";
 
     std::string data;
@@ -312,20 +332,20 @@ int FileDataBaseAccess::deleteDuplicateRecords(int rowIndex)
 {
     if(fileDeleted.isFlagSet()){
          Log().error(__func__, "File is deleted and can't be accessed");
-         return -1;
+         return ACCESS_DENIED;
     }
 
     if(accessMode == READ_FILE){
         Log().error(__func__, "Writing is not allowed in read mode");
-        return -2;
+        return INVALID_ACCESS_MODE;
     }
     if(readWriteData.size() <= rowIndex){
         Log().info(__func__, "Deuplicate rows deletion has come to end of record");
-        return -3;
+        return DUPLICATE_CLEANUP_DONE;
     }
 
     if(rowIndex < 0)
-        return -1;
+        return ROW_INDEX_UNDERFLOW;
         
     auto iterator = readWriteData.begin();
     int k = 0;
