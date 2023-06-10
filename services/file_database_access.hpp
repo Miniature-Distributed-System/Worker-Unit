@@ -11,6 +11,16 @@ enum FileAccessType{
     RW_FILE
 };
 
+enum FileAccessErrors {
+    ACCESS_DENIED           = -1,
+    INVALID_ACCESS_MODE     = -2,
+    DUPLICATE_CLEANUP_DONE  = -3,
+    ROW_INDEX_OVERFLOW      = -4,
+    COLUMN_INDEX_OVERFLOW   = -5,
+    ROW_INDEX_UNDERFLOW     = -6,
+    COLUMN_INDEX_UNDERFLOW  = -7,
+};
+
 class FileDataBaseAccess {
         FileAccessType accessMode;
         std::list<std::string> readWriteData;
