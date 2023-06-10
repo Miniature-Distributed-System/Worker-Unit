@@ -73,6 +73,11 @@ std::list<std::string> split_string_by_newline(const std::string& str)
     return result;
 }
 
+
+/* writeBlob(): This method is used to write passed data blob argument to flat file.
+* This method writes a single row of data to the flat file. The string data format shoud be of type CSV.
+* The write operation is only allowed if the file is opened in RW mode.
+*/
 int FileDataBaseAccess::writeBlob(std::string data)
 {
     if(fileDeleted.isFlagSet()){
@@ -89,6 +94,8 @@ int FileDataBaseAccess::writeBlob(std::string data)
     return 0;
 }
 
+/* getBlob(): This method returns the entire formated flat file contents in from of string.
+*/
 std::string FileDataBaseAccess::getBlob()
 {
     if(fileDeleted.isFlagSet()){
@@ -109,6 +116,8 @@ std::string FileDataBaseAccess::getBlob()
     }
 }
 
+/* getTotalRows(): Returns the total number of rows of the whole formatted file
+*/
 int FileDataBaseAccess::getTotalRows()
 {
     if(fileDeleted.isFlagSet()){
@@ -123,6 +132,8 @@ int FileDataBaseAccess::getTotalRows()
     return readWriteData.size();
 }
 
+/* getTotalColumns(): Returns the total number of columns of the whole formatted file
+*/
 int FileDataBaseAccess::getTotalColumns()
 {
     if(fileDeleted.isFlagSet()){
@@ -161,6 +172,11 @@ std::vector<std::string> adv_tokenizer(std::string s, char del)
     return result;
 }
 
+/* getRowValueList(): This method returns all the values of a particular row.
+* The method takes a row index and as arguement and returns the row values as a list of string values. It takes care of
+* delimeters and returns the values ommiting the delimitters. The method also accounts for overflow index and returns
+* empty list if index is overflowing.
+*/
 std::vector<std::string> FileDataBaseAccess::getRowValueList(int rowIndex)
 {
     if(fileDeleted.isFlagSet()){
@@ -192,6 +208,10 @@ std::vector<std::string> FileDataBaseAccess::getRowValueList(int rowIndex)
     return adv_tokenizer(data, ',');
 }
 
+/* getRowValueList(): This method returns all the values of the Column header Values/Names.
+* The method returns the column values/names as a list of string values. It takes care of delimeters and returns the
+* values ommiting the delimitters.
+*/
 std::vector<std::string> FileDataBaseAccess::getColumnNamesList()
 {
     if(fileDeleted.isFlagSet()){
@@ -211,6 +231,10 @@ std::vector<std::string> FileDataBaseAccess::getColumnNamesList()
     return adv_tokenizer(data, ',');
 }
 
+/* writeRowValue(): Method writes the passed string value into the row and column specified.
+* This method accounts for both row and column indexs and returns error numbers based on the overflow type. This method
+* works only if file opened in RW_FILE mode. It automatically adds delimiters and values should not have ',' as character
+*/
 int FileDataBaseAccess::writeRowValue(std::string value, int rowIndex, int columnIndex)
 {
     if(fileDeleted.isFlagSet()){
@@ -258,6 +282,10 @@ int FileDataBaseAccess::writeRowValue(std::string value, int rowIndex, int colum
     return 0;
 }
 
+/* writeRowValueList(): Method writes the passed list of string values into the row and column specified.
+* This method accounts for both row and column indexs and returns error numbers based on the overflow type. This method
+* works only if file opened in RW_FILE mode. It automatically adds delimiters and values should not have ',' as character
+*/
 int FileDataBaseAccess::writeRowValueList(std::vector<std::string> valueList, int rowIndex)
 {
     if(fileDeleted.isFlagSet()){
@@ -289,6 +317,9 @@ int FileDataBaseAccess::writeRowValueList(std::vector<std::string> valueList, in
     return 0;
 }
 
+/* getRowValue(): This method returns a single value at the passed row and column index.
+* This method accouynts for row and column index overflow and returns empty string.
+*/
 std::string FileDataBaseAccess::getRowValue(int rowIndex, int columnIndex)
 {
     if(fileDeleted.isFlagSet()){
@@ -328,6 +359,8 @@ std::string FileDataBaseAccess::getRowValue(int rowIndex, int columnIndex)
     return adv_tokenizer(data, ',')[columnIndex]; 
 }
 
+/* deleteDuplicateRecords(): Specialized method for dataprocessor only which deletes duplicate records in file. 
+*/
 int FileDataBaseAccess::deleteDuplicateRecords(int rowIndex)
 {
     if(fileDeleted.isFlagSet()){
@@ -364,6 +397,9 @@ int FileDataBaseAccess::deleteDuplicateRecords(int rowIndex)
     return 0;
 }
 
+/* dropFile(): This method deletes file from system.
+* Can be executed only if file opened in RW_FILE mode. This also automatically closes the file.
+*/
 void FileDataBaseAccess::dropFile()
 {
     if(fileDeleted.isFlagSet()){
@@ -381,6 +417,10 @@ void FileDataBaseAccess::dropFile()
     fileDeleted.setFlag();
 }
 
+/* commitChanges(): Used to push saved changes to file.
+* This method psuhes all the saved formatted string data into the opened file. Works only in RW_FILE mode. This does
+* not close file and file can be used for write opertaion using same object. 
+*/
 void FileDataBaseAccess::commitChanges()
 {
     // Commit changes done after write and if modifed
