@@ -18,7 +18,7 @@ std::vector<ThreadQueue*> *threadQueueList;
 #define MEDIUM_PRIORITY_TASK_TIMESLICE_MUL 4
 #define LOW_PRIORITY_TASK_TIMESLICE 2
 
-int get_cpu_slice(TaskPriority prior)
+int calculate_priority_timeslice(TaskPriority prior)
 {   
     int rc;
     switch(prior)
@@ -237,7 +237,7 @@ int get_quickest_queue(void)
 QueueJob* init_job(TaskData pTable)
 {
     QueueJob *job = new QueueJob(pTable.proc, pTable.args);
-    job->setCpuTimeSlice(get_cpu_slice(pTable.priority));
+    job->setCpuTimeSlice(calculate_priority_timeslice(pTable.priority));
     Log().schedINFO(__func__, "job inited with cts:", job->getCpuTimeSlice() + 0);
     return job;
 }
