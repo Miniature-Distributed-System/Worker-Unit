@@ -147,6 +147,8 @@ void candidate_elimination_end(void *data)
 }
 
 struct ProcessStates *ce_algorithm = new ProcessStates{
+    .name = "candidate elimination",
+    .type = COMPUTE_STAGE,
     .start_proc = candidate_elimination_start,
     .pause_proc = candidate_elimination_pause,
     .end_proc = candidate_elimination_end

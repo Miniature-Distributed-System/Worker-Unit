@@ -257,6 +257,8 @@ void receiver_fail(void *data)
 };
 
 struct ProcessStates* receiver_proc = new ProcessStates {
+    .name = "receiver stage",
+    .type = RECEIVER_STAGE,
     .start_proc = receiver_proccess,
     .end_proc = receiver_finalize,
     .fail_proc = receiver_fail

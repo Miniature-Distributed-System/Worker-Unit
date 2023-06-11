@@ -180,7 +180,7 @@ JobStatus process_data_start(void *data)
             if(feild.size() > 0){
                 dataProc->processSql(feild);
                 dataProc->curRow++;
-        }
+            }
         }
     }
 
@@ -228,6 +228,8 @@ void process_data_failed(void *data)
 }
 
 struct ProcessStates* data_proc = new ProcessStates {
+    .name = "unsplit data processor",
+    .type = DATAPROCESSOR_STAGE,
     .start_proc = process_data_start,
     .pause_proc = process_data_pause,
     .end_proc = process_data_finalize,

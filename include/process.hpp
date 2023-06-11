@@ -3,7 +3,16 @@
 #include <string>
 #include "task.hpp"
 
+// This can be modified based on stats
+enum ProcessType {
+    RECEIVER_STAGE = 1,
+    DATAPROCESSOR_STAGE = 2,
+    COMPUTE_STAGE = 4,
+};
+
 struct ProcessStates {
+    std::string name;
+    ProcessType type;
     JobStatus (*start_proc)(void* );
     JobStatus (*pause_proc)(void* );
     void (*end_proc)(void* );
