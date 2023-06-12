@@ -28,6 +28,13 @@ struct JsonContainer {
     }
 };
 
+
+/* launch_client_socket(): This method is launches the websocket and returns packet
+* The function determines which mode the websocket is being launched and based on that perfroms lock reset.
+* It launches the websocket by passing the `data to be sent` as argument and waits for `data to be processed` as end
+* return value. Once the data is received it schedules the Receiver stage and resets the lock for the appropriate mode
+* There are only at most two instances of this Function/thread running at a time.
+*/
 void *launch_client_socket(void *data)
 {
     JsonContainer *jsonContainer = (JsonContainer*)data;
@@ -47,7 +54,11 @@ void *launch_client_socket(void *data)
     return 0;
 }
 
-
+/* socket_task: This thread gets `data to be sent` and lauches the websocket thread`
+* Thius pthread rusn for the whole lifetime of the program. It is a iterative thread and is responsible for launching
+* the launch_client_socket() function. This method determines the mode in which launch_client_socket() must be laucnged
+* Depeneding on the availablity of launch_client_socket() resource it launches in either NORMAL or QUICKSEND mode.
+*/
 void* socket_task(void *data)
 {
     JsonContainer *nModeContainer = new JsonContainer(NORMAL);
@@ -95,6 +106,12 @@ Socket::Socket()
     sem_init(&flagLock, 0 ,1);
 }
 
+
+/* getSocketStatus(): Resturns the preset websocket parameter status.
+ * This method can be used for returning the parameter set status as a single variable. The bitmasks are set for each
+ * parameter. Using bitmasks we can determine the status of individual parameters. Its lock coordinated therefore any
+ * change happens after returning value only.
+*/
 int Socket::getSocketStatus()
 {
     int status = SOC_DEFAULT;
@@ -110,6 +127,11 @@ int Socket::getSocketStatus()
     return status;
 }
 
+
+/* setFlag(): This method is used for setting individual socket parameters.
+* This method takes status flag as argument. It sets status of flag to `true` for the passed flag. Only one status can
+* be set at a time. This is semaphore lock cooridinated therefore threadsafe.
+*/
 void Socket::setFlag(SocketStatus statusFlag)
 {
     sem_wait(&flagLock);
@@ -123,6 +145,10 @@ void Socket::setFlag(SocketStatus statusFlag)
     sem_post(&flagLock);
 }
 
+/* resetFlag(): This method resets the flag status of individual socket parameters.
+* This method takes status flag as argument. It sets status of flag to `false` for the passed flag. Only one status can
+* be reset at a time. This is semaphore lock cooridinated therefore threadsafe. 
+*/
 void Socket::resetFlag(SocketStatus statusFlag)
 {
     sem_wait(&flagLock);
@@ -136,6 +162,9 @@ void Socket::resetFlag(SocketStatus statusFlag)
     sem_post(&flagLock);
 }
 
+
+/* init(): This method starts the socket thread which allows for receving and sending of packets to server.
+*/
 void Socket::init()
 {
     pthread_t socketThread;
