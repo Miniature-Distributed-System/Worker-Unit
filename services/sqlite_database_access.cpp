@@ -6,6 +6,10 @@
 
 static int colNum;
 
+/* initDatabase(): This method is used to setup/initlize the sqlite3 database, for whatever reason we can only
+* create a single instance of this database accessor or access point(non of the mehods mentioned online have worked for
+* multithread env).
+*/
 int SqliteDatabaseAccess::initDatabase()
 {
     int i, rc;
@@ -39,6 +43,9 @@ static int rowCallback(void *data, int argc, char **argv, char **azColName)
    return 0;
 }
 
+/* getRowValues(): Method returns the row values as a string array for the specified row index.
+* return empty pointer string if the row index has overflowed/undeflowed or any error.
+*/
 std::string* SqliteDatabaseAccess::getRowValues(TableData* tData, int rowNum)
 {
     std::string rowCmd = "SELECT * FROM " + tData->tableID + " where id=" 
@@ -72,6 +79,11 @@ static int colCallback(void *data, int argc, char **argv, char **azColName)
    return 0;
 }
 
+/* getColumnValues(): This method returns the array of string values for a particular column with specfied depth for 
+* that table.
+* This method return the list os values for a particular column identified by name of column and how deep should the
+* values be fetched from db. Returns null string pointer in case of any errors. 
+*/
 std::string* SqliteDatabaseAccess::getColumnValues(std::string tableName, std::string columnName, int rows)
 {
     std::string colCmd = "SELECT " + columnName + " FROM " + tableName + ";"; 
@@ -93,6 +105,8 @@ std::string* SqliteDatabaseAccess::getColumnValues(std::string tableName, std::s
     return feilds;
 }
 
+/* writeValue(): This method executes the sql query passed as argument. In case of error returns error code of splite3. 
+*/
 int SqliteDatabaseAccess::writeValue(const char * sqlQuery)
 {
     char* sqlErrMsg = NULL;
@@ -126,6 +140,9 @@ static int read_callback(void *data, int argc, char **argv, char **azColName)
     return 0;
 }
 
+/* readValue(): This method returns the result of sqlquery passed with the column index.
+* This method is used for reading values of a particular row in a column. Returns null string pointer in case of error.
+*/
 std::string* SqliteDatabaseAccess::readValue(const char* sqlQuery, int column)
 {
     char* sqlErrMsg = NULL;
@@ -155,6 +172,8 @@ static int column_head_callback(void *data, int argc, char **argv,
     return 0;
 }
 
+/* getColumnNames(): Returns the column names as argument for the given table with total columns to retrive.
+*/
 std::string* SqliteDatabaseAccess::getColumnNames(std::string tableID, int cols)
 {
     char* sqlErrMsg = NULL;
