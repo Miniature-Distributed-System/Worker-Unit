@@ -3,11 +3,11 @@
 #include "../algorithm/algorithm_scheduler.hpp"
 #include "../services/file_database_access.hpp"
 #include "../configs.hpp"
-#include "clean_data.hpp"
+#include "data_validator.hpp"
 #include "instance.hpp"
-#include "clean_data_tracker.hpp"
+#include "clean_stage_tracker.hpp"
 
-void schedule_clean_phase(TableData *tableData, Instance *instance)
+void schedule_clean_phase(TableData *tableData, InstanceData *instance)
 {
     int totalThreads = globalConfigs.getTotalThreadCount();
     int startIndex = 0, endIndex, multiplier = tableData->metadata->rows / totalThreads;
