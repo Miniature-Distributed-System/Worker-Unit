@@ -10,6 +10,12 @@
 
 InstanceList globalInstanceList;
 
+
+/* sched_algo(): schedules the next stage in data processing in pipeline.
+* This method takes tableData and splits the data into number of threads available. These split data are fed to the 
+* algorithm that is specified for processing of given data. These split stages are indipenedent of each other. The
+* algorithm is detected from passed TableData information. 
+*/
 int sched_algo(TableData *tData)
 {
     ProcessStates* proc;
@@ -48,6 +54,11 @@ int sched_algo(TableData *tData)
     return EXIT_SUCCESS;
 }
 
+/* update_algo_result(): This updates the map for the respective algorithm and tracks all split algorithm processes.
+* This method updates the counter which keeps track of all split stages for a given data and once all split stages
+* have completed/updated the result, this method schedules the final stage or aggrigate stages. It also deallocates all
+* resources that were used during these split scheduling and tracking processes
+*/
 int update_algo_result(std::string tableId, void *algorithmExportResult)
 {
     if(tableId.empty()){
