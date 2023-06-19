@@ -30,10 +30,15 @@ void example_end_process(void *data){
     Log().info(__func__, "Example end process");
 }
 
+void example_fail_process(void *data){
+    Log().error(__func__, "Example process failed");
+}
+
 struct ProcessStates* example_proc = new ProcessStates{
     .start_proc = example_start_process,
     .pause_proc = example_pause_process,
-    .end_proc = example_end_process
+    .end_proc = example_end_process,
+    .fail_proc = example_fail_process
 };
 ```
 
