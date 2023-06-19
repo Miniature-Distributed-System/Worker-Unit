@@ -11,13 +11,6 @@
 #include "include/logger.hpp"
 #include "configs.hpp"
 
-void menu(){
-    std::cout << "\n=========Control Menu==========" << std::endl;
-    std::cout << "1.Show Stats" << std::endl;
-    std::cout << "2.Exit" << std::endl;
-    std::cout << "Choose option:";
-}
-
 SqliteDatabaseAccess *sqliteDatabaseAccess;
 DataBaseInstanceList instanceList;
 StatisticsEngine statsEngine;
@@ -69,22 +62,7 @@ int main()
     std::cout << "\033[1;97;49m---------------------------DEBUGGER START--------------------------\033[0m" << std::endl;
 
     while(1){
-        // menu();
-        // int choice;
-        // std::cin >> choice;
-        // switch(choice){
-        //     case 1:break;
-        //     case 2:
-        //         std::cout << "Sending seize signal" <<std::endl;
-        //         std::cout << "cleaning up task pool..." <<std::endl;
-        //         exit_thread_pool(thread);
-        //         std::cout << "Shutting down scheduler..." <<std::endl;
-        //         exit_sched();
-        //         std::cout << "Shutting down sockets..." <<std::endl;
-        //         exit_socket(soc);
-        //         exit(0);
-        //     default: break;
-        // }
+       
     }
     std::cout << "All process shutdown successfully" <<std::endl;
     return 0;
