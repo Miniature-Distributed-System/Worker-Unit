@@ -1,15 +1,18 @@
 #include "../include/process.hpp"
 #include "../include/logger.hpp"
 #include "../services/file_database_access.hpp"
+#include "../sender_proc/sender.hpp"
+#include "../algorithm/algorithm_scheduler.hpp"
 
 class DataCleaner{
         int iterator;
         FileDataBaseAccess *fileDataBaseAccess;
-        TableData* tableData;
     public:
+        TableData* tableData;
         DataCleaner(TableData* tableData);
         ~DataCleaner();
         int clean();
+        std::string getCleanedData() { return fileDataBaseAccess->getBlob(); }
 };
 
 DataCleaner::DataCleaner(TableData* tableData)
@@ -47,6 +50,12 @@ JobStatus process_data_pause(void *data)
 void process_data_finalize(void *data)
 {
     DataCleaner *dataCleaner = (DataCleaner*)data;
+    std::string cleanedData = dataCleaner->getCleanedData();
+
+    //Log().dataProcInfo(__func__, getCleanedTable);
+    senderSink.pushPacket(cleanedData, dataCleaner->tableData->tableID, INTR_SEND, dataCleaner->tableData->priority);
+    //Schedule the algorithm to process our cleaned data
+    sched_algo(dataCleaner->tableData);
 
     delete dataCleaner;
     Log().info(__func__,"finished data cleaner");
