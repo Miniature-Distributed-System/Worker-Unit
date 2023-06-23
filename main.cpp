@@ -22,7 +22,6 @@ std::map<std::string, AlgorithmPackage *> algorithmResultMap;
 
 int main()
 {
-    struct ThreadPool *thread;
     std::string net[2] = {"0.0.0.0", "8080"};
     std::string hostname, port;
     int threadCount;
