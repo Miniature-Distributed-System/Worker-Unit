@@ -34,7 +34,7 @@ int DataCleaner::clean()
     return 0;
 }
 
-JobStatus process_data_start(void *data)
+JobStatus clean_data_start(void *data)
 {
     DataCleaner *dataCleaner = (DataCleaner*)data;
     if(dataCleaner->clean())
@@ -42,12 +42,12 @@ JobStatus process_data_start(void *data)
     return JOB_PENDING;
 }
 
-JobStatus process_data_pause(void *data)
+JobStatus clean_data_pause(void *data)
 {
    return JOB_PENDING;
 }
 
-void process_data_finalize(void *data)
+void clean_data_finalize(void *data)
 {
     DataCleaner *dataCleaner = (DataCleaner*)data;
     std::string cleanedData = dataCleaner->getCleanedData();
@@ -61,19 +61,19 @@ void process_data_finalize(void *data)
     Log().info(__func__,"finished data cleaner");
 }
 
-void process_data_failed(void *data)
+void clean_data_failed(void *data)
 {
    DataCleaner *dataCleaner = (DataCleaner*)data;
    delete dataCleaner;
 }
 
-struct ProcessStates* data_proc = new ProcessStates {
+struct ProcessStates* clean_proc = new ProcessStates {
     .name = "split data cleaner",
     .type = DATAPROCESSOR_STAGE,
-    .start_proc = process_data_start,
-    .pause_proc = process_data_pause,
-    .end_proc = process_data_finalize,
-    .fail_proc = process_data_failed
+    .start_proc = clean_data_start,
+    .pause_proc = clean_data_pause,
+    .end_proc = clean_data_finalize,
+    .fail_proc = clean_data_failed
 };
 
 void init_data_cleaner(TableData* tableData)
