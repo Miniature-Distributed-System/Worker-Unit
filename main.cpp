@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <cassert>
 #include "algorithm/algorithm_scheduler.hpp"
+#include "data_processor/clean_stage_tracker.hpp"
 #include "scheduler/task_pool.hpp"
 #include "scheduler/sched.hpp"
 #include "socket/socket.hpp"
@@ -19,6 +20,7 @@ SenderSink senderSink;
 TaskPool taskPool;
 Socket globalSocket;
 std::map<std::string, AlgorithmPackage *> algorithmResultMap;
+std::map<TableData *, int> cleanStageMap;
 
 int main()
 {
