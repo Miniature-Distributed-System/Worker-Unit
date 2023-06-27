@@ -3,6 +3,7 @@
 
 #include <string>
 #include <sstream>
+#include <iostream>
 #include "ansi_format.hpp"
 
 class Log{
