@@ -87,6 +87,7 @@ void ce_finalize_end_process(void *data)
 }
 
 struct ProcessStates* ce_finalize_proc = new ProcessStates{
+    .type = COMPUTE_STAGE,
     .start_proc = ce_finalize_start_process,
     .pause_proc = ce_finalize_pause_process,
     .end_proc = ce_finalize_end_process
