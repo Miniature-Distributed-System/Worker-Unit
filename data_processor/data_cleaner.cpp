@@ -79,5 +79,5 @@ struct ProcessStates* clean_proc = new ProcessStates {
 void init_data_cleaner(TableData* tableData)
 {
     DataCleaner *dataCleaner = new DataCleaner(tableData);
-
+    scheduleTask(clean_proc, dataCleaner, tableData->priority);
 }
