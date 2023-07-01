@@ -60,7 +60,7 @@ int TaskPool::pushTask(TaskData taskData)
 int TaskPool::popTask(TaskData &taskData)
 {
     if(!taskSink.size())
-        return -1;
+        return EXIT_FAILURE;
     sem_wait(&sinkLock);
     taskData = taskSink.front();
     taskSink.pop_front();
@@ -99,7 +99,7 @@ int getScheduledTask(TaskData &taskData)
 {
     if(taskPool.popTask(taskData)){
         Log().info(__func__, "Task pool is empty");
-        return -1;
+        return EXIT_FAILURE;
     }
     return 0;
 }
