@@ -98,9 +98,10 @@ int scheduleTask(ProcessStates *newProc, void *args, TaskPriority prior)
 int getScheduledTask(TaskData &taskData)
 {
     if(taskPool.popTask(taskData)){
-        Log().info(__func__, "Task pool is empty");
+        Log().taskPoolInfo(__func__, "Task pool is empty");
         return EXIT_FAILURE;
     }
+    Log().taskPoolInfo(__func__, "Popped task from pool, size:", taskPool.getTaskSinkSize());
     return 0;
 }
 
