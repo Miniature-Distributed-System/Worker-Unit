@@ -77,10 +77,12 @@ int scheduleTask(ProcessStates *newProc, void *args, TaskPriority prior)
 {
     TaskData newTask;
     
-    if(newProc == NULL || args == NULL){
+    if(newProc == NULL){
+        Log().error(__func__, "Process data is null!");
         return EXIT_FAILURE;
     }
-    if(newProc->start_proc == NULL || newProc->end_proc == NULL)
+    if(args == NULL){
+         Log().error(__func__, "Arguments are null!");
         return EXIT_FAILURE;
 
     newTask.proc = newProc;
