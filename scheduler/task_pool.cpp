@@ -68,6 +68,13 @@ int TaskPool::popTask(TaskData &taskData)
     return 0;
 }
 
+bool isProcessTypeValid(ProcessType type)
+{
+    if(type < NR_PROCESS)
+        return true;
+    return false;
+}
+
 /* This function initilises the process table for the submitted
  * process along with null checks. Once inited the process table
  * is pushed into the thread_pool.
@@ -84,6 +91,11 @@ int scheduleTask(ProcessStates *newProc, void *args, TaskPriority prior)
     if(args == NULL){
          Log().error(__func__, "Arguments are null!");
         return EXIT_FAILURE;
+    }
+    if(newProc->start_proc == NULL || newProc->end_proc == NULL || !isProcessTypeValid(newProc->type)){
+        Log().error(__func__, "Invalid ProcessStates structures");
+        return EXIT_FAILURE;
+    }
 
     newTask.proc = newProc;
     newTask.args = args;
