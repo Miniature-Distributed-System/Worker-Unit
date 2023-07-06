@@ -43,9 +43,11 @@ int update_clean_stages(TableData *tableData)
             senderSink.pushPacket(getCleanedTable, tableData->tableID, INTR_SEND, tableData->priority);
             //Schedule the algorithm to process our cleaned data
             sched_algo(tableData);
-        }
+            Log().dataProcInfo(__func__, "scheduled clean stage for data:", tableData->tableID);
+        } else Log().dataProcInfo(__func__, "updated validation stage for data:", tableData->tableID, " split-", 
+                iterator->second);
     } else {
-        Log().error(__func__, "table Name not found!");
+        Log().error(__func__, "table Name not found! ", tableData->tableID);
         return -1;
     }
 
