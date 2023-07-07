@@ -9,17 +9,17 @@
 void schedule_clean_phase(TableData *tableData, InstanceData *instance)
 {
     int totalThreads = globalConfigs.getTotalThreadCount();
-    int startIndex = 0, endIndex, multiplier = tableData->metadata->rows / totalThreads;
+    int startIndex = 1, endIndex, multiplier = tableData->metadata->rows / totalThreads;
     endIndex = multiplier;
     
-    for(int i = 0; i < totalThreads; i++){
+    for(int i = 1; i <= totalThreads; i++){
         init_clean_data_phase(startIndex, endIndex, tableData, instance);
         startIndex = endIndex + 1;
         endIndex += multiplier * i;
         if(endIndex + 1 <= tableData->metadata->rows)
             endIndex++;
     }
-    Log().info(__func__, "All clean stages scheduled");
+    Log().dataProcInfo(__func__, "All clean stages scheduled");
     cleanStageMap[tableData] = 0;
 }
 
