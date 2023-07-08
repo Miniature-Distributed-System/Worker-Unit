@@ -19,7 +19,7 @@ DataCleaner::DataCleaner(TableData* tableData)
 {
     fileDataBaseAccess = new FileDataBaseAccess(tableData->tableID, RW_FILE);
     iterator = 0;
-    Log().info(__func__,"initlized data cleaner");
+    Log().dataProcInfo(__func__,"initlized data cleaner");
 }
 
 DataCleaner::~DataCleaner()
@@ -58,7 +58,7 @@ void clean_data_finalize(void *data)
     sched_algo(dataCleaner->tableData);
 
     delete dataCleaner;
-    Log().info(__func__,"finished data cleaner");
+    Log().dataProcInfo(__func__,"finished data cleaner");
 }
 
 void clean_data_failed(void *data)
