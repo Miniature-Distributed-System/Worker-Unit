@@ -8,6 +8,7 @@ enum ProcessType {
     RECEIVER_STAGE = 1,
     DATAPROCESSOR_STAGE = 2,
     COMPUTE_STAGE = 4,
+    NR_PROCESS,
 };
 
 struct ProcessStates {
