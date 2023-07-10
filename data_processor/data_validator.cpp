@@ -98,7 +98,7 @@ int CleanData::processFeild()
     return 0;
 }
 
-JobStatus clean_data_start(void *data)
+JobStatus validate_data_start(void *data)
 {
     CleanData *cleanData = (CleanData*)data;
     if(cleanData->processFeild())
@@ -107,7 +107,7 @@ JobStatus clean_data_start(void *data)
     JOB_PENDING;
 }
 
-JobStatus clean_data_pause(void *data)
+JobStatus validate_data_pause(void *data)
 {
     CleanData *cleanData = (CleanData*)data;
     if(cleanData)
@@ -115,7 +115,7 @@ JobStatus clean_data_pause(void *data)
     return JOB_PENDING;
 }
 
-void clean_data_finalize(void *data)
+void validate_data_finalize(void *data)
 {
     CleanData *cleanData = (CleanData*)data;
 
@@ -129,12 +129,12 @@ void clean_data_finalize(void *data)
 }
 
 
-struct ProcessStates* clean_data_process = new ProcessStates {
+struct ProcessStates* valdiate_data_process = new ProcessStates {
     .name = "unsplit data processor",
     .type = DATAPROCESSOR_STAGE,
-    .start_proc = clean_data_start,
-    .pause_proc = clean_data_pause,
-    .fail_proc = clean_data_finalize
+    .start_proc = validate_data_start,
+    .pause_proc = validate_data_pause,
+    .end_proc = validate_data_finalize
 };
 
 void init_clean_data_phase(int startIndex, int endIndex, TableData *tableData, InstanceData *instanceData)
