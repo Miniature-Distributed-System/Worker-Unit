@@ -20,6 +20,18 @@ struct ProcessStates {
     void (*fail_proc)(void* );
 };
 
+struct ProcessTable {
+    std::uint64_t pid;
+    ProcessStates *processState;
+    void *args;
+    JobStatus jobStatus;
+    TaskPriority priority;
+    ~ProcessTable(){
+        // Arguments are not deallocated as its the job of the task to deallocate resources it allocates
+        delete processState;
+    }
+};
+
 struct TableMetadata {
     std::uint64_t rows;
     std::uint64_t columns;
