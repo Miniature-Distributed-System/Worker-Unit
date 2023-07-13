@@ -83,6 +83,8 @@ int CleanData::processFeild()
     std::vector<std::string> temp;
     std::string sqlUpdateCmd;
 
+    if(iterator >= tableData->metadata->rows)
+        return 1;
     std::vector<std::string> feildList = fileDataBaseAccess->getRowValueList(iterator);
     curCol = 0;
     for(i = 0; i < cols; i++,curCol++){
