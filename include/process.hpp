@@ -24,7 +24,7 @@ struct ProcessTable {
     std::uint64_t pid;
     ProcessStates *processState;
     void *args;
-    JobStatus jobStatus;
+    std::uint64_t jobStatus;
     TaskPriority priority;
     ~ProcessTable(){
         // Arguments are not deallocated as its the job of the task to deallocate resources it allocates
