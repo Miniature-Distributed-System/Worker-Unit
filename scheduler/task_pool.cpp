@@ -5,6 +5,7 @@
 #include "../sender_proc/sender.hpp"
 #include "../services/stats_engine.hpp"
 #include "sched.hpp"
+#include "process_manager.hpp"
 #include "task_pool.hpp"
 
 /* This function returns how much the process of a certain 
@@ -82,7 +83,7 @@ bool isProcessTypeValid(ProcessType type)
  */
 int scheduleTask(ProcessStates *newProc, void *args, TaskPriority prior)
 {
-    TaskData newTask;
+    TaskData task;
     
     if(newProc == NULL){
         Log().error(__func__, "Process data is null!");
@@ -97,12 +98,14 @@ int scheduleTask(ProcessStates *newProc, void *args, TaskPriority prior)
         return EXIT_FAILURE;
     }
 
-    newTask.proc = newProc;
-    newTask.args = args;
-    newTask.priority = prior;
-    newTask.starveCounter = 0;
+    // newTask.proc = newProc;
+    // newTask.args = args;
+    // newTask.priority = prior;
+    // newTask.starveCounter = 0;
+    task.procTable = globalProcessManager.registerProcess(newProc, args, prior);
     
-    taskPool.pushTask(newTask);
+    //taskPool.pushTask(newTask);
+    taskPool.pushTask(task);
     Log().taskPoolInfo(__func__,"insert node:", taskPool.getTaskSinkSize());
     pthread_cond_signal(&cond);
 

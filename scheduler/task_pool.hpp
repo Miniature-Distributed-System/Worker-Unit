@@ -14,13 +14,11 @@
 #define PRIOR_3_STRVLMT 8
 
 struct TaskData {
-    ProcessStates *proc;
-    void *args;
+    ProcessTable *procTable;
     TaskPriority priority;
     std::uint16_t starveCounter;
     TaskData(){
-        proc = NULL;
-        args = NULL;
+        procTable = NULL;
     };
 };
 
