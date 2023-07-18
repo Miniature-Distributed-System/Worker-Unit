@@ -7,6 +7,7 @@
 #include "../include/debug_rp.hpp"
 #include "../include/logger.hpp"
 #include "../configs.hpp"
+#include "process_manager.hpp"
 #include "task_pool.hpp"
 
 bool schedulerShouldStop = 0;
@@ -34,22 +35,22 @@ int calculate_priority_timeslice(TaskPriority prior)
 
 JobStatus QueueJob::runStartProcess()
 {
-    return proc->start_proc(args);
+    return processTable->processState->start_proc(processTable->args);
 }
 
 JobStatus QueueJob::runPauseProcess()
 {
-    return proc->pause_proc(args);
+    return processTable->processState->pause_proc(processTable->args);
 }
 
 void QueueJob::runEndProcess()
 {
-    proc->end_proc(args);
+    processTable->processState->end_proc(processTable->args);
 }
 
 void QueueJob::runFailProcess()
 { 
-    proc->fail_proc(args); 
+    processTable->processState->fail_proc(processTable->args); 
 }
 ThreadQueue::ThreadQueue(unsigned int threadID){
     this->threadID = threadID;
