@@ -237,8 +237,8 @@ int get_quickest_queue(void)
 
 QueueJob* init_job(TaskData pTable)
 {
-    QueueJob *job = new QueueJob(pTable.proc, pTable.args);
-    job->setCpuTimeSlice(calculate_priority_timeslice(pTable.priority) / pTable.proc->type);
+    QueueJob *job = new QueueJob(pTable.procTable);
+    job->setCpuTimeSlice(calculate_priority_timeslice(pTable.priority) / pTable.procTable->processState->type);
     Log().schedINFO(__func__, "job inited with cts:", job->getCpuTimeSlice() + 0);
     return job;
 }
@@ -351,6 +351,7 @@ void *thread_task(void *ptr)
                 job->runEndProcess();
 
             queue->markTaskAsComplete();
+            globalProcessManager.unregisterProcess(job->processTable);
             //signal scheduler to wake up
             pthread_cond_signal(&cond);
             continue;
