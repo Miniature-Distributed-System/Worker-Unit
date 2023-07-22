@@ -97,8 +97,8 @@ QueueJob* ThreadQueue::popJob()
 {
     sem_wait(&threadResourceLock);
     for(int i = 0; i < QUEUE_SIZE; i++){
-        if(!jobSlotDone[i].isFlagSet() && jobQueue[i]->getTaskStatus() != RUNNING && 
-            jobQueue[i]->getTaskStatus() != FINALIZE){
+        if(!jobSlotDone[i].isFlagSet() && !jobQueue[i]->isJobStatusSet(JOB_RUNNING) && 
+            !jobQueue[i]->isJobStatusSet(JOB_FINALIZED)){
                 QueueJob *job = jobQueue[i];
                 jobSlotDone[i].setFlag();
                 totalJobsInQueue--;
@@ -113,7 +113,7 @@ QueueJob* ThreadQueue::popJob()
 
 void ThreadQueue::markTaskAsComplete()
 {
-    jobQueue[head]->updateTaskStatus(DONE);
+    jobQueue[head]->setJobStatus(JOB_DONE);
     jobSlotDone[head].setFlag();
     totalJobsInQueue--;
     Log().schedINFO(__func__, "job slot:", head, " marked as complete, jobs pending:", totalJobsInQueue);
@@ -343,7 +343,7 @@ void *thread_task(void *ptr)
         if(!job)
             continue;
 
-        if(job->getTaskStatus() == FINALIZE)
+        if(job->isJobStatusSet(JOB_FINALIZED))
         {
             if(job->jobErrorHandle.isFlagSet())
                 job->runFailProcess();
@@ -357,21 +357,19 @@ void *thread_task(void *ptr)
             continue;
         }
 
-        job->updateTaskStatus(RUNNING);
+        job->setJobStatus(JOB_RUNNING);
         struct JobTimer *timer = init_timer(job);
         while(!timer->jobShouldPause)
         {
-            JobStatus status = job->runStartProcess();
-            if(status == JOB_DONE){
-                job->updateTaskStatus(FINALIZE);
+            job->setJobStatus(job->runStartProcess());
+            if(job->isJobStatusSet(JOB_FINALIZED)){
                 goto cleanup;
-            } else if (status == JOB_FAILED){
-                job->updateTaskStatus(FINALIZE);
+            } else if (job->isJobStatusSet(JOB_FAILED)){
                 job->jobErrorHandle.setFlag();
                 goto cleanup;
             }
         }
-        job->updateTaskStatus(WAITING);
+        job->setJobStatus(JOB_WAITING);
         if(job->getCpuTimeSlice() && timer->jobShouldPause)
             job->runPauseProcess();
 cleanup:

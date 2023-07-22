@@ -21,12 +21,12 @@ struct JobTimer {
     bool jobShouldPause;
 };
 
-enum TaskExecutionStatus {
-    RUNNING = 0,
-    WAITING,
-    FINALIZE,
-    DONE
-};
+// enum TaskExecutionStatus {
+//     RUNNING = 0,
+//     WAITING,
+//     FINALIZE,
+//     DONE
+// };
 
 class QueueJob {
         // ProcessStates *proc;
@@ -53,8 +53,11 @@ class QueueJob {
         JobStatus runPauseProcess();
         void runEndProcess();
         void runFailProcess();
-        void updateTaskStatus(TaskExecutionStatus status){ taskStatus = status; }
-        TaskExecutionStatus getTaskStatus() { return taskStatus; }
+        // void updateTaskStatus(TaskExecutionStatus status){ taskStatus = status; }
+        // TaskExecutionStatus getTaskStatus() { return taskStatus; }
+        void setJobStatus(JobStatus status) { processTable->jobStatus = processTable->jobStatus | status; }
+        void resetJobStatus(JobStatus status) { processTable->jobStatus &= ~(1 << status); }
+        bool isJobStatusSet(JobStatus status) { if(status & processTable->jobStatus) return true; else false; }
 };
 
 class ThreadQueue {
