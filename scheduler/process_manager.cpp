@@ -28,6 +28,7 @@ ProcessTable* ProcessManager::registerProcess(ProcessStates *process, void *args
     ProcessTable* procTable = new ProcessTable();
     procTable->pid = pid;
     pidVector.push_back(procTable);
+    return procTable;
 }
 
 void ProcessManager::unregisterProcess(ProcessTable *processTable)
