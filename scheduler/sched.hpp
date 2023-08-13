@@ -57,7 +57,7 @@ class QueueJob {
         // TaskExecutionStatus getTaskStatus() { return taskStatus; }
         void setJobStatus(JobStatus status) { processTable->jobStatus = processTable->jobStatus | status; }
         void resetJobStatus(JobStatus status) { processTable->jobStatus &= ~(1 << status); }
-        bool isJobStatusSet(JobStatus status) { if(status & processTable->jobStatus) return true; else false; }
+        bool isJobStatusSet(JobStatus status) { if(status & processTable->jobStatus) return true; return false; }
 };
 
 class ThreadQueue {
