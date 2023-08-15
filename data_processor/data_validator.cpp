@@ -103,10 +103,11 @@ int CleanData::processFeild()
 JobStatus validate_data_start(void *data)
 {
     CleanData *cleanData = (CleanData*)data;
+    
     if(cleanData->processFeild())
-        JOB_DONE;
+        return JOB_DONE;
 
-    JOB_PENDING;
+    return JOB_PENDING;
 }
 
 JobStatus validate_data_pause(void *data)
