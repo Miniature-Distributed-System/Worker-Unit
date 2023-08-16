@@ -122,13 +122,11 @@ void validate_data_finalize(void *data)
 {
     CleanData *cleanData = (CleanData*)data;
 
-    if(update_clean_stages(cleanData->tableData))
-        Log().error(__func__, "updating data clean stage failed");
-    if(!data){
+    update_clean_stages(cleanData->tableData);
+    if(!cleanData){
         Log().error(__func__, "CleanData object is null");
-        return;
-    }
-    delete data;
+    } else Log().dataProcInfo(__func__, "end validate phase");
+    delete cleanData;
 }
 
 
