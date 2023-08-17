@@ -141,6 +141,7 @@ struct ProcessStates* valdiate_data_process = new ProcessStates {
 void init_clean_data_phase(int startIndex, int endIndex, TableData *tableData, InstanceData *instanceData)
 {
     CleanData *cleanData = new CleanData(startIndex, endIndex, tableData, instanceData);
-    scheduleTask(clean_data_process, cleanData, tableData->priority);
-    Log().info(__func__, "Data cleaning phase initilized and scheduled");
+    if(scheduleTask(valdiate_data_process, cleanData, tableData->priority))
+        Log().error(__func__, "failed to schedule task pipeline broken for:", tableData->tableID);
+    Log().dataProcInfo(__func__, "Data cleaning phase initilized and scheduled for:", tableData->tableID);
 }
