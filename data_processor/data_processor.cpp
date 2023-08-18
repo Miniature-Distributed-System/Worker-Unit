@@ -25,8 +25,8 @@ class DataProcessor {
         std::string selectCmd;
         std::string deleteCmd;
         std::string errorString;
-        InstanceData *instanceData;
     public:
+        InstanceData *instanceData;
         Flag initDone;
         Flag dataCleanPhase;
         std::uint64_t curRow = 1;
