@@ -1,4 +1,3 @@
-#include <boost/algorithm/string.hpp>
 #include <string>
 #include <algorithm>
 #include <vector>
@@ -9,9 +8,7 @@
 #include "../include/task.hpp"
 #include "../include/flag.h"
 #include "../include/logger.hpp"
-#include "../services/sqlite_database_access.hpp"
 #include "../services/file_database_access.hpp"
-#include "../algorithm/algorithm_scheduler.hpp"
 #include "../sender_proc/sender.hpp"
 #include "../scheduler/task_pool.hpp"
 #include "data_processor.hpp"
@@ -83,68 +80,6 @@ int DataProcessor::initlize()
     return 0;
 }
 
-// validateFeild(): This is used by cleanData() to valdiate each field with the possible set of values.
-std::string DataProcessor::validateFeild(std::string feild)
-{
-    std::string* temp;
-    int i ,totalColumns;
-
-    temp = instanceData->getPossibleFields(curCol);
-    if(temp == NULL){
-        Log().error(__func__, "Instance data for instance column index: ", curCol);
-        return feild;
-    }
-    totalColumns = instanceData->getTotalRows();
-
-    //iterate through possible values of current column
-    for(i = 0; i < totalColumns; i++){
-        if(boost::iequals(temp[i], feild)){
-            return feild;
-        }
-    }
-
-    //worst case scenario
-    Log().dataProcInfo(__func__, "feild does not exist:", feild);
-    return "NaN";
-}
-
-// cleanData(): This method is used by the processSql() to replace invalid data fields with NaN.
-std::string DataProcessor::cleanData(std::string feild)
-{
-    //check if empty
-    if(feild.empty())
-        feild = "NaN";
-    else {
-        //check if valid feild present
-        feild = validateFeild(feild);
-    }
-    
-    return feild;
-}
-
-/* processSql(): This method cleans the attribute data in the sqlite database.
- * This method fetches the possible values from the algorithm and proceeds to check the sqlite database for inconsistent
- * data which it substitues with NaN which will be an invalid data.
-*/
-int DataProcessor::processSql(std::vector<std::string> feildList)
-{
-    int i, cols = tableData->metadata->columns, rc;
-    std::vector<std::string> temp;
-    std::string sqlUpdateCmd;
-
-    curCol = 0;
-    for(i = 0; i < cols; i++,curCol++){
-        std::string str = cleanData(feildList[i]);
-        temp.push_back(str);
-    }
-    if(temp != feildList){
-        Log().dataProcInfo(__func__, "row:", curRow);
-        fileDataBaseAccess->writeRowValueList(temp, curRow);
-    }
-
-    return 0;
-}
-
 /* process_data_start(): This method is called by scheduler, It processes the data before algorithms work on it.
  * This method has two phases processSql phase where the sql is processed to look for invalid values in all columns, in 
  * second phase the data is cleaned and duplicate records are deleted from db.
@@ -156,36 +91,11 @@ JobStatus process_data_start(void *data)
     std::vector<std::string> feild;
     int rc;
 
-    if(!dataProc->initDone.isFlagSet()){
-        rc = dataProc->initlize();
-        if(rc)
-            return JOB_FAILED;
-    }
+    rc = dataProc->initlize();
+    if(rc)
+        return JOB_FAILED;
 
-    if(dataProc->dataCleanPhase.isFlagSet())
-    {
-        // Keep incrementing until we run out of records to delete
-        rc = dataProc->fileDataBaseAccess->deleteDuplicateRecords(dataProc->curRow++);
-        if(rc == -3){
-            Log().dataProcInfo(__func__,"All duplicate data deleted");
-            tData->metadata->currentColumn = 0;
-            tData->metadata->rows = dataProc->fileDataBaseAccess->getTotalRows() - 1;
-            return JOB_DONE;
-        }
-    } else {
-        if(dataProc->curRow >= tData->metadata->rows){
-            dataProc->dataCleanPhase.setFlag();
-            dataProc->curRow = 0;
-        } else {
-            feild = dataProc->fileDataBaseAccess->getRowValueList(dataProc->curRow);
-            if(feild.size() > 0){
-                dataProc->processSql(feild);
-                dataProc->curRow++;
-            }
-        }
-    }
-
-    return JOB_PENDING;
+    return JOB_DONE;
 }
 
 JobStatus process_data_pause(void *data)
@@ -202,16 +112,7 @@ JobStatus process_data_pause(void *data)
 void process_data_finalize(void *data)
 {
     DataProcessor *dataProc = (DataProcessor*)data;
-    TableData *tData = dataProc->tableData;
-    std::string selectAll = "SELECT * FROM " + tData->tableID + ";";
-    std::string getCleanedTable;
-
-    //Send the cleaned data back to server via fwd stack
-    getCleanedTable = dataProc->fileDataBaseAccess->getBlob();
-    //Log().dataProcInfo(__func__, getCleanedTable);
-    senderSink.pushPacket(getCleanedTable, tData->tableID, INTR_SEND, tData->priority);
-    //Schedule the algorithm to process our cleaned data
-    sched_algo(tData);
+    schedule_clean_phase(dataProc->tableData, dataProc->instanceData);
 
     //Deallocate memory and cleanup
     delete dataProc;
