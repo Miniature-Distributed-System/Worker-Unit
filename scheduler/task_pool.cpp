@@ -98,15 +98,22 @@ int scheduleTask(ProcessStates *newProc, void *args, TaskPriority prior)
         return EXIT_FAILURE;
     }
 
-    // newTask.proc = newProc;
-    // newTask.args = args;
-    // newTask.priority = prior;
-    // newTask.starveCounter = 0;
     task.procTable = globalProcessManager.registerProcess(newProc, args, prior);
     
-    //taskPool.pushTask(newTask);
     taskPool.pushTask(task);
     Log().taskPoolInfo(__func__,"insert node:", taskPool.getTaskSinkSize());
+    pthread_cond_signal(&cond);
+
+    return 0;
+}
+
+int reScheduleTask(ProcessTable *procTable)
+{
+    TaskData task;
+    task.procTable = procTable;
+
+    taskPool.pushTask(task);
+    Log().taskPoolInfo(__func__,"re-inserted node:", taskPool.getTaskSinkSize());
     pthread_cond_signal(&cond);
 
     return 0;

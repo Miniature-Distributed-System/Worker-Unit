@@ -35,4 +35,5 @@ class TaskPool {
 extern TaskPool taskPool;
 void exit_thread_pool(struct ThreadPool*);
 int getScheduledTask(TaskData &taskData);
+int reScheduleTask(ProcessTable *procTable);
 #endif
