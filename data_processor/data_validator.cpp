@@ -9,7 +9,7 @@
 #include "instance_data.hpp"
 #include "data_validator.hpp"
 
-class CleanData {
+class ValidateData {
         InstanceData *instanceData;
         FileDataBaseAccess *fileDataBaseAccess;
         int startRow;
@@ -19,15 +19,15 @@ class CleanData {
         int curRow;
     public:
         TableData *tableData;
-        CleanData(int startIndex, int endIndex, TableData *tableData, InstanceData *instanceData);
-        ~CleanData(){ delete fileDataBaseAccess; }
+        ValidateData(int startIndex, int endIndex, TableData *tableData, InstanceData *instanceData);
+        ~ValidateData(){ delete fileDataBaseAccess; }
         std::string validateFeild(std::string feild);
         std::string cleanData(std::string feild);
         int processFeild();
 };
 
 
-CleanData::CleanData(int startIndex, int endIndex, TableData *tableData, InstanceData *instanceData) : startRow(startIndex), endRow(endIndex), 
+ValidateData::ValidateData(int startIndex, int endIndex, TableData *tableData, InstanceData *instanceData) : startRow(startIndex), endRow(endIndex), 
     tableData(tableData), instanceData(instanceData)
 {
     iterator = startRow;
@@ -35,7 +35,7 @@ CleanData::CleanData(int startIndex, int endIndex, TableData *tableData, Instanc
 }
 
 // validateFeild(): This is used by cleanData() to valdiate each field with the possible set of values.
-std::string CleanData::validateFeild(std::string feild)
+std::string ValidateData::validateFeild(std::string feild)
 {
     std::string* temp;
     int i ,totalColumns;
@@ -60,7 +60,7 @@ std::string CleanData::validateFeild(std::string feild)
 }
 
 // cleanData(): This method is used by the processSql() to replace invalid data fields with NaN.
-std::string CleanData::cleanData(std::string feild)
+std::string ValidateData::cleanData(std::string feild)
 {
     //check if empty
     if(feild.empty())
@@ -77,7 +77,7 @@ std::string CleanData::cleanData(std::string feild)
  * This method fetches the possible values from the algorithm and proceeds to check the sqlite database for inconsistent
  * data which it substitues with NaN which will be an invalid data.
 */
-int CleanData::processFeild()
+int ValidateData::processFeild()
 {
     int i, cols = tableData->metadata->columns, rc;
     std::vector<std::string> temp;
@@ -85,6 +85,7 @@ int CleanData::processFeild()
 
     if(iterator >= tableData->metadata->rows)
         return 1;
+
     std::vector<std::string> feildList = fileDataBaseAccess->getRowValueList(iterator);
     curCol = 0;
     for(i = 0; i < cols; i++,curCol++){
@@ -102,7 +103,7 @@ int CleanData::processFeild()
 
 JobStatus validate_data_start(void *data)
 {
-    CleanData *cleanData = (CleanData*)data;
+    ValidateData *cleanData = (ValidateData*)data;
     
     if(cleanData->processFeild())
         return JOB_DONE;
@@ -112,7 +113,7 @@ JobStatus validate_data_start(void *data)
 
 JobStatus validate_data_pause(void *data)
 {
-    CleanData *cleanData = (CleanData*)data;
+    ValidateData *cleanData = (ValidateData*)data;
     if(cleanData)
         senderSink.pushPacket("", cleanData->tableData->tableID, RESET_TIMER, cleanData->tableData->priority);
     return JOB_PENDING;
@@ -120,7 +121,7 @@ JobStatus validate_data_pause(void *data)
 
 void validate_data_finalize(void *data)
 {
-    CleanData *cleanData = (CleanData*)data;
+    ValidateData *cleanData = (ValidateData*)data;
 
     update_clean_stages(cleanData->tableData);
     if(!cleanData){
@@ -138,9 +139,9 @@ struct ProcessStates* valdiate_data_process = new ProcessStates {
     .end_proc = validate_data_finalize
 };
 
-void init_clean_data_phase(int startIndex, int endIndex, TableData *tableData, InstanceData *instanceData)
+void init_validate_data_phase(int startIndex, int endIndex, TableData *tableData, InstanceData *instanceData)
 {
-    CleanData *cleanData = new CleanData(startIndex, endIndex, tableData, instanceData);
+    ValidateData *cleanData = new ValidateData(startIndex, endIndex, tableData, instanceData);
     if(scheduleTask(valdiate_data_process, cleanData, tableData->priority))
         Log().error(__func__, "failed to schedule task pipeline broken for:", tableData->tableID);
     Log().dataProcInfo(__func__, "Data cleaning phase initilized and scheduled for:", tableData->tableID);
