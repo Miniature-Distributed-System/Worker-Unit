@@ -13,7 +13,7 @@ void schedule_clean_phase(TableData *tableData, InstanceData *instance)
     endIndex = multiplier;
     
     for(int i = 1; i <= totalThreads; i++){
-        init_clean_data_phase(startIndex, endIndex, tableData, instance);
+        init_validate_data_phase(startIndex, endIndex, tableData, instance);
         startIndex = endIndex + 1;
         endIndex += multiplier * i;
         if(endIndex + 1 <= tableData->metadata->rows)
