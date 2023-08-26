@@ -3,19 +3,22 @@
 #include "../services/file_database_access.hpp"
 #include "../sender_proc/sender.hpp"
 #include "../algorithm/algorithm_scheduler.hpp"
+#include "instance_data.hpp"
+#include "clean_stage_tracker.hpp"
 
 class DataCleaner{
         int iterator;
         FileDataBaseAccess *fileDataBaseAccess;
     public:
         TableData* tableData;
-        DataCleaner(TableData* tableData);
+        InstanceData *instance;
+        DataCleaner(TableData* tableData, InstanceData *instance);
         ~DataCleaner();
         int clean();
         std::string getCleanedData() { return fileDataBaseAccess->getBlob(); }
 };
 
-DataCleaner::DataCleaner(TableData* tableData)
+DataCleaner::DataCleaner(TableData* tableData, InstanceData *instance) : tableData(tableData), instance(instance)
 {
     fileDataBaseAccess = new FileDataBaseAccess(tableData->tableID, RW_FILE);
     iterator = 0;
@@ -76,8 +79,8 @@ struct ProcessStates* clean_proc = new ProcessStates {
     .fail_proc = clean_data_failed
 };
 
-void init_data_cleaner(TableData* tableData)
+void init_data_cleaner(TableData* tableData, InstanceData *instance)
 {
-    DataCleaner *dataCleaner = new DataCleaner(tableData);
+    DataCleaner *dataCleaner = new DataCleaner(tableData, instance);
     scheduleTask(clean_proc, dataCleaner, tableData->priority);
 }
