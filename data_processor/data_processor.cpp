@@ -112,7 +112,7 @@ JobStatus process_data_pause(void *data)
 void process_data_finalize(void *data)
 {
     DataProcessor *dataProc = (DataProcessor*)data;
-    schedule_clean_phase(dataProc->tableData, dataProc->instanceData);
+    init_data_cleaner(dataProc->tableData, dataProc->instanceData);
 
     //Deallocate memory and cleanup
     delete dataProc;
