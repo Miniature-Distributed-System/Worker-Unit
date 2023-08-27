@@ -54,12 +54,8 @@ void clean_data_finalize(void *data)
 {
     DataCleaner *dataCleaner = (DataCleaner*)data;
     std::string cleanedData = dataCleaner->getCleanedData();
-
-    //Log().dataProcInfo(__func__, getCleanedTable);
-    senderSink.pushPacket(cleanedData, dataCleaner->tableData->tableID, INTR_SEND, dataCleaner->tableData->priority);
-    //Schedule the algorithm to process our cleaned data
-    sched_algo(dataCleaner->tableData);
-
+    
+    schedule_clean_phase(dataCleaner->tableData, dataCleaner->instance);
     delete dataCleaner;
     Log().dataProcInfo(__func__,"finished data cleaner");
 }
