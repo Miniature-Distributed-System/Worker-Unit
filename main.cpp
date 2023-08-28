@@ -4,6 +4,7 @@
 #include "data_processor/clean_stage_tracker.hpp"
 #include "scheduler/task_pool.hpp"
 #include "scheduler/sched.hpp"
+#include "scheduler/process_manager.hpp"
 #include "socket/socket.hpp"
 #include "sender_proc/sender.hpp"
 #include "instance/instance_list.hpp"
@@ -21,6 +22,7 @@ TaskPool taskPool;
 Socket globalSocket;
 std::map<std::string, AlgorithmPackage *> algorithmResultMap;
 std::map<TableData *, int> cleanStageMap;
+ProcessManager globalProcessManager;
 
 int main()
 {
