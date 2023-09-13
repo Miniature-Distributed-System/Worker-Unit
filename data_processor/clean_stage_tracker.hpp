@@ -5,7 +5,7 @@
 #include "../include/process.hpp"
 #include "instance_data.hpp"
 
-void schedule_clean_phase(TableData *tableData, InstanceData *instanceData);
+void schedule_validate_phase(TableData *tableData, InstanceData *instanceData);
 int update_clean_stages(TableData *tableData);
 extern std::map<TableData *, int> cleanStageMap;
 
