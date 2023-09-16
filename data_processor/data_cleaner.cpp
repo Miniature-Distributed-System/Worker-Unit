@@ -4,7 +4,7 @@
 #include "../sender_proc/sender.hpp"
 #include "../algorithm/algorithm_scheduler.hpp"
 #include "instance_data.hpp"
-#include "clean_stage_tracker.hpp"
+#include "data_tracker.hpp"
 
 class DataCleaner{
         int iterator;
@@ -55,7 +55,7 @@ void clean_data_finalize(void *data)
     DataCleaner *dataCleaner = (DataCleaner*)data;
     std::string cleanedData = dataCleaner->getCleanedData();
     
-    schedule_clean_phase(dataCleaner->tableData, dataCleaner->instance);
+    schedule_validate_phase(dataCleaner->tableData, dataCleaner->instance);
     delete dataCleaner;
     Log().dataProcInfo(__func__,"finished data cleaner");
 }
@@ -67,7 +67,7 @@ void clean_data_failed(void *data)
 }
 
 struct ProcessStates* clean_proc = new ProcessStates {
-    .name = "split data cleaner",
+    .name = "serial data cleaner",
     .type = DATAPROCESSOR_STAGE,
     .start_proc = clean_data_start,
     .pause_proc = clean_data_pause,
