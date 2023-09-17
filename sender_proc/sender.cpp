@@ -27,7 +27,7 @@ int SenderSink::pushPacket(std::string data, std::string tableID, packet_code st
 /* getPacketHead(): internal method for getting packet head status codes which shall be used for represeting the packet
  * type at the server and help diffrentiate between the data being sent to the server. out[uts value of type enum.
 */
-compute_packet_status getPacketHead(packet_code status)
+compute_packet_status getPacketHead(SenderDataType status)
 {
     switch(status)
     {

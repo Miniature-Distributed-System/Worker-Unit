@@ -12,7 +12,7 @@ enum compute_packet_status {
     P_SEIZE     = 1 << 7, //Client has seized receiving packets
 };
 
-enum packet_code {
+enum SenderDataType {
     RECV_ERR = 0,   // Receiver error
     RESET_TIMER,    // Receiver is still processing the user data
     DAT_ERR,        // Receiver encountered error parsing json data
