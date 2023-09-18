@@ -3,11 +3,11 @@
 #include "../include/debug_rp.hpp"
 #include "../include/logger.hpp"
 
-/* pushToForwardStack(): maps the data passed to an ForwardStackPackage() struct and then pushes the item
+/* push(): maps the data passed to an ForwardStackPackage() struct and then pushes the item
  * to the rear or end of stack. This item wil be popped out last. This is used for all normal packets.
 */
-int ForwardStack::pushToForwardStack(std::string data, std::string tableID, 
-                packet_code statusCode, int priority)
+int ForwardStack::push(std::string data, std::string tableID, 
+                SenderDataType statusCode, int priority)
 {
     struct ForwardStackPackage *item = new ForwardStackPackage;
     item->statusCode = statusCode;
@@ -21,13 +21,13 @@ int ForwardStack::pushToForwardStack(std::string data, std::string tableID,
     return 0;
 }
 
-/* pushFrontForwardStack(): maps the data passed to an ForwardStackPackage() struct and then pushes the item
+/* pushFront(): maps the data passed to an ForwardStackPackage() struct and then pushes the item
  * to the forward or top of stack. This item wil be popped out first. This is used mostly for the seize opertaion
  * where the server needs to be told that the compute node will not take any more packets. It can also be used for
  * sending highest priority items to server.
 */
-int ForwardStack::pushFrontForwardStack(std::string data, std::string tableID,
-                packet_code statusCode, int priority)
+int ForwardStack::pushFront(std::string data, std::string tableID,
+                SenderDataType statusCode, int priority)
 {
     struct ForwardStackPackage *item = new ForwardStackPackage;
     item->statusCode = statusCode;

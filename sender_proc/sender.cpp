@@ -11,14 +11,15 @@
  * This queuded data is eventually converted into packet and sent out to the server. We can send various types of
  * packets refer packet.hpp for more details.
 */
-int SenderSink::pushPacket(std::string data, std::string tableID, packet_code statusCode, TaskPriority priority)
+int SenderSink::pushPacket(std::string data, std::string tableID, SenderDataType statusCode, TaskPriority priority)
 {
     //We want to immidiatly tell server that node processing service is suspended
     if(statusCode == SEIZE)
-        fwdStack.pushFrontForwardStack(data, tableID, statusCode, priority);
+        fwdStack.pushFront(data, tableID, statusCode, priority);
     else {
-        fwdStack.pushToForwardStack(data, tableID, statusCode, priority);
+        fwdStack.push(data, tableID, statusCode, priority);
         //quickSendMode.setFlag();
+        // TO-DO: Needs refactoring and this needs re-thinking
         globalSocket.setFlag(SOC_SETQS);
     }
     return 0;

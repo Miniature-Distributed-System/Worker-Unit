@@ -10,7 +10,7 @@
 #define TOTAL_DIFFRED_PACKETS 6
 
 struct ForwardStackPackage {
-    packet_code statusCode;
+    SenderDataType statusCode;
     int priority;
     std::string tableID;
     std::string data;
@@ -63,8 +63,8 @@ class ForwardStack {
         ForwardStack(){
             sem_init(&stackLock, 0, 1);
         }
-        int pushToForwardStack(std::string data, std::string tableID, packet_code statusCode, int priority);
-        int pushFrontForwardStack(std::string data, std::string tableID, packet_code statusCode, int priority);
+        int push(std::string data, std::string tableID, SenderDataType statusCode, int priority);
+        int pushFront(std::string data, std::string tableID, SenderDataType statusCode, int priority);
         ForwardStackPackage popForwardStack(void);
         int getForwardStackSize(void);
         int isForwardStackEmpty();
