@@ -13,7 +13,8 @@
 #include "../scheduler/task_pool.hpp"
 #include "data_processor.hpp"
 #include "instance_data.hpp"
-#include "clean_stage_tracker.hpp"
+#include "data_tracker.hpp"
+#include "data_cleaner.hpp"
 
 class DataProcessor {
     private:
