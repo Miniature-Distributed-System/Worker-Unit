@@ -61,7 +61,7 @@ compute_packet_status getPacketHead(SenderDataType status)
 json create_packet(struct ForwardStackPackage item)
 {
     json packet;
-    packet_code statusCode;
+    SenderDataType statusCode;
 
     statusCode = item.statusCode;
 

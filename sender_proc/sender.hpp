@@ -13,7 +13,7 @@ class SenderSink{
         SenderSink(){
             initSender.initFlag(false);
         }
-        int pushPacket(std::string data, std::string tableID, packet_code statusCode, TaskPriority priority);   
+        int pushPacket(std::string data, std::string tableID, SenderDataType statusCode, TaskPriority priority);   
         json popPacket(void);
         int matchItemInAwaitStack(int statusCode, std::string tableID);
         int getForwardStackSize() { return fwdStack.getForwardStackSize(); }
