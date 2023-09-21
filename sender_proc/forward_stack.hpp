@@ -44,14 +44,14 @@ class AwaitStack {
         AwaitStackPackage *awaitStack[TOTAL_DIFFRED_PACKETS];
         std::uint8_t index = 0;
         std::uint8_t ackedPackets = 0;
-        void cleanupAwaitStack();
+        void purge();
     public:
         AwaitStack(){
             sem_init(&stackLock, 0 ,1);
         }  
-        int pushToAwaitStack(struct ForwardStackPackage*);
-        int matchItemWithAwaitStack(int, std::string);
-        bool isAwaitStackFree();
+        int push(struct ForwardStackPackage*);
+        int matchItem(int, std::string);
+        bool isFree();
 };
 
 class ForwardStack {

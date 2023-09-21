@@ -61,10 +61,10 @@ ForwardStackPackage ForwardStack::popForwardStack(void)
     if(item->statusCode == INTR_SEND || item->statusCode == FRES_SEND)
     {
         //Check if await is free if not then dont send ackable packets
-        if(awaitStack.isAwaitStackFree()){
+        if(awaitStack.isFree()){
             //Send ackable packet and keep track of its acks in await stack
             senderStack.pop_front();
-            awaitStack.pushToAwaitStack(item);
+            awaitStack.push(item);
             exportItem.copyPointerObject(item);
         } else {
             /* if above can't be achived then just send non ackable packets to server */
@@ -117,11 +117,11 @@ ForwardStackPackage* ForwardStack::getNonackableItem()
     return NULL;
 }
 
-/* pushToAwaitStack(): this method pushes the acknowledgable items to the await stack.
+/* push(): this method pushes the acknowledgable items to the await stack.
  * The packets are pushed if await stack still has space for more packets. It returns -1 if it cant push any more
  * items to stack. 
 */
-int AwaitStack::pushToAwaitStack(struct ForwardStackPackage *item)
+int AwaitStack::push(struct ForwardStackPackage *item)
 {
     struct AwaitStackPackage *awtItem;
     if(index >= TOTAL_DIFFRED_PACKETS)
@@ -135,12 +135,12 @@ int AwaitStack::pushToAwaitStack(struct ForwardStackPackage *item)
 
     return 0;
 }
-/* matchItemWithAwaitStack(): This matches packet id and status with items in its await stack to check if the packet it
+/* matchItem(): This matches packet id and status with items in its await stack to check if the packet it
  * recevied by the server is an acknowlgement to the packet the compute node sent ot the server.
  * It matches the packets depeneding on status codes. If it finds all packets in its stack are acknowledged then
- * it calls cleanupAwaitStack() method.
+ * it calls purge() method.
 */
-int AwaitStack::matchItemWithAwaitStack(int statusCode, std::string tableID)
+int AwaitStack::matchItem(int statusCode, std::string tableID)
 {
     int i;
     sem_wait(&stackLock);
@@ -174,13 +174,13 @@ ack_packet:
     awaitStack[i]->itemAcked = true;
     ackedPackets++;
     if(ackedPackets == TOTAL_DIFFRED_PACKETS)
-        cleanupAwaitStack();
+        purge();
     sem_post(&stackLock);
     return 0;
 }
 
-// cleanupAwaitStack(): Internal method which cleanups the await stack and resets the flags 
-void AwaitStack::cleanupAwaitStack()
+// purge(): Internal method which cleanups the await stack and resets the flags 
+void AwaitStack::purge()
 {
     sem_wait(&stackLock);
     for(int i = 0; i <= TOTAL_DIFFRED_PACKETS; i++)
@@ -193,8 +193,8 @@ void AwaitStack::cleanupAwaitStack()
     sem_post(&stackLock);
 }
 
-// isAwaitStackFree(): checks if await stack is free or not and returns bool true if it still has space.
-bool AwaitStack::isAwaitStackFree()
+// isFree(): checks if await stack is free or not and returns bool true if it still has space.
+bool AwaitStack::isFree()
 {
     if(index <= TOTAL_DIFFRED_PACKETS){
         Log().info(__func__, "Await stack is free");

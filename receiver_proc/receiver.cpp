@@ -171,7 +171,7 @@ ReceiverStatus Receiver::validatePacketBodyType()
  * The receiver process receives the packet and this method is used to first validate the packet, if valid the packet is
  * then identified as what type of packet its is. there are two catagories at the moement acknowldge and data packets.
  * acknowledge packets are acknowledgments for the packets sent by us, data packets are data for processing or node data
- * dent by server. The matchItemWithAwaitStack is called to match the acknowldge packets in await stack.
+ * dent by server. The matchItem is called to match the acknowldge packets in await stack.
  * This method gives exit code for receiver_finalize method.
 */
 ReceiverStatus Receiver::identifyPacketType()

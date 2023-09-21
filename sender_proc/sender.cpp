@@ -115,7 +115,7 @@ json create_packet(struct ForwardStackPackage item)
 
 int SenderSink::matchItemInAwaitStack(int statusCode, std::string tableID)
 {
-    return fwdStack.awaitStack.matchItemWithAwaitStack(statusCode, tableID);
+    return fwdStack.awaitStack.matchItem(statusCode, tableID);
 }
 
 /* getPacket(): This is used to get the next packet to the socket.
