@@ -83,14 +83,14 @@ ForwardStackPackage ForwardStack::popForwardStack(void)
     return exportItem;
 }
 
-// getForwardStackSize(): gets the size of forward stack(aka sender stack).
-int ForwardStack::getForwardStackSize(void)
+// size(): gets the size of forward stack(aka sender stack).
+int ForwardStack::size(void)
 {
     return senderStack.size();
 }
 
-// isForwardStackEmpty(): returns bool true if forward stack is empty, else false.
-int ForwardStack::isForwardStackEmpty()
+// isEmpty(): returns bool true if forward stack is empty, else false.
+int ForwardStack::isEmpty()
 {
     if(senderStack.size() < 0)
         return 0;

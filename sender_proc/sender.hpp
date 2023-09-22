@@ -16,8 +16,8 @@ class SenderSink{
         int pushPacket(std::string data, std::string tableID, SenderDataType statusCode, TaskPriority priority);   
         json popPacket(void);
         int matchItemInAwaitStack(int statusCode, std::string tableID);
-        int getForwardStackSize() { return fwdStack.getForwardStackSize(); }
-        int isForwardStackEmpty(){ return fwdStack.isForwardStackEmpty(); }
+        int size() { return fwdStack.size(); }
+        int isEmpty(){ return fwdStack.isEmpty(); }
 };
 
 extern SenderSink senderSink;

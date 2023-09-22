@@ -174,7 +174,7 @@ void Socket::init()
 
 void Socket::exit()
 {
-    while(!senderSink.isForwardStackEmpty()){
+    while(!senderSink.isEmpty()){
         sleep(2);
     }
 }

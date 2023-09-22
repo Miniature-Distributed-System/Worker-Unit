@@ -66,8 +66,8 @@ class ForwardStack {
         int push(std::string data, std::string tableID, SenderDataType statusCode, int priority);
         int pushFront(std::string data, std::string tableID, SenderDataType statusCode, int priority);
         ForwardStackPackage popForwardStack(void);
-        int getForwardStackSize(void);
-        int isForwardStackEmpty();
+        int size(void);
+        int isEmpty();
         ForwardStackPackage* getNonackableItem();
 };
 

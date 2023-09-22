@@ -74,7 +74,7 @@ json create_packet(struct ForwardStackPackage item)
     } else if(socketStatus & SOC_SETQS){
         // stack is not empty that means there is one more item behind this current item, so proceed to quicksend mode
         packet["head"] = getPacketHead(statusCode) | P_QSEND;
-        if(senderSink.isForwardStackEmpty())
+        if(senderSink.isEmpty())
             globalSocket.setFlag(SOC_SETQS);
     } else {
         packet["head"] = getPacketHead(statusCode);
