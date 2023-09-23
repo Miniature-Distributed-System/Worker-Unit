@@ -5,7 +5,7 @@
 #include "../configs.hpp"
 #include "data_cleaner.hpp"
 #include "data_validator.hpp"
-#include "clean_stage_tracker.hpp"
+#include "data_tracker.hpp"
 
 void schedule_validate_phase(TableData *tableData, InstanceData *instance)
 {
