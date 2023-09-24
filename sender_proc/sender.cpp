@@ -102,8 +102,8 @@ json create_packet(struct ForwardStackPackage item)
             packet["body"]["priority"] = item.priority;
             break;
         default:
-            //this should exit from spitfire mode and slow down the up/down data send rate between server and node.
-            globalSocket.setFlag(SOC_SETQS);
+            //this should exit from quicksend mode and slow down the up/down data send rate between server and node.
+            globalSocket.setFlag(SOC_NORMAL_MODE);
     }
     
     packet["stats"] = statsEngine.toJson();
