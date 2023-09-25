@@ -81,9 +81,6 @@ void* socket_task(void *data)
             globalSocket.setFlag(SOC_QUICKSEND_MODE);
             json packet = senderSink.popPacket();
             //TO-DO: This code should be moved to sender.cpp
-            int head = packet["head"];
-            head |= P_QSEND;
-            packet["head"] = head;
             qModeContainer->packet = packet;
             pthread_create(&wsClientThread, NULL, launch_client_socket, qModeContainer);
         }

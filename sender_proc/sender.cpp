@@ -108,6 +108,13 @@ json create_packet(struct ForwardStackPackage item)
     
     packet["stats"] = statsEngine.toJson();
 
+    if(!senderSink.isEmpty())
+    {
+        int head = packet["head"];
+        head |= P_QSEND;
+        packet["head"] = head;
+        globalSocket.setFlag(SOC_SETQS);
+    }
     //DEBUG_MSG(__func__, "packet created body: ", packet.dump(), " status code: ", statusCode);
 
     return packet;
