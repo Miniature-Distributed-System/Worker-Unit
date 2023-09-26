@@ -28,6 +28,12 @@ struct ForwardStackPackage {
         tableID = item->tableID;
         data = item->data;
     }
+
+    bool isEmpty(){
+        if(statusCode == DAT_NULL)
+            return true;
+        return false;
+    }
 };
 
 struct AwaitStackPackage {
