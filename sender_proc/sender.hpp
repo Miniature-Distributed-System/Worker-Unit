@@ -18,6 +18,7 @@ class SenderSink{
         int matchItemInAwaitStack(int statusCode, std::string tableID);
         int size() { return fwdStack.size(); }
         int isEmpty(){ return fwdStack.isEmpty(); }
+        bool isValidPacket(json packet);
 };
 
 extern SenderSink senderSink;

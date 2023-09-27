@@ -7,6 +7,30 @@
 #include "../configs.hpp"
 #include "sender.hpp"
 
+using nlohmann::json_schema::json_validator;
+
+static json senderSchema = R"(
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Data Body of packet",
+    "properties": {
+      "head": {
+          "description": "Packet identifier/info",
+          "type": "string"
+      },
+      "id": {
+          "description": "Worker identifier",
+          "type": "string"
+      }
+    },
+    "required": [
+                 "head",
+                 "id"
+                 ],
+    "type": "object"
+}
+)"_json;
+
 /* pushPacket(): sends the data passed as arguments to the forward port/ sender stack.
  * This queuded data is eventually converted into packet and sent out to the server. We can send various types of
  * packets refer packet.hpp for more details.
@@ -23,6 +47,19 @@ int SenderSink::pushPacket(std::string data, std::string tableID, SenderDataType
         globalSocket.setFlag(SOC_SETQS);
     }
     return 0;
+}
+
+bool SenderSink::isValidPacket(json packet)
+{
+    json_validator validator;
+    validator.set_root_schema(senderSchema);
+
+    try{
+        auto defaultPatch = validator.validate(packet);
+        return true;
+    }catch(const std::exception ex){
+        return false;
+    }
 }
 
 /* getPacketHead(): internal method for getting packet head status codes which shall be used for represeting the packet
