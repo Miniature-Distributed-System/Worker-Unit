@@ -99,6 +99,9 @@ json create_packet(struct ForwardStackPackage item)
 {
     json packet;
     SenderDataType statusCode;
+    if(item.isEmpty()){
+        return packet;
+    }
 
     statusCode = item.statusCode;
 
