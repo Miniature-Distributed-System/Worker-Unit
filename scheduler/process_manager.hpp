@@ -6,7 +6,7 @@
 class ProcessManager {
         std::vector<ProcessTable*> pidVector;
     public:
-        ProcessTable* registerProcess(ProcessStates *process, void *args, TaskPriority prior);
+        ProcessTable* registerProcess();
         void unregisterProcess(ProcessTable *process);       
 };
 

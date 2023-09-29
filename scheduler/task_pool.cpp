@@ -98,8 +98,7 @@ int scheduleTask(ProcessStates *newProc, void *args, TaskPriority prior)
         return EXIT_FAILURE;
     }
 
-    task.procTable = globalProcessManager.registerProcess(newProc, args, prior);
-    
+    task.procTable = globalProcessManager.registerProcess();
     taskPool.pushTask(task);
     Log().taskPoolInfo(__func__,"insert node:", taskPool.getTaskSinkSize());
     pthread_cond_signal(&cond);

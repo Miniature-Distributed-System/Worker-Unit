@@ -4,7 +4,7 @@
 #include "../include/logger.hpp"
 #include "process_manager.hpp"
 
-ProcessTable* ProcessManager::registerProcess(ProcessStates *process, void *args, TaskPriority prior)
+ProcessTable* ProcessManager::registerProcess()
 {
     Flag exitLoop;
     std::random_device rd;
@@ -25,10 +25,10 @@ ProcessTable* ProcessManager::registerProcess(ProcessStates *process, void *args
         }
     }
 
-    ProcessTable* procTable = new ProcessTable();
+    ProcessTable* procTable = new ProcessTable();    
     procTable->pid = pid;
     pidVector.push_back(procTable);
-    Log().info(__func__, "created process struct with pid:", pid);
+    Log().taskPoolInfo(__func__, "created process struct with pid:", pid);
 
     return procTable;
 }
@@ -37,7 +37,7 @@ void ProcessManager::unregisterProcess(ProcessTable *processTable)
 {
     for(auto it = pidVector.begin(); it != pidVector.end(); it++){
         if(*it == processTable){
-            Log().info(__func__, "deleting process struct with pid:", processTable->pid);
+            Log().taskPoolInfo(__func__, "deleting process struct with pid:", processTable->pid);
             delete processTable;
             pidVector.erase(it);
         }
