@@ -238,7 +238,7 @@ int get_quickest_queue(void)
 QueueJob* init_job(TaskData pTable)
 {
     QueueJob *job = new QueueJob(pTable.procTable);
-    job->setCpuTimeSlice(calculate_priority_timeslice(pTable.priority) / pTable.procTable->processState->type);
+    job->setCpuTimeSlice(calculate_priority_timeslice(pTable.procTable->priority) / pTable.procTable->processState->type);
     Log().schedINFO(__func__, "job inited with cts:", job->getCpuTimeSlice() + 0);
     return job;
 }
