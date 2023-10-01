@@ -16,7 +16,7 @@ static json senderSchema = R"(
     "properties": {
       "head": {
           "description": "Packet identifier/info",
-          "type": "string"
+          "type": "number"
       },
       "id": {
           "description": "Worker identifier",
