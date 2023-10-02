@@ -37,11 +37,11 @@ int TaskPool::pushTask(TaskData taskData)
          for(auto i = taskSink.begin(); i != taskSink.end(); i++)
         {
             TaskData iteratedData = *i;
-            if(iteratedData.priority < taskData.priority){
+            if(iteratedData.poolPriority < taskData.poolPriority){
                 for(auto j = i; j != taskSink.end(); j++){
                     // Task priority is promoted once its starved in its priority level
                     if((*j).starveCounter > get_starve_limit((*j).starveCounter)){
-                        (*j).priority - 1;
+                        (*j).poolPriority - 1; // Raise task priority as a promotion award
                         (*j).starveCounter = 0;
                     } else {
                         (*j).starveCounter++;

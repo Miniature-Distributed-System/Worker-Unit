@@ -15,7 +15,7 @@
 
 struct TaskData {
     ProcessTable *procTable;
-    TaskPriority priority;
+    TaskPriority poolPriority;
     std::uint16_t starveCounter;
     TaskData(){
         procTable = NULL;
