@@ -81,7 +81,7 @@ bool isProcessTypeValid(ProcessType type)
  * is pushed into the thread_pool.
  * In case of failure it returns EXIT_FAILURE macro else 0.
  */
-int scheduleTask(ProcessStates *newProc, void *args, TaskPriority prior)
+int scheduleTask(ProcessStates *newProc, void *args, TaskPriority priority)
 {
     TaskData task;
     
@@ -99,6 +99,10 @@ int scheduleTask(ProcessStates *newProc, void *args, TaskPriority prior)
     }
 
     task.procTable = globalProcessManager.registerProcess();
+    task.procTable->processState = newProc;
+    task.procTable->args = args;
+    task.procTable->priority = task.poolPriority = priority;
+
     taskPool.pushTask(task);
     Log().taskPoolInfo(__func__,"insert node:", taskPool.getTaskSinkSize());
     pthread_cond_signal(&cond);
