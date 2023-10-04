@@ -44,7 +44,7 @@ int SenderSink::pushPacket(std::string data, std::string tableID, SenderDataType
         fwdStack.push(data, tableID, statusCode, priority);
         //quickSendMode.setFlag();
         // TO-DO: Needs refactoring and this needs re-thinking
-        globalSocket.setFlag(SOC_SETQS);
+        //globalSocket.setFlag(SOC_SETQS);
     }
     return 0;
 }
