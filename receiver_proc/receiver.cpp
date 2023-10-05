@@ -219,7 +219,6 @@ ReceiverStatus Receiver::identifyPacketType()
 JobStatus receiver_proccess(void *data)
 {
     Receiver *recv = (Receiver*)data;
-    // recv->receiverStatus = recv->identifyPacketType();
     if(recv->identifyPacketType() == P_ERROR)
         return JOB_FAILED;
     return JOB_DONE;
