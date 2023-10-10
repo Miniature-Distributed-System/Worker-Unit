@@ -167,8 +167,7 @@ json SenderSink::popPacket(void)
     //If there are no items it must be the first time we are starting out
     if(globalConfigs.getWorkerId().empty())
     {
-        if(initSender.isFlagSet()){
-            Log().info(__func__,"worker ID not set yet");
+        if(handshakeSent.isFlagSet()){
             while(globalConfigs.getWorkerId().empty());
             if(!globalConfigs.getWorkerId().empty()){
                 initSender.resetFlag();
@@ -178,7 +177,7 @@ json SenderSink::popPacket(void)
             Log().info(__func__, "initial handshake packet");
             packet["head"] = P_HANDSHAKE;
             packet["id"] = "";
-            initSender.setFlag();
+            handshakeSent.setFlag();
         }
     } else {
         //Get packet to be sent to the server
