@@ -21,6 +21,7 @@ class SenderSink{
         int size() { return fwdStack.size(); }
         int isEmpty(){ return fwdStack.isEmpty(); }
         bool isValidPacket(json packet);
+        bool isSenderInitilized() { return initSender.isFlagSet(); }
 };
 
 extern SenderSink senderSink;

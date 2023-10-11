@@ -76,7 +76,7 @@ void* socket_task(void *data)
             nModeContainer->packet = senderSink.popPacket();
             pthread_create(&wsClientThread, NULL, launch_client_socket, nModeContainer);
         }
-        else if((socStatus & SOC_SETQS) && !(socStatus & SOC_QUICKSEND_MODE))
+        else if(!(socStatus & SOC_QUICKSEND_MODE) && senderSink.isSenderInitilized())
         {
             globalSocket.setFlag(SOC_QUICKSEND_MODE);
             json packet = senderSink.popPacket();
