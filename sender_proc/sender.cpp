@@ -62,8 +62,8 @@ bool SenderSink::isValidPacket(json packet)
     }
 }
 
-/* getPacketHead(): internal method for getting packet head status codes which shall be used for represeting the packet
- * type at the server and help diffrentiate between the data being sent to the server. out[uts value of type enum.
+/* getPacketHead(): internal method for fetching header status codes to identify packet type at the server. Output is 
+ * of type enum(check SenderDataType data structure for more information).
 */
 compute_packet_status getPacketHead(SenderDataType status)
 {
@@ -167,23 +167,26 @@ json SenderSink::popPacket(void)
     //If there are no items it must be the first time we are starting out
     if(globalConfigs.getWorkerId().empty())
     {
+        /* If handshake is already done don't resend it again as it will cause server to think of duplicate handshakes
+           as different workers units and registering them */
         if(handshakeSent.isFlagSet()){
+            Log().info(__func__,"Waiting to be assigned an ID by server...");
             while(globalConfigs.getWorkerId().empty());
             if(!globalConfigs.getWorkerId().empty()){
-                initSender.resetFlag();
+                Log().info(__func__,"Worker ID has been set:", globalConfigs.getWorkerId());
+                initSender.setFlag();
                 packet = create_packet(fwdStack.popForwardStack());
             }
         } else {
-            Log().info(__func__, "initial handshake packet");
+            Log().info(__func__, "Initial handshake packet ready");
             packet["head"] = P_HANDSHAKE;
-            packet["id"] = "";
+            packet["id"] = "W000";
             handshakeSent.setFlag();
         }
     } else {
         //Get packet to be sent to the server
         packet = create_packet(fwdStack.popForwardStack());
     }
-    Log().info(__func__, "sender packet ready");
 
     return packet;
 }
