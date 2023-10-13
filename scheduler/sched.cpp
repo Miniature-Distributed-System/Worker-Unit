@@ -362,8 +362,7 @@ void *thread_task(void *ptr)
         while(!timer->jobShouldPause)
         {
             job->setJobStatus(job->runStartProcess());
-            if(job->isJobStatusSet(JOB_DONE)){
-                goto cleanup;
+            if(job->isJobStatusSet(JOB_PENDING)){
             } else if (job->isJobStatusSet(JOB_FAILED)){
                 job->jobErrorHandle.setFlag();
                 goto cleanup;
