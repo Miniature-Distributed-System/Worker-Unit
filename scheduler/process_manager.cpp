@@ -40,6 +40,7 @@ void ProcessManager::unregisterProcess(ProcessTable *processTable)
             Log().taskPoolInfo(__func__, "deleting process struct with pid:", processTable->pid);
             delete processTable;
             pidVector.erase(it);
+            return;
         }
     }
 }
