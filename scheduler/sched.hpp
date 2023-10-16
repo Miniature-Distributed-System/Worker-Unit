@@ -21,28 +21,11 @@ struct JobTimer {
     bool jobShouldPause;
 };
 
-// enum TaskExecutionStatus {
-//     RUNNING = 0,
-//     WAITING,
-//     FINALIZE,
-//     DONE
-// };
-
 class QueueJob {
-        // ProcessStates *proc;
-        // void *args;
         std::uint64_t cpuSliceMs;
-        //TaskExecutionStatus taskStatus;
     public:
         ProcessTable *processTable;
         Flag jobErrorHandle;
-        // QueueJob(struct ProcessStates* proc, void* args){
-        //     this->proc = proc;
-        //     this->args = args;
-        //     //taskStatus = WAITING;
-        //     jobErrorHandle.initFlag(false);
-        //     cpuSliceMs = 0;
-        // }
         QueueJob(ProcessTable *processTable){
             this->processTable = processTable;
             cpuSliceMs = 0;
@@ -53,8 +36,6 @@ class QueueJob {
         JobStatus runPauseProcess();
         void runEndProcess();
         void runFailProcess();
-        // void updateTaskStatus(TaskExecutionStatus status){ taskStatus = status; }
-        // TaskExecutionStatus getTaskStatus() { return taskStatus; }
         void setJobStatus(JobStatus status) { processTable->jobStatus = processTable->jobStatus | status; }
         void resetJobStatus(JobStatus status) { processTable->jobStatus &= ~(1 << status); }
         bool isJobStatusSet(JobStatus status) { if(status & processTable->jobStatus) return true; return false; }
