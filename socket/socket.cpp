@@ -67,21 +67,23 @@ void* socket_task(void *data)
 
     Log().info(__func__, "socket thread running...");
     while(!globalSocket.getSocketStopStatus())
-    {
+    { 
         int socStatus = globalSocket.getSocketStatus();
+        json upPacket = senderSink.popPacket();
+        
+        //if(!senderSink.isValidPacket(upPacket)) continue;
+
         if(!(socStatus & SOC_NORMAL_MODE))
         {
             
             globalSocket.setFlag(SOC_NORMAL_MODE);
-            nModeContainer->packet = senderSink.popPacket();
+            nModeContainer->packet = upPacket;
             pthread_create(&wsClientThread, NULL, launch_client_socket, nModeContainer);
         }
         else if(!(socStatus & SOC_QUICKSEND_MODE) && senderSink.isSenderInitilized())
         {
             globalSocket.setFlag(SOC_QUICKSEND_MODE);
-            json packet = senderSink.popPacket();
-            //TO-DO: This code should be moved to sender.cpp
-            qModeContainer->packet = packet;
+            qModeContainer->packet = upPacket;
             pthread_create(&wsClientThread, NULL, launch_client_socket, qModeContainer);
         }
     }
