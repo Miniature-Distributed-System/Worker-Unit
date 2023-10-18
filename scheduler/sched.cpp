@@ -350,8 +350,8 @@ void *thread_task(void *ptr)
             else
                 job->runEndProcess();
 
-            queue->markTaskAsComplete();
             globalProcessManager.unregisterProcess(job->processTable);
+            queue->markTaskAsComplete();
             //signal scheduler to wake up
             pthread_cond_signal(&cond);
             continue;
