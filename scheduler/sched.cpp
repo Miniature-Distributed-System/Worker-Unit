@@ -343,7 +343,7 @@ void *thread_task(void *ptr)
         if(!job)
             continue;
 
-        if(job->isJobStatusSet(JOB_FINALIZED))
+        if(job->isJobStatusSet(JOB_DONE))
         {
             if(job->jobErrorHandle.isFlagSet())
                 job->runFailProcess();
@@ -363,15 +363,14 @@ void *thread_task(void *ptr)
         {
             job->setJobStatus(job->runStartProcess());
             if(job->isJobStatusSet(JOB_PENDING)){
+                if(timer->jobShouldPause && job->getCpuTimeSlice())
+                    job->runPauseProcess();
+                else continue; // We are allowed to do another cycle of task
             } else if (job->isJobStatusSet(JOB_FAILED)){
                 job->jobErrorHandle.setFlag();
-                goto cleanup;
             }
+            break; // JOB_DONE signal is received or timeout or failure
         }
-        job->setJobStatus(JOB_WAITING);
-        if(job->getCpuTimeSlice() && timer->jobShouldPause)
-            job->runPauseProcess();
-cleanup:
         delete timer;
     }
 
