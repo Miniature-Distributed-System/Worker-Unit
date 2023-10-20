@@ -26,10 +26,6 @@ struct ProcessTable {
     void *args;
     std::uint64_t jobStatus;
     TaskPriority priority;
-    ~ProcessTable(){
-        // Arguments are not deallocated as its the job of the task to deallocate resources it allocates
-        delete processState;
-    }
 };
 
 struct TableMetadata {
