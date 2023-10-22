@@ -95,9 +95,11 @@ int scheduleTask(ProcessStates *newProc, void *args, TaskPriority priority)
     }
     if(newProc->start_proc == NULL || newProc->end_proc == NULL || !isProcessTypeValid(newProc->type)){
         //-------Individual DEBUG Lines-----------------
+        #ifdef ENABLE_DEBUG
         if(!isProcessTypeValid(newProc->type)) Log().error(__func__, "Invalid process type, type", newProc->type);
         if(newProc->end_proc == NULL) Log().error(__func__, "Null end process pointer");
         if(newProc->start_proc == NULL) Log().error(__func__, "Null start process pointer");
+        #endif
         //----------------------------------------------
 
         Log().error(__func__, "Invalid ProcessStates structures");
