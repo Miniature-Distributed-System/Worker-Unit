@@ -84,12 +84,14 @@ class Log{
 
         template<typename... Args>
         void debug(std::string fun_name, Args... args){
+            #ifdef ENABLE_DEBUG
             std::ostringstream ostring;
             ostring << colorCoder(currentDateTime(), ALL, FG_YELLLOW, BG_DARKGREY) <<
                 colorCoder(" D ", BOLD, FG_YELLLOW, BG_DEFAULT) << 
                 colorCoder(fun_name, BOLD, FG_YELLLOW, BG_DEFAULT) << 
                 colorCoder(": " + DEBUG(args...).str(), ALL, FG_YELLLOW, BG_DEFAULT) << std::endl;
             std::cout << ostring.str();
+            #endif
         };
 
         template<typename... Args>
