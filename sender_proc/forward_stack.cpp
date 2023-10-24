@@ -17,7 +17,7 @@ int ForwardStack::push(std::string data, std::string tableID,
     sem_wait(&stackLock);
     senderStack.push_back(item);
     sem_post(&stackLock);
-    Log().info(__func__, "fwd stack current count:", senderStack.size());
+    Log().debug(__func__, "fwd stack current count:", senderStack.size());
     return 0;
 }
 
@@ -37,7 +37,7 @@ int ForwardStack::pushFront(std::string data, std::string tableID,
     sem_wait(&stackLock);
     senderStack.push_front(item);
     sem_post(&stackLock);
-    Log().info(__func__, "fwd stack current count:", senderStack.size());
+    Log().debug(__func__, "fwd stack current count:", senderStack.size());
     return 0;
 }
 
@@ -52,7 +52,7 @@ ForwardStackPackage ForwardStack::popForwardStack(void)
     struct ForwardStackPackage *item, exportItem;
 
     if(senderStack.empty()){
-        Log().info(__func__, "Sender sink is empty");
+        Log().debug(__func__, "Sender sink is empty");
         return exportItem;
     }
 
@@ -78,7 +78,7 @@ ForwardStackPackage ForwardStack::popForwardStack(void)
         senderStack.pop_front();
         delete item;
     }
-    Log().info(__func__, "Forward stack current count:", senderStack.size());
+    Log().debug(__func__, "Forward stack current count:", senderStack.size());
     sem_post(&stackLock);
     return exportItem;
 }
@@ -167,7 +167,7 @@ int AwaitStack::matchItem(int statusCode, std::string tableID)
         }
     }
     sem_post(&stackLock);
-    Log().info(__func__, "duplicate packet received");
+    Log().debug(__func__, "duplicate packet received");
     return -1;
 
 ack_packet:
@@ -197,7 +197,7 @@ void AwaitStack::purge()
 bool AwaitStack::isFree()
 {
     if(index <= TOTAL_DIFFRED_PACKETS){
-        Log().info(__func__, "Await stack is free");
+        Log().debug(__func__, "Await stack is free");
         return true;
     }
     return false;
