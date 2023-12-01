@@ -33,10 +33,15 @@ threads to idle threads. It balances all threads so all threads have equal jobs.
 - It checks its queue initially and if it finds that its not initilized it exits the thread.
 - If queue is initilized then the task thread goes through its queue slots using method `getNextTask` which fetches the next'
 task. The retrived job is NULL if its empty. It cycles through list until it finds a job.
-- Once it finds a job it checks the Job status. Job can be:-
+- Once it finds a job it checks the Job status.
+- Job can be in any one of the state:-
    - `JOB_DONE`
    - `JOB_RUNNING`
    - `JOB_PENDING`
+   - `JOB_WAITING`
+   - `JOB_FAILED`
+   - `JOB_FINALIZED`
+     
 - If job is pending it sets the timer for Job and sets its status as `JOB_RUNNING`.
 - It executes the `runStartProcess` job's start process and loops until the timer runs out or until the Job moves to finished phase.
 - If the Job timer runs out before job finishes the state is reverted to `JOB_PENDING` after calling the `runPauseProcess()` method to save progress of job and then its re-queued.
