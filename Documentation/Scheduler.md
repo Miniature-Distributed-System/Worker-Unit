@@ -22,10 +22,32 @@ empty slot.
 - If there are more than one slot available it will check Task Pool if it has more tasks queued then it will pop them fill all the slots.
 - The Jobs that are done are flushed from thread.
 - Finally once all jobs are filled it executes the `rebalance_thread_queues` function. This function goes through all threads and finds idle threads and moves jobs from busy
-threads to idle threads. It balances all threads so all threads have equal jobs.x
+threads to idle threads. It balances all threads so all threads have equal jobs.
 - Then scheduler thread goes to sleep only to be woken up by Task Thread or Task Pool.
 
-Thread Queues Woking:
+## Task Thread
+
+- The task thread executes all jobs in its Queue which is a part of `ThreadQueue`.
+- The task thread is inited and started by the `init_sched`.
+- The task threads keep executing as long as `shouldStop` is false. This becomes true when the worker is signaled to stop.
+- It checks its queue initially and if it finds that its not initilized it exits the thread.
+- If queue is initilized then the task thread goes through its queue slots using method `getNextTask` which fetches the next'
+task. The retrived job is NULL if its empty. It cycles through list until it finds a job.
+- Once it finds a job it checks the Job status. Job can be:-
+   - `JOB_DONE`
+   - `JOB_RUNNING`
+   - `JOB_PENDING`
+- If job is pending it sets the timer for Job and sets its status as `JOB_RUNNING`.
+- It executes the `runStartProcess` job's start process and loops until the timer runs out or until the Job moves to finished phase.
+- If the Job timer runs out before job finishes the state is reverted to `JOB_PENDING` after calling the `runPauseProcess()` method to save progress of job and then its re-queued.
+- If the Job fails then the task thread sets the `jobErrorHandle.setFlag()` and finally breaks out of the loop.
+- If Job succeeds then the job status is set to `JOB_DONE`.
+- On the next cycle when the thread comes accross this slot thats set to `JOB_DONE` it runs the `runFailProcess` if the
+job failed and `runEndProcess`.
+- Then it would unregister the Job from Process Manager and marks job as complete.
+- The scheduler thread is signaled to wake up and the jobs marked as complete are flushed by the scheduler.
+
+Thread Queues Working:
 ```
   Allocated Time Slots based on task Priority by Scheduler
   Job A : 10ms 
@@ -38,7 +60,7 @@ Thread Queues Woking:
   Job C: 10ms
   
 
-  Initial ThreadQueue
+  Initial Queue
   Job Pointer ->| A | B | C |
 
   After A Job's timer expires
