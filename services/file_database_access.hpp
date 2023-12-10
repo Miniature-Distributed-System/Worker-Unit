@@ -21,6 +21,19 @@ enum FileAccessErrors {
     COLUMN_INDEX_UNDERFLOW  = -7,
 };
 
+class IDataContainer {
+    public:
+        virtual ~IDataContainer() = default;
+        virtual std::string& operator[](std::size_t index) = 0;
+        virtual std::size_t size() const = 0;
+        virtual std::string* begin() = 0;
+        virtual std::string* end() = 0;
+        virtual std::string* erase(std::string *position) = 0;
+        virtual std::string* insert(std::string * position, const std::string& value) = 0;
+        virtual std::string& front() = 0;
+        virtual void push_back(const std::string& value) = 0;
+};
+
 class FileDataBaseAccess {
         FileAccessType accessMode;
         std::list<std::string> readWriteData;
