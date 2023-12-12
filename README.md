@@ -1,7 +1,7 @@
 # Worker Unit
 
-The worker unit is the edge nodes of the Miniature Distributed systems. These units are individual siloes and work indipended of other workers. The worker is installed on user
-Host machines which are commodity systems. 
+The worker unit is the edge nodes of the Miniature Distributed systems. These units are individual silos and work indipendent of other workers. The worker is installed on user
+Host machines which are commodity systems, aka resources are sparse and should be managed.
 
 ### Init
 1. The user is prompted in CLI for worker configuration.
@@ -18,3 +18,11 @@ Host machines which are commodity systems.
 8. The worker processes the load stage wise serially but multiple pipelines are executed parellely on threads. The pipelines are interleaved to make processing faster.
 9. The worker buffers the result in server once done with processing.
 10. The worker sends out any failed or error data as error packet to the server for re-sending or error handeling.
+
+
+- The worker has its own scheduler and task pool for managing worker processes.
+- The worker is built modular and is multi staged.
+- Websockets are always up and responding to server, if websocket doesnt respond to server then server will timeout worker and concider worker as dead and all data regarding
+it is ditched and no previous data with old worker tag is accepted.
+- Worker will keep pining server if server connection fails.
+- Worker/Server packets are at the moment not encrypted but will be in the future.
