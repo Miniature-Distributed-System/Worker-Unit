@@ -15,9 +15,10 @@
 FileDataBaseAccess::FileDataBaseAccess(std::string fileName, FileAccessType accessMacro) : 
                 fileName(fileName) ,accessMode(accessMacro)
 {
+    this->fileName = fileName + ".csv";
     try{
         if(accessMode == READ_FILE){
-            fileAccess.open(fileName + ".csv", std::fstream::in);
+            fileAccess.open(fileName, std::fstream::in);
             std::string buffer;
             while(getline(fileAccess, buffer)){
                 readData.push_back(buffer);
@@ -25,12 +26,12 @@ FileDataBaseAccess::FileDataBaseAccess(std::string fileName, FileAccessType acce
             Log().info(__func__, "opened file in read mode:", fileName);
             fileAccess.close();
         } else {
-            fileAccess.open(fileName + ".csv", std::fstream::out | std::fstream::in);
+            fileAccess.open(fileName, std::fstream::out | std::fstream::in);
             if(fileAccess.fail()){
-                Log().info(__func__, fileName, ".csv file does not exist creating new file");
-                fileAccess.open(fileName + ".csv", std::fstream::out);
+                Log().info(__func__, fileName, "file does not exist creating new file");
+                fileAccess.open(fileName, std::fstream::out);
                 fileAccess.close();
-                fileAccess.open(fileName + ".csv", std::fstream::out | std::fstream::in);
+                fileAccess.open(fileName, std::fstream::out | std::fstream::in);
             }
             std::string buffer;
             while(getline(fileAccess, buffer)){
@@ -413,7 +414,7 @@ void FileDataBaseAccess::dropFile()
     }
     
     fileAccess.close();
-    std::filesystem::remove(fileName + ".csv");
+    std::filesystem::remove(fileName);
     fileDeleted.setFlag();
 }
 
@@ -425,12 +426,6 @@ void FileDataBaseAccess::commitChanges()
 {
     // Commit changes done after write and if modifed
     if(accessMode == RW_FILE && dataModified.isFlagSet()){
-        std::ofstream writeAccess(fileName + ".csv", std::fstream::out);
-        std::string buffer;
-        for(auto i = readWriteData.begin(); i != readWriteData.end(); i++){
-            buffer += (*i) + '\n';
-        }
-        writeAccess << buffer;
-        writeAccess.close();
+        std::ofstream writeAccess(fileName, std::fstream::out);
     }
 }
