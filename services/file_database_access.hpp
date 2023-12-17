@@ -34,6 +34,73 @@ class IDataContainer {
         virtual void push_back(const std::string& value) = 0;
 };
 
+class VectorContainer : public IDataContainer {
+    public:
+        std::vector<std::string> dataContainer;
+        std::string& operator[](std::size_t index) override {
+            return dataContainer[index];
+        }
+        std::size_t size() const override {
+            return dataContainer.size();
+        }
+        std::string* begin() override {
+            return dataContainer.data();
+        }
+        std::string* end() override {
+            return dataContainer.data() + dataContainer.size();
+        }
+        std::string* erase(std::string* position) override {
+            auto iter = position - dataContainer.data();
+            auto eraseIter = dataContainer.erase(dataContainer.begin() + iter);
+            return &(*eraseIter);
+        }
+        std::string* insert(std::string* position, const std::string& value) override {
+            auto iter = position - dataContainer.data();
+            return &(*dataContainer.insert(dataContainer.begin() + iter, value));
+        }
+        std::string& front() override {
+            return dataContainer.front();
+        }
+        void push_back(const std::string& value) override {
+            dataContainer.push_back(value);
+        }
+};
+
+class ListContainer : public IDataContainer {
+    public:
+        std::list<std::string> dataContainer;
+        std::string& operator[](std::size_t index) override {
+            auto it = std::next(dataContainer.begin(), index);
+            return *it;
+        }
+        std::size_t size() const override {
+            return dataContainer.size();
+        }
+        std::string* begin() override {
+            return &dataContainer.front();
+        }
+        std::string* end() override {
+            return &dataContainer.back() + 1;
+        }
+        std::string* erase(std::string* position) override {
+            auto iter = position - &dataContainer.front();
+            auto it = std::next(dataContainer.begin(), iter);
+            auto eraseIter = dataContainer.erase(it);
+            return &(*eraseIter);
+        }
+        std::string* insert(std::string* position, const std::string& value){
+            auto iter = position - &dataContainer.front();
+            auto it = std::next(dataContainer.begin(), iter);
+            return &(*dataContainer.insert(it, value));
+        }
+        std::string& front() override {
+            return dataContainer.front();
+        }
+        void push_back(const std::string& value) override {
+            dataContainer.push_back(value);
+        }
+};
+
 class FileDataBaseAccess {
         FileAccessType accessMode;
         std::list<std::string> readWriteData;
