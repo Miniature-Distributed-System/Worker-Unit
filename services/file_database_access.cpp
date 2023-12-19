@@ -62,6 +62,13 @@ FileDataBaseAccess::~FileDataBaseAccess()
     Log().info(__func__, "closing file:", fileName, " with access mode:", accessMode);
 }
 
+IDataContainer& FileDataBaseAccess::getData(FileAccessType acccessMacro)
+{
+    if (acccessMacro == RW_FILE)
+        return readWriteData;
+    return readData;
+}
+
 // Pulled off from stackoverflow
 std::list<std::string> split_string_by_newline(const std::string& str)
 {
