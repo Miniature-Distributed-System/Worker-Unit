@@ -126,6 +126,8 @@ class FileDataBaseAccess {
         int deleteDuplicateRecords(int rowIndex);
         void dropFile();
         void commitChanges();
+
+        IDataContainer& getData(FileAccessType acccessMacro);
 };
 
 #endif
