@@ -381,7 +381,7 @@ int FileDataBaseAccess::deleteDuplicateRecords(int rowIndex)
         return INVALID_ACCESS_MODE;
     }
     if(readWriteData.size() <= rowIndex){
-        Log().info(__func__, "Deuplicate rows deletion has come to end of record");
+        Log().info(__func__, "Duplicate rows deletion has come to end of record");
         return DUPLICATE_CLEANUP_DONE;
     }
 
