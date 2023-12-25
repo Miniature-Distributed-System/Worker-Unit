@@ -46,6 +46,7 @@ int SenderSink::pushPacket(std::string data, std::string tableID, SenderDataType
         // TO-DO: Needs refactoring and this needs re-thinking
         //globalSocket.setFlag(SOC_SETQS);
     }
+    Log().info(__func__, "pushed table id to be sent:", tableID);
     return 0;
 }
 
@@ -125,11 +126,13 @@ json create_packet(struct ForwardStackPackage item)
         case DAT_ERR:
             packet["body"]["id"] = item.tableID.c_str();
             packet["body"]["data"] = item.data.c_str();
+            Log().debug(__func__, "data error packet created");
             break;
         case RESET_TIMER:
         case DAT_RECVD:
             packet["body"]["id"] = item.tableID.c_str();
             packet["body"]["priority"] = item.priority;
+            Log().debug(__func__, "data received/timeout ack created");
             break;
         case INTR_SEND:
         case FRES_SEND:
@@ -137,6 +140,7 @@ json create_packet(struct ForwardStackPackage item)
             packet["body"]["data"] = item.data.c_str();
             //Only user generated data has priority
             packet["body"]["priority"] = item.priority;
+            Log().debug(__func__, "final/intermediate res packet created");
             break;
         default:
             //this should exit from quicksend mode and slow down the up/down data send rate between server and node.

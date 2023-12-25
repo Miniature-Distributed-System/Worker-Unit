@@ -90,7 +90,7 @@ int scheduleTask(ProcessStates *newProc, void *args, TaskPriority priority)
         return EXIT_FAILURE;
     }
     if(args == NULL){
-         Log().error(__func__, "Arguments are null!");
+        Log().error(__func__, "Arguments are null!");
         return EXIT_FAILURE;
     }
     if(newProc->start_proc == NULL || newProc->end_proc == NULL || !isProcessTypeValid(newProc->type)){
