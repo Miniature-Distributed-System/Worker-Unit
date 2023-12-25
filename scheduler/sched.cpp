@@ -362,7 +362,8 @@ void *thread_task(void *ptr)
         while(!timer->jobShouldPause)
         {
             job->setJobStatus(job->runStartProcess());
-            if(job->isJobStatusSet(JOB_PENDING)){
+            
+            if(job->isJobStatusSet(JOB_PENDING) && !(job->isJobStatusSet(JOB_DONE))){
                 if(timer->jobShouldPause && job->getCpuTimeSlice())
                     job->runPauseProcess();
                 else continue; // We are allowed to do another cycle of task
