@@ -18,27 +18,27 @@ FileDataBaseAccess::FileDataBaseAccess(std::string fileName, FileAccessType acce
     this->fileName = fileName + ".csv";
     try{
         if(accessMode == READ_FILE){
-            fileAccess.open(fileName, std::fstream::in);
+            fileAccess.open(this->fileName, std::fstream::in);
             std::string buffer;
             while(getline(fileAccess, buffer)){
                 readData.push_back(buffer);
             }
-            Log().info(__func__, "opened file in read mode:", fileName);
+            Log().info(__func__, "opened file in read mode:", this->fileName);
             fileAccess.close();
         } else {
-            fileAccess.open(fileName, std::fstream::out | std::fstream::in);
+            fileAccess.open(this->fileName, std::fstream::out | std::fstream::in);
             if(fileAccess.fail()){
-                Log().info(__func__, fileName, "file does not exist creating new file");
-                fileAccess.open(fileName, std::fstream::out);
+                Log().info(__func__, this->fileName, "file does not exist creating new file");
+                fileAccess.open(this->fileName, std::fstream::out);
                 fileAccess.close();
-                fileAccess.open(fileName, std::fstream::out | std::fstream::in);
+                fileAccess.open(this->fileName, std::fstream::out | std::fstream::in);
             }
             std::string buffer;
             while(getline(fileAccess, buffer)){
                 readWriteData.push_back(buffer);
             }
             fileAccess.close();
-            Log().info(__func__, "opened file in read/write mode:", fileName);
+            Log().info(__func__, "opened file in read/write mode:", this->fileName);
         }
         dataModified.initFlag(false);
         fileDeleted.initFlag(false);
@@ -56,7 +56,7 @@ FileDataBaseAccess::~FileDataBaseAccess()
     }
     
     commitChanges();
-    fileAccess.open(fileName + ".csv", std::fstream::in);
+    fileAccess.open(fileName, std::fstream::in);
     //DEBUG_MSG(__func__, "commited changes are:", fileAccess.rdbuf());
     fileAccess.close();
     Log().info(__func__, "closing file:", fileName, " with access mode:", accessMode);
