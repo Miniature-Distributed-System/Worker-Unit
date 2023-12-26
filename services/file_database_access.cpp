@@ -434,5 +434,14 @@ void FileDataBaseAccess::commitChanges()
     // Commit changes done after write and if modifed
     if(accessMode == RW_FILE && dataModified.isFlagSet()){
         std::ofstream writeAccess(fileName, std::fstream::out);
+        if(writeAccess.is_open())
+        {
+            std::string buffer;
+            for(auto i = readWriteData.begin(); i != readWriteData.end(); i++){
+            	buffer += (*i) + "\n";
+            }
+            writeAccess << buffer;
+            writeAccess.close();
+        }
     }
 }
