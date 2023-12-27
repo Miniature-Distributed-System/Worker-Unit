@@ -85,7 +85,7 @@ compute_packet_status getPacketHead(SenderDataType status)
             return P_FINAL_RES;
         case SEIZE:
             //let the server know there is a curfew in the compute node
-            globalSocket.setFlag(SOC_SEIZE);
+            globalObjectsManager.get<Socket>().setFlag(SOC_SEIZE);
             return P_SEIZE;
         default:
             return P_RESET;
@@ -104,7 +104,7 @@ json create_packet(struct ForwardStackPackage item)
     statusCode = item.statusCode;
 
     //Here we onlt append head to the packet
-    int socketStatus = globalSocket.getSocketStatus();
+    int socketStatus = globalObjectsManager.get<Socket>().getSocketStatus();
     if(socketStatus & SOC_SEIZE){
          /* curfew isnt lifted unless seizeMode is explicitly unset by core processes. This may be set due to either 
          node being overloaded or the node shutdown sequence being singnalled by the user. */
@@ -144,7 +144,7 @@ json create_packet(struct ForwardStackPackage item)
             break;
         default:
             //this should exit from quicksend mode and slow down the up/down data send rate between server and node.
-            globalSocket.setFlag(SOC_NORMAL_MODE);
+            globalObjectsManager.get<Socket>().setFlag(SOC_NORMAL_MODE);
     }
     
     packet["stats"] = statsEngine.toJson();

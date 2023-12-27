@@ -35,6 +35,7 @@ int init_modules()
 	
 	globalObjectsManager.add(senderSink);
 	globalObjectsManager.add(taskPool);
+	globalObjectsManager.add(globalSocket);
 	return 0;
 }
 

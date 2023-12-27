@@ -47,9 +47,9 @@ void *launch_client_socket(void *data)
     json packet = ws_client_launch(jsonContainer->packet);
     init_receiver(packet);
     if(jsonContainer->socType == NORMAL){
-        globalSocket.resetFlag(SOC_NORMAL_MODE);
+        globalObjectsManager.get<Socket>().resetFlag(SOC_NORMAL_MODE);
     } else {
-        globalSocket.resetFlag(SOC_QUICKSEND_MODE);
+        globalObjectsManager.get<Socket>().resetFlag(SOC_QUICKSEND_MODE);
     }
 
     return 0;
@@ -66,10 +66,11 @@ void* socket_task(void *data)
     JsonContainer *qModeContainer = new JsonContainer(QUICKSEND);
     pthread_t wsClientThread;
 
+    Socket &socket = globalObjectsManager.get<Socket>();
     Log().info(__func__, "socket thread running...");
-    while(!globalSocket.getSocketStopStatus())
+    while(!socket.getSocketStopStatus())
     { 
-        int socStatus = globalSocket.getSocketStatus();
+        int socStatus = socket.getSocketStatus();
         json upPacket = globalObjectsManager.get<SenderSink>().popPacket();
         
         //if(!senderSink.isValidPacket(upPacket)) continue;
@@ -77,13 +78,13 @@ void* socket_task(void *data)
         if(!(socStatus & SOC_NORMAL_MODE))
         {
             
-            globalSocket.setFlag(SOC_NORMAL_MODE);
+            socket.setFlag(SOC_NORMAL_MODE);
             nModeContainer->packet = upPacket;
             pthread_create(&wsClientThread, NULL, launch_client_socket, nModeContainer);
         }
         else if(!(socStatus & SOC_QUICKSEND_MODE) && globalObjectsManager.get<SenderSink>().isSenderInitilized())
         {
-            globalSocket.setFlag(SOC_QUICKSEND_MODE);
+            socket.setFlag(SOC_QUICKSEND_MODE);
             qModeContainer->packet = upPacket;
             pthread_create(&wsClientThread, NULL, launch_client_socket, qModeContainer);
         }

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <semaphore.h>
 #include "../include/flag.h"
+#include "../services/global_objects_manager.hpp"
 
 extern pthread_cond_t socket_cond;
 extern pthread_t wsClientThread;
@@ -17,7 +18,7 @@ enum SocketStatus {
     SOC_QUICKSEND_MODE  = 1 << 4
 };
 
-class Socket {
+class Socket : public Base {
         Flag quickSendMode;
         Flag seizeMode;
         Flag inQSMode;
@@ -25,9 +26,14 @@ class Socket {
         Flag socketShouldStop;
         sem_t flagLock;
         pthread_t wsClientThread;
-
+		
     public:
         Socket();
+		static const std::string& getId()
+        {
+            static const std::string id = "Socket";
+            return id;
+        }
         void init();
         void exit();
         int getSocketStatus();
@@ -35,8 +41,6 @@ class Socket {
         void resetFlag(SocketStatus statusFlag);
         bool getSocketStopStatus() { return socketShouldStop.isFlagSet(); }
 };
-
-extern Socket globalSocket;
 
 void init_socket();
 void exit_socket(struct socket *soc);
