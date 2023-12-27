@@ -11,8 +11,10 @@
 #include "instance/instance_list.hpp"
 #include "services/stats_engine.hpp"
 #include "services/sqlite_database_access.hpp"
+#include "services/global_objects_manager.hpp"
 #include "include/logger.hpp"
 #include "configs.hpp"
+
 
 SqliteDatabaseAccess *sqliteDatabaseAccess;
 DataBaseInstanceList instanceList;
@@ -25,8 +27,16 @@ std::map<std::string, AlgorithmPackage *> algorithmResultMap;
 std::map<TableData *, int> cleanStageMap;
 ProcessManager globalProcessManager;
 
-int main()
+GlobalObjectsManager globalObjectsManager;
+std::string Base::classID = "Base";
+
+int init_modules()
 {
+	
+	globalObjectsManager.add(senderSink);
+	globalObjectsManager.add(taskPool);
+	return 0;
+}
 
 int main(int argc, char *argv[])
 {	
@@ -59,6 +69,8 @@ int main(int argc, char *argv[])
     sqliteDatabaseAccess = new SqliteDatabaseAccess();
     sqliteDatabaseAccess->initDatabase();
     std::cout <<"Inited database" << std::endl;
+	
+	init_modules();
 
     std::cout << "Inited task pool" << std::endl;
     

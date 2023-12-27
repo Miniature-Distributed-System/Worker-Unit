@@ -7,6 +7,7 @@
 #include "../include/debug_rp.hpp"
 #include "../include/logger.hpp"
 #include "../configs.hpp"
+#include "../services/global_objects_manager.hpp"
 #include "process_manager.hpp"
 #include "task_pool.hpp"
 
@@ -309,7 +310,7 @@ void *sched_task(void *ptr)
             threadQueueList->at(i)->flushFinishedJobs();
         for(j = 0; j < qSlots; j++)
         {
-            if(taskPool.getTaskSinkSize() > 0)
+            if(globalObjectsManager.get<TaskPool>().getTaskSinkSize() > 0)
             {
                 Log().schedINFO(__func__, "scheulding jobs...");
                 threadId = get_quickest_queue();
