@@ -6,6 +6,7 @@
 #include "../instance/instance.hpp"
 #include "../data_processor/data_processor.hpp"
 #include "../services/file_database_access.hpp"
+#include "../services/global_objects_manager.hpp"
 #include "algorithm_scheduler.hpp"
 
 InstanceList globalInstanceList;
@@ -27,7 +28,7 @@ int sched_algo(TableData *tData)
 
     algoIndex = globalInstanceList.getInstanceFromId(tData->instanceType).getLinkedAlgorithm();
     
-    int totalThreads = globalConfigs.getTotalThreadCount();
+    int totalThreads = globalObjectsManager.get<Configs>().getTotalThreadCount();
     int endRowNumber = tData->metadata->rows / totalThreads;
     int startRowNumber = 1;
     AlgorithmPackage *algoPackage = new AlgorithmPackage;
@@ -69,7 +70,7 @@ int update_algo_result(std::string tableId, void *algorithmExportResult)
     if(iterator != algorithmResultMap.end()){
         iterator->second->resultVectors.push_back(algorithmExportResult);
         Log().info(__func__, "size:", iterator->second->resultVectors.size());
-        if(iterator->second->resultVectors.size() == globalConfigs.getTotalThreadCount())
+        if(iterator->second->resultVectors.size() == globalObjectsManager.get<Configs>().getTotalThreadCount())
         {
             TableData *tableData = iterator->second->tableData;
             int algoIndex = globalInstanceList.getInstanceFromId(tableData->instanceType)

@@ -199,7 +199,7 @@ int get_total_empty_slots(void)
 {
     int i, totalSlots = 0;
 
-    for(i = 0; i < globalConfigs.getTotalThreadCount(); i++)
+    for(i = 0; i < globalObjectsManager.get<Configs>().getTotalThreadCount(); i++)
     {
         totalSlots += QUEUE_SIZE - threadQueueList->at(i)->getTotalJobsInQueue();
     }
@@ -214,14 +214,16 @@ int get_quickest_queue(void)
     std::uint64_t totalWaitTime, lowestWaitTime = INT_MAX, waitTime;
     int i,j;
 
-    for(i = 0; i < globalConfigs.getTotalThreadCount(); i++)
+	Configs configs = globalObjectsManager.get<Configs>();
+	
+    for(i = 0; i < configs.getTotalThreadCount(); i++)
     {
         totalWaitTime = waitTime = 0;
 
         if(threadQueueList->at(i)->getTotalJobsInQueue() >= QUEUE_SIZE)
             continue;
         
-        for(j = 0; j < globalConfigs.getTotalThreadCount(); j++)
+        for(j = 0; j < configs.getTotalThreadCount(); j++)
         {
             totalWaitTime = threadQueueList->at(i)->getTotalWaitTime();
         }
@@ -246,7 +248,7 @@ QueueJob* init_job(TaskData pTable)
 
 int get_empty_thread_queue()
 {
-    for(int i = 0; i < globalConfigs.getTotalThreadCount(); i++){
+    for(int i = 0; i < globalObjectsManager.get<Configs>().getTotalThreadCount(); i++){
         if(!threadQueueList->at(i)->getTotalWaitTime())
             return i;
     }
@@ -259,7 +261,7 @@ int get_busiest_thread_queue()
     int busiestThreadId = -1;
     int largestWaitTime = 0;
 
-    for(int i = 0; i < globalConfigs.getTotalThreadCount(); i++){
+    for(int i = 0; i < globalObjectsManager.get<Configs>().getTotalThreadCount(); i++){
         // Don't bother if there is only one job in queue
         if(threadQueueList->at(i)->getTotalJobsInQueue() < 2)
             continue;
@@ -277,7 +279,7 @@ void rebalance_thread_queues()
         return;
 
     // Loop until all threads are equavalently balanced
-    for(int i = 0; i < globalConfigs.getTotalThreadCount() - 1; i++){
+    for(int i = 0; i < globalObjectsManager.get<Configs>().getTotalThreadCount() - 1; i++){
         // Find an idle thread id
         int freeThreadId = get_empty_thread_queue();
         if(freeThreadId < 0)
@@ -306,7 +308,7 @@ void *sched_task(void *ptr)
     while(!schedulerShouldStop)
     {
         qSlots = get_total_empty_slots();
-        for(int i = 0; i < globalConfigs.getTotalThreadCount(); i++)
+        for(int i = 0; i < globalObjectsManager.get<Configs>().getTotalThreadCount(); i++)
             threadQueueList->at(i)->flushFinishedJobs();
         for(j = 0; j < qSlots; j++)
         {
@@ -385,7 +387,7 @@ int init_sched(std::uint8_t max_thread)
     int i,j, ret, pid;
 
     threadQueueList = new std::vector<ThreadQueue*>;
-    for(i = 0; i < globalConfigs.getTotalThreadCount(); i++)
+    for(i = 0; i < globalObjectsManager.get<Configs>().getTotalThreadCount(); i++)
     {
         task_thread = new pthread_t;
         ThreadQueue *queue = new ThreadQueue(i);
@@ -404,7 +406,7 @@ void exit_sched(void)
     int i;
 
     //wait for already queued tasks to complete and empty
-    while(get_total_empty_slots() - (globalConfigs.getTotalThreadCount() * QUEUE_SIZE)){
+    while(get_total_empty_slots() - (globalObjectsManager.get<Configs>().getTotalThreadCount() * QUEUE_SIZE)){
         sleep(2);
     }
     schedulerShouldStop = 1;

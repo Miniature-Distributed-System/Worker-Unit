@@ -118,7 +118,7 @@ json create_packet(struct ForwardStackPackage item)
         packet["head"] = getPacketHead(statusCode);
     }
 
-    packet["id"] = globalConfigs.getWorkerId().c_str();
+    packet["id"] = globalObjectsManager.get<Configs>().getWorkerId().c_str();
     //Here we append rest of the fields to packet
     switch(statusCode)
     {
@@ -169,15 +169,15 @@ json SenderSink::popPacket(void)
     std::string body;
 
     //If there are no items it must be the first time we are starting out
-    if(globalConfigs.getWorkerId().empty())
+    if(globalObjectsManager.get<Configs>().getWorkerId().empty())
     {
         /* If handshake is already done don't resend it again as it will cause server to think of duplicate handshakes
            as different workers units and registering them */
         if(handshakeSent.isFlagSet()){
             Log().info(__func__,"Waiting to be assigned an ID by server...");
-            while(globalConfigs.getWorkerId().empty());
-            if(!globalConfigs.getWorkerId().empty()){
-                Log().info(__func__,"Worker ID has been set:", globalConfigs.getWorkerId());
+            while(globalObjectsManager.get<Configs>().getWorkerId().empty());
+            if(!globalObjectsManager.get<Configs>().getWorkerId().empty()){
+                Log().info(__func__,"Worker ID has been set:", globalObjectsManager.get<Configs>().getWorkerId());
                 initSender.setFlag();
                 packet = create_packet(fwdStack.popForwardStack());
             }

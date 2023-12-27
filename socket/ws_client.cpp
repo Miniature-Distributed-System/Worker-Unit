@@ -20,8 +20,8 @@ json ws_client_launch(json packet){
     json outJs;
     try
     {
-        std::string host = globalConfigs.getHostName();
-        const auto port = globalConfigs.getPortNumber();
+        std::string host = globalObjectsManager.get<Configs>().getHostName();
+        const auto port = globalObjectsManager.get<Configs>().getPortNumber();
         std::string text = packet.dump();
         Log().info(__func__, "conn with"," hostname:", host, " port-no:", port);
 

@@ -185,7 +185,7 @@ ReceiverStatus Receiver::identifyPacketType()
         if(packetHead & SP_HANDSHAKE){
             try{
                 std::string workerId = packet["id"];
-                globalConfigs.setWorkerId(workerId);
+                globalObjectsManager.get<Configs>().setWorkerId(workerId);
                 return P_EMPTY;
             }catch(std::exception &e){
                 Log().error(__func__, "failed to set worker ID");

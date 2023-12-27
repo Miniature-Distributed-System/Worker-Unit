@@ -10,7 +10,7 @@
 
 void schedule_validate_phase(TableData *tableData, InstanceData *instance)
 {
-    int totalThreads = globalConfigs.getTotalThreadCount();
+    int totalThreads = globalObjectsManager.get<Configs>().getTotalThreadCount();
     int startIndex = 1, endIndex, multiplier = tableData->metadata->rows / totalThreads;
     endIndex = multiplier;
     
@@ -36,7 +36,7 @@ int update_clean_stages(TableData *tableData)
     auto iterator = cleanStageMap.find(tableData);
     if(iterator != cleanStageMap.end()){
         iterator->second++;
-        if(iterator->second >= globalConfigs.getTotalThreadCount()){
+        if(iterator->second >= globalObjectsManager.get<Configs>().getTotalThreadCount()){
             std::string getCleanedTable;
             FileDataBaseAccess fileDataBaseAccess(tableData->tableID, READ_FILE);
             //Send the cleaned data back to server via fwd stack
