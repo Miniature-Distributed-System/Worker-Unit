@@ -4,6 +4,7 @@
 #include "../include/logger.hpp"
 #include "../sender_proc/sender.hpp"
 #include "../services/stats_engine.hpp"
+#include "../services/global_objects_manager.hpp"
 #include "sched.hpp"
 #include "process_manager.hpp"
 #include "task_pool.hpp"
@@ -111,8 +112,8 @@ int scheduleTask(ProcessStates *newProc, void *args, TaskPriority priority)
     task.procTable->args = args;
     task.procTable->priority = task.poolPriority = priority;
 
-    taskPool.pushTask(task);
-    Log().taskPoolInfo(__func__,"insert node:", taskPool.getTaskSinkSize());
+    globalObjectsManager.get<TaskPool>().pushTask(task);
+    Log().taskPoolInfo(__func__,"insert node:", globalObjectsManager.get<TaskPool>().getTaskSinkSize());
     pthread_cond_signal(&cond);
 
     return 0;
@@ -123,8 +124,8 @@ int reScheduleTask(ProcessTable *procTable)
     TaskData task;
     task.procTable = procTable;
 
-    taskPool.pushTask(task);
-    Log().taskPoolInfo(__func__,"re-inserted node:", taskPool.getTaskSinkSize());
+    globalObjectsManager.get<TaskPool>().pushTask(task);
+    Log().taskPoolInfo(__func__,"re-inserted node:", globalObjectsManager.get<TaskPool>().getTaskSinkSize());
     pthread_cond_signal(&cond);
 
     return 0;
@@ -132,11 +133,11 @@ int reScheduleTask(ProcessTable *procTable)
 
 int getScheduledTask(TaskData &taskData)
 {
-    if(taskPool.popTask(taskData)){
+    if(globalObjectsManager.get<TaskPool>().popTask(taskData)){
         Log().taskPoolInfo(__func__, "Task pool is empty");
         return EXIT_FAILURE;
     }
-    Log().taskPoolInfo(__func__, "Popped task from pool, size:", taskPool.getTaskSinkSize());
+    Log().taskPoolInfo(__func__, "Popped task from pool, size:", globalObjectsManager.get<TaskPool>().getTaskSinkSize());
     return 0;
 }
 
