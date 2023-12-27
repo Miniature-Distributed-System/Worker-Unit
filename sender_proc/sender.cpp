@@ -147,7 +147,7 @@ json create_packet(struct ForwardStackPackage item)
             globalObjectsManager.get<Socket>().setFlag(SOC_NORMAL_MODE);
     }
     
-    packet["stats"] = statsEngine.toJson();
+    packet["stats"] = globalObjectsManager.get<StatisticsEngine>().toJson();
 
     return packet;
 }

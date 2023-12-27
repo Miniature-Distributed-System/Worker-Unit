@@ -31,7 +31,8 @@ GlobalObjectsManager globalObjectsManager;
 std::string Base::classID = "Base";
 
 int init_modules()
-{	
+{
+	globalObjectsManager.add(statsEngine);	
 	globalObjectsManager.add(globalConfigs);
 	globalObjectsManager.add(senderSink);
 	globalObjectsManager.add(taskPool);
