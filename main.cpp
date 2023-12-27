@@ -31,11 +31,12 @@ GlobalObjectsManager globalObjectsManager;
 std::string Base::classID = "Base";
 
 int init_modules()
-{
-	
+{	
 	globalObjectsManager.add(senderSink);
 	globalObjectsManager.add(taskPool);
 	globalObjectsManager.add(globalSocket);
+	globalObjectsManager.add(globalProcessManager);
+	
 	return 0;
 }
 

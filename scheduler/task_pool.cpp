@@ -107,7 +107,7 @@ int scheduleTask(ProcessStates *newProc, void *args, TaskPriority priority)
         return EXIT_FAILURE;
     }
 
-    task.procTable = globalProcessManager.registerProcess();
+    task.procTable = globalObjectsManager.get<ProcessManager>().registerProcess();
     task.procTable->processState = newProc;
     task.procTable->args = args;
     task.procTable->priority = task.poolPriority = priority;
