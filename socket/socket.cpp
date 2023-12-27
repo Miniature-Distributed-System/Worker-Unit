@@ -5,6 +5,7 @@
 #include "../receiver_proc/receiver.hpp"
 #include "../sender_proc/sender.hpp"
 #include "../scheduler/task_pool.hpp"
+#include "../services/global_objects_manager.hpp"
 #include "../configs.hpp"
 #include "socket.hpp"
 #include "ws_client.hpp"
@@ -69,7 +70,7 @@ void* socket_task(void *data)
     while(!globalSocket.getSocketStopStatus())
     { 
         int socStatus = globalSocket.getSocketStatus();
-        json upPacket = senderSink.popPacket();
+        json upPacket = globalObjectsManager.get<SenderSink>().popPacket();
         
         //if(!senderSink.isValidPacket(upPacket)) continue;
 
@@ -80,7 +81,7 @@ void* socket_task(void *data)
             nModeContainer->packet = upPacket;
             pthread_create(&wsClientThread, NULL, launch_client_socket, nModeContainer);
         }
-        else if(!(socStatus & SOC_QUICKSEND_MODE) && senderSink.isSenderInitilized())
+        else if(!(socStatus & SOC_QUICKSEND_MODE) && globalObjectsManager.get<SenderSink>().isSenderInitilized())
         {
             globalSocket.setFlag(SOC_QUICKSEND_MODE);
             qModeContainer->packet = upPacket;
@@ -173,7 +174,7 @@ void Socket::init()
 
 void Socket::exit()
 {
-    while(!senderSink.isEmpty()){
+    while(!globalObjectsManager.get<SenderSink>().isEmpty()){
         sleep(2);
     }
 }

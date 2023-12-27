@@ -15,6 +15,7 @@
 #include "instance_data.hpp"
 #include "data_tracker.hpp"
 #include "data_cleaner.hpp"
+#include "../services/global_objects_manager.hpp"
 
 class DataProcessor {
     private:
@@ -105,7 +106,7 @@ JobStatus process_data_pause(void *data)
     TableData *tData = dataProc->tableData;
     // This is just an update packet sent to server informing it the data is still being processed
     if(dataProc)
-        senderSink.pushPacket("", tData->tableID, RESET_TIMER, tData->priority);
+        globalObjectsManager.get<SenderSink>().pushPacket("", tData->tableID, RESET_TIMER, tData->priority);
 
     return JOB_PENDING;
 }
@@ -125,7 +126,7 @@ void process_data_failed(void *data)
     TableData *tData = dataProc->tableData;
     
     Log().debug(__func__, "server will be notified of wrong data");
-    senderSink.pushPacket(dataProc->getErrorString(), tData->tableID, DAT_ERR, tData->priority);
+    globalObjectsManager.get<SenderSink>().pushPacket(dataProc->getErrorString(), tData->tableID, DAT_ERR, tData->priority);
     // Cleanup before exit
     dealloc_table_dat(tData);
 }

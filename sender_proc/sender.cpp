@@ -109,7 +109,7 @@ json create_packet(struct ForwardStackPackage item)
          /* curfew isnt lifted unless seizeMode is explicitly unset by core processes. This may be set due to either 
          node being overloaded or the node shutdown sequence being singnalled by the user. */
         packet["head"] = getPacketHead(statusCode) | P_SEIZE;
-    } else if(!senderSink.isEmpty()){
+    } else if(!globalObjectsManager.get<SenderSink>().isEmpty()){
         // stack is not empty that means there is one more item behind this current item, so proceed to quicksend mode
         packet["head"] = getPacketHead(statusCode) | P_QSEND;
         // if(senderSink.isEmpty())

@@ -8,6 +8,7 @@
 #include "../instance/instance_list.hpp"
 #include "../socket/socket.hpp"
 #include "../services/sqlite_database_access.hpp"
+#include "../services/global_objects_manager.hpp"
 #include "../instance/instance.hpp"
 #include "../data_processor/data_processor.hpp"
 #include "../scheduler/task_pool.hpp"
@@ -203,11 +204,11 @@ ReceiverStatus Receiver::identifyPacketType()
             }
         }
         if(packetHead & SP_INTR_ACK){
-            if(senderSink.matchItemInAwaitStack(SP_INTR_ACK, packet["id"]))
+            if(globalObjectsManager.get<SenderSink>().matchItemInAwaitStack(SP_INTR_ACK, packet["id"]))
                 return P_OK;
             else return P_EMPTY;
         }else if(packetHead & SP_FRES_ACK){
-            if(senderSink.matchItemInAwaitStack(SP_FRES_ACK, packet["id"]))
+            if(globalObjectsManager.get<SenderSink>().matchItemInAwaitStack(SP_FRES_ACK, packet["id"]))
                 return P_OK;
             else return P_EMPTY;
         }
@@ -230,10 +231,10 @@ void receiver_finalize(void *data)
     // notify server data received successfully
     Log().info(__func__,"packet received successfully");
     if(recv->isUserData.isFlagSet())
-        senderSink.pushPacket("", recv->tableId, DAT_RECVD, recv->dataProcContainer.tData->priority);
+        globalObjectsManager.get<SenderSink>().pushPacket("", recv->tableId, DAT_RECVD, recv->dataProcContainer.tData->priority);
     // No need to send data if it was a acknowledge or handshake data
     else if(!recv->tableId.empty())
-        senderSink.pushPacket("", instanceList.getInstanceActualName(recv->tableId), DAT_RECVD, DEFAULT_PRIORITY);
+        globalObjectsManager.get<SenderSink>().pushPacket("", instanceList.getInstanceActualName(recv->tableId), DAT_RECVD, DEFAULT_PRIORITY);
     // container should not be derefrenced after this as its dellocated by dataprocessor
     if(recv->isUserData.isFlagSet())
         init_data_processor(recv->dataProcContainer);
@@ -247,10 +248,10 @@ void receiver_fail(void *data)
     // tableID itself is corrupt or it was a status signal that was lost in transmission
     if(recv->tableId.empty()){
         Log().debug(__func__, "packet data fields corrupted, resend packet");
-        senderSink.pushPacket("","", RECV_ERR, HIGH_PRIORITY);
+        globalObjectsManager.get<SenderSink>().pushPacket("","", RECV_ERR, HIGH_PRIORITY);
     } else {
         Log().debug(__func__, "packet corrupted, resend packet");
-        senderSink.pushPacket("", instanceList.getInstanceActualName(recv->tableId), RECV_ERR, HIGH_PRIORITY);
+        globalObjectsManager.get<SenderSink>().pushPacket("", instanceList.getInstanceActualName(recv->tableId), RECV_ERR, HIGH_PRIORITY);
     }
     delete recv;
 };

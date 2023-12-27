@@ -8,6 +8,7 @@
 #include "data_tracker.hpp"
 #include "instance_data.hpp"
 #include "data_validator.hpp"
+#include "../services/global_objects_manager.hpp"
 
 class ValidateData {
         InstanceData *instanceData;
@@ -115,7 +116,7 @@ JobStatus validate_data_pause(void *data)
 {
     ValidateData *cleanData = (ValidateData*)data;
     if(cleanData)
-        senderSink.pushPacket("", cleanData->tableData->tableID, RESET_TIMER, cleanData->tableData->priority);
+        globalObjectsManager.get<SenderSink>().pushPacket("", cleanData->tableData->tableID, RESET_TIMER, cleanData->tableData->priority);
     return JOB_PENDING;
 }
 

@@ -6,6 +6,7 @@
 #include "../sender_proc/sender.hpp"
 #include "algorithm_scheduler.hpp"
 #include "ce_finalize.hpp"
+#include "../services/global_objects_manager.hpp"
 
 CeFinalize::CeFinalize(std::vector<void*> resultVectors, std::string tableId, TaskPriority priority) : 
     resultVectors(resultVectors), tableId(tableId), taskPriority(priority)
@@ -82,7 +83,7 @@ void ce_finalize_end_process(void *data)
     CeFinalize *ce_finalize = (CeFinalize*)data;
     std::string finalString = ce_finalize->getFinalResult();
     Log().info(__func__, "final result is:", finalString);
-    senderSink.pushPacket(finalString, ce_finalize->tableId, FRES_SEND, ce_finalize->taskPriority);
+    globalObjectsManager.get<SenderSink>().pushPacket(finalString, ce_finalize->tableId, FRES_SEND, ce_finalize->taskPriority);
     delete ce_finalize;
 }
 

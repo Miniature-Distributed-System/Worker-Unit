@@ -6,6 +6,7 @@
 #include "data_cleaner.hpp"
 #include "data_validator.hpp"
 #include "data_tracker.hpp"
+#include "../services/global_objects_manager.hpp"
 
 void schedule_validate_phase(TableData *tableData, InstanceData *instance)
 {
@@ -41,7 +42,7 @@ int update_clean_stages(TableData *tableData)
             //Send the cleaned data back to server via fwd stack
             getCleanedTable = fileDataBaseAccess.getBlob();
             //Log().dataProcInfo(__func__, getCleanedTable);
-            senderSink.pushPacket(getCleanedTable, tableData->tableID, INTR_SEND, tableData->priority);
+            globalObjectsManager.get<SenderSink>().pushPacket(getCleanedTable, tableData->tableID, INTR_SEND, tableData->priority);
             //Schedule the algorithm to process our cleaned data
             sched_algo(tableData);
             Log().dataProcInfo(__func__, "scheduled clean stage for data:", tableData->tableID);
