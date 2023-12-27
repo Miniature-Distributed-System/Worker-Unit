@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <unistd.h>
 #include <cassert>
 #include "algorithm/algorithm_scheduler.hpp"
@@ -26,29 +27,40 @@ ProcessManager globalProcessManager;
 
 int main()
 {
-    std::string net[2] = {"0.0.0.0", "8080"};
-    std::string hostname, port;
+
+int main(int argc, char *argv[])
+{	
+	std::string hostname, port;
     int threadCount;
-    std::cout << "\033[1;97;49m---------------------------Start Menu--------------------------\033[0m" << std::endl;
-    std::cout << "\033[1;33;49mEnter Hostname: \033[0m";
-    std::cin >> hostname;
-    std::cout << "\033[1;33;49mEnter Port number: \033[0m";
-    std::cin >> port;
-    if(hostname.empty() || port.empty()){
-        std::cout << "\nFalling back to default port and hostname as given is incorrect" << std::endl;
-    } else {
-        net[0] = hostname;
-        net[1] = port;
-    }
+	std::string net[2] = {"0.0.0.0", "8080"};
+	
+	if(argc == 4)
+	{
+		hostname = argv[1];
+		port = argv[2];
+		threadCount = std::atoi(argv[3]); 
+	} else {
+		std::cout << "\033[1;97;49m---------------------------Start Menu--------------------------\033[0m" << std::endl;
+	    std::cout << "\033[1;33;49mEnter Hostname: \033[0m";
+    	std::cin >> hostname;
+    	std::cout << "\033[1;33;49mEnter Port number: \033[0m";
+    	std::cin >> port;
+    	if(hostname.empty() || port.empty()){
+        	std::cout << "\nFalling back to default port and hostname as given is incorrect" << std::endl;
+    	} else {
+        	net[0] = hostname;
+        	net[1] = port;
+    	}
+		 std::cout << "\033[1;33;49mEnter thread count (max:"<<MAX_THREAD - 1<<"): \033[0m";
+    	std::cin >> threadCount;
+	}
+
     assert(sqlite3_config(SQLITE_CONFIG_SERIALIZED) == SQLITE_OK);
     sqliteDatabaseAccess = new SqliteDatabaseAccess();
     sqliteDatabaseAccess->initDatabase();
     std::cout <<"Inited database" << std::endl;
 
     std::cout << "Inited task pool" << std::endl;
-
-    std::cout << "\033[1;33;49mEnter thread count (max:"<<MAX_THREAD - 1<<"): \033[0m";
-    std::cin >> threadCount;
     
     globalConfigs = Configs(threadCount, hostname, port);
 
