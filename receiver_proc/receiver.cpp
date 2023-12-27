@@ -234,7 +234,7 @@ void receiver_finalize(void *data)
         globalObjectsManager.get<SenderSink>().pushPacket("", recv->tableId, DAT_RECVD, recv->dataProcContainer.tData->priority);
     // No need to send data if it was a acknowledge or handshake data
     else if(!recv->tableId.empty())
-        globalObjectsManager.get<SenderSink>().pushPacket("", instanceList.getInstanceActualName(recv->tableId), DAT_RECVD, DEFAULT_PRIORITY);
+        globalObjectsManager.get<SenderSink>().pushPacket("", globalObjectsManager.get<DataBaseInstanceList>().getInstanceActualName(recv->tableId), DAT_RECVD, DEFAULT_PRIORITY);
     // container should not be derefrenced after this as its dellocated by dataprocessor
     if(recv->isUserData.isFlagSet())
         init_data_processor(recv->dataProcContainer);
@@ -251,7 +251,7 @@ void receiver_fail(void *data)
         globalObjectsManager.get<SenderSink>().pushPacket("","", RECV_ERR, HIGH_PRIORITY);
     } else {
         Log().debug(__func__, "packet corrupted, resend packet");
-        globalObjectsManager.get<SenderSink>().pushPacket("", instanceList.getInstanceActualName(recv->tableId), RECV_ERR, HIGH_PRIORITY);
+        globalObjectsManager.get<SenderSink>().pushPacket("", globalObjectsManager.get<DataBaseInstanceList>().getInstanceActualName(recv->tableId), RECV_ERR, HIGH_PRIORITY);
     }
     delete recv;
 };

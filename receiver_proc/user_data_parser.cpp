@@ -44,6 +44,7 @@ ReceiverStatus UserDataParser::processDataPacket(std::string &tableID, DataProce
     }
 
     tableID = tableId;
+	DataBaseInstanceList &instanceList = globalObjectsManager.get<DataBaseInstanceList>();
     // Increment counter for instance type
     instanceList.incrimentRefrence(algoType);
     // Get the alias name of the instance thats used by local database here

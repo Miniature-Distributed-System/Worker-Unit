@@ -138,7 +138,7 @@ ReceiverStatus InstanceDataParser::processInstancePacket(std::string &tableID)
         return P_ERROR;
     }
     
-    tableID = tableId = instanceList.addInstance(tableId);
+    tableID = tableId = globalObjectsManager.get<DataBaseInstanceList>().addInstance(tableId);
 
     columns = countColumns(bodyData);    
     bodyDataStart = createSqlCmds(columns, bodyData);

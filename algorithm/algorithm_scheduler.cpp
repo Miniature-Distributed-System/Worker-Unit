@@ -81,7 +81,7 @@ int update_algo_result(std::string tableId, void *algorithmExportResult)
             Log().info(__func__, "tableId:", tableData->tableID, 
                 " finalize process scheduled with priority:", tableData->priority);
             // Cleanup everything
-            instanceList.dereferenceInstance(tableData->tableID);
+            globalObjectsManager.get<DataBaseInstanceList>().dereferenceInstance(tableData->tableID);
             dealloc_table_dat(tableData);
             delete iterator->second;
             algorithmResultMap.erase(iterator);
