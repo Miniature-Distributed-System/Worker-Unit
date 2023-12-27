@@ -1,7 +1,6 @@
 #ifndef GLOBAL_OBJS_H
 #define GLOBAL_OBJS_H
 
-#include "../include/logger.hpp"
 #include <unordered_map>
 
 class Base 
