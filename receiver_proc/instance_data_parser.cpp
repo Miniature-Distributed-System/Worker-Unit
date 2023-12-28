@@ -126,14 +126,14 @@ ReceiverStatus InstanceDataParser::processInstancePacket(std::string &tableID)
 {
     std::string bodyData;
     int bodyDataStart, algoType;
-
+	nlohmann::json &packetRef = *packet;
     //Even if one fails we flag error and not proceed further
     try{
-        tableId = packet["body"]["instanceid"];
-        bodyData = packet["body"]["data"];
-        algoType = packet["body"]["algotype"];
+        tableId = packetRef["body"]["instanceid"];
+        bodyData = packetRef["body"]["data"];
+        algoType = packetRef["body"]["algotype"];
         
-    }catch(json::exception e){
+    }catch(nlohmann::json::exception e){
         Log().info(__func__, e.what());
         return P_ERROR;
     }

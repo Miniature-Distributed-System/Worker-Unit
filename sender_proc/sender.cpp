@@ -96,9 +96,9 @@ compute_packet_status getPacketHead(SenderDataType status)
  * it creates the packets structure with the appropriate body, head and id fields. it creates default packets if the
  * item passed is found to be null.
 */
-json create_packet(struct ForwardStackPackage item)
+std::unique_ptr<nlohmann::json> create_packet(struct ForwardStackPackage item)
 {
-    json packet;
+	nlohmann::json packet;
     SenderDataType statusCode;
 
     statusCode = item.statusCode;
@@ -149,7 +149,7 @@ json create_packet(struct ForwardStackPackage item)
     
     packet["stats"] = globalObjectsManager.get<StatisticsEngine>().toJson();
 
-    return packet;
+    return std::make_unique<nlohmann::json>(packet);
 }
 
 int SenderSink::matchItemInAwaitStack(int statusCode, std::string tableID)
@@ -163,9 +163,9 @@ int SenderSink::matchItemInAwaitStack(int statusCode, std::string tableID)
 * because without a an allocated name we cant procceed further. We need a name to identify ourself and tell server
 * that a certain packet came from this node and the packet needs to be acknowledged to that node only.
 */
-json SenderSink::popPacket(void)
+std::unique_ptr<nlohmann::json> SenderSink::popPacket(void)
 {
-    json packet;
+    std::unique_ptr<nlohmann::json> packet;
     std::string body;
 
     //If there are no items it must be the first time we are starting out
@@ -183,8 +183,10 @@ json SenderSink::popPacket(void)
             }
         } else {
             Log().info(__func__, "Initial handshake packet ready");
-            packet["head"] = P_HANDSHAKE;
-            packet["id"] = "W000";
+			nlohmann::json tempPacket;
+            tempPacket["head"] = P_HANDSHAKE;
+            tempPacket["id"] = "W000";
+			packet = std::make_unique<nlohmann::json>(tempPacket);
             handshakeSent.setFlag();
         }
     } else {
@@ -192,5 +194,5 @@ json SenderSink::popPacket(void)
         packet = create_packet(fwdStack.popForwardStack());
     }
 
-    return packet;
+    return std::move(packet);
 }

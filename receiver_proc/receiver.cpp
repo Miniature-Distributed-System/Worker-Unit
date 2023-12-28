@@ -17,14 +17,13 @@
 #include "receiver.hpp"
 
 using nlohmann::json_schema::json_validator;
-
 class Receiver 
 {
     private:
         std::uint8_t packetStatus;
-        json packet;
+        std::unique_ptr<nlohmann::json> packet;
     public:
-        Receiver(json);
+        Receiver(std::unique_ptr<nlohmann::json>);
         std::string tableId;
         ReceiverStatus receiverStatus;
         Flag isUserData;
@@ -35,7 +34,7 @@ class Receiver
         ReceiverStatus identifyPacketType();
 };
 
-static json packetSchema = R"(
+static nlohmann::json packetSchema = R"(
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Main packet",
@@ -57,7 +56,7 @@ static json packetSchema = R"(
 }
 )"_json;
 
-static json dataPacketSchema = R"(
+static nlohmann::json dataPacketSchema = R"(
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Data Body of packet",
@@ -90,7 +89,7 @@ static json dataPacketSchema = R"(
 }
 )"_json;
 
-static json instancePacketSchema = R"(
+static nlohmann::json instancePacketSchema = R"(
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Data Body of packet",
@@ -118,9 +117,9 @@ static json instancePacketSchema = R"(
 }
 )"_json;
 
-Receiver::Receiver(json packet)
+Receiver::Receiver(std::unique_ptr<nlohmann::json> packet)
 {
-    this->packet = packet;
+    this->packet = std::move(packet);
     isUserData.initFlag(false);
 }
 
@@ -129,9 +128,11 @@ ReceiverStatus Receiver::validatePacketHead()
 {
     json_validator validator;
     validator.set_root_schema(packetSchema);
+	
+	nlohmann::json &checkPacket = *packet;
 
     try {
-        auto defaultPatch = validator.validate(packet);
+        auto defaultPatch = validator.validate(checkPacket);
         Log().info(__func__, "packet head validated.");
         return P_VALID;
     } catch (const std::exception &e) {
@@ -143,11 +144,11 @@ ReceiverStatus Receiver::validatePacketHead()
 ReceiverStatus Receiver::validatePacketBodyType()
 {
     json_validator validator;
-
+	nlohmann::json &checkPacket = *packet;
     validator.set_root_schema(dataPacketSchema);
 
     try {
-        auto defaultPatch = validator.validate(packet["body"]);
+        auto defaultPatch = validator.validate(checkPacket["body"]);
         Log().info(__func__, "received message is a data packet.");
         isUserData.setFlag();
         return P_VALID;
@@ -156,7 +157,7 @@ ReceiverStatus Receiver::validatePacketBodyType()
         
         validator.set_root_schema(instancePacketSchema);
         try{
-            auto defaultPatch = validator.validate(packet["body"]);
+            auto defaultPatch = validator.validate(checkPacket["body"]);
             Log().info(__func__, "received message is a instance packet.");
             return P_VALID;
         }catch(const std::exception &e){
@@ -179,12 +180,13 @@ ReceiverStatus Receiver::identifyPacketType()
 {
     ReceiverStatus rc = P_ERROR;
     int packetHead;
+	nlohmann::json &packetRef = *packet;
 
     if(validatePacketHead() == P_VALID){
-        packetHead = packet["head"];
+        packetHead = packetRef["head"];
         if(packetHead & SP_HANDSHAKE){
             try{
-                std::string workerId = packet["id"];
+                std::string workerId = packetRef["id"];
                 globalObjectsManager.get<Configs>().setWorkerId(workerId);
                 return P_EMPTY;
             }catch(std::exception &e){
@@ -195,20 +197,20 @@ ReceiverStatus Receiver::identifyPacketType()
         if(packetHead & SP_DATA_SENT){
             if(validatePacketBodyType() != P_ERROR){
                 if(isUserData.isFlagSet()){
-                    UserDataParser userDataParser(packet);
+                    UserDataParser userDataParser(std::move(packet));
                     return userDataParser.processDataPacket(tableId, &dataProcContainer);
                 } else {
-                    InstanceDataParser instanceDataParser(packet);
+                    InstanceDataParser instanceDataParser(std::move(packet));
                     return instanceDataParser.processInstancePacket(tableId);
                 }
             }
         }
         if(packetHead & SP_INTR_ACK){
-            if(globalObjectsManager.get<SenderSink>().matchItemInAwaitStack(SP_INTR_ACK, packet["id"]))
+            if(globalObjectsManager.get<SenderSink>().matchItemInAwaitStack(SP_INTR_ACK, packetRef["id"]))
                 return P_OK;
             else return P_EMPTY;
         }else if(packetHead & SP_FRES_ACK){
-            if(globalObjectsManager.get<SenderSink>().matchItemInAwaitStack(SP_FRES_ACK, packet["id"]))
+            if(globalObjectsManager.get<SenderSink>().matchItemInAwaitStack(SP_FRES_ACK, packetRef["id"]))
                 return P_OK;
             else return P_EMPTY;
         }
@@ -264,9 +266,9 @@ struct ProcessStates* receiver_proc = new ProcessStates {
     .fail_proc = receiver_fail
 };
 
-int init_receiver(json pkt)
+int init_receiver(std::unique_ptr<nlohmann::json> pkt)
 {
-    Receiver *recv = new Receiver(pkt);
+    Receiver *recv = new Receiver(std::move(pkt));
     int rc = 0;
 
     // Schedule the receiver task on the task pool as non preemtable aka can't be put on hold/pause

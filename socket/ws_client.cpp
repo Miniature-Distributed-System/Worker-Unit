@@ -16,13 +16,13 @@ namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-json ws_client_launch(json packet){
-    json outJs;
+std::unique_ptr<nlohmann::json> ws_client_launch(std::unique_ptr<nlohmann::json> packet){
+    std::unique_ptr<nlohmann::json> outJs;
     try
     {
         std::string host = globalObjectsManager.get<Configs>().getHostName();
         const auto port = globalObjectsManager.get<Configs>().getPortNumber();
-        std::string text = packet.dump();
+        std::string text = (*packet).dump();
         Log().info(__func__, "conn with"," hostname:", host, " port-no:", port);
 
         // The io_context is required for all I/O
@@ -72,10 +72,10 @@ json ws_client_launch(json packet){
 
         std::string data_buffers(boost::asio::buffer_cast<const char*>(buffer.data()), 
                     buffer.size());
-        outJs = json::parse(data_buffers.c_str());
+        outJs = std::make_unique<nlohmann::json>(nlohmann::json::parse(data_buffers.c_str()));
 
     } catch(std::exception const& e) {
         Log().error(__func__, "Error: ", e.what());
     }
-    return outJs;
+    return std::move(outJs);
 }

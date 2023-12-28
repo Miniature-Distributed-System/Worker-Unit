@@ -27,9 +27,9 @@ class InstanceDataParser {
         int columns;
         int rows;
         std::string tableId;
-        json packet;
+        std::unique_ptr<nlohmann::json> packet;
     public:
-        InstanceDataParser(json packet) : packet(packet) {};
+        InstanceDataParser(std::unique_ptr<nlohmann::json> &&packet) : packet(std::move(packet)) {};
         int createSqlCmds(int cols, std::string body);
         int insertIntoTable(std::string data, int startIndex);
         void dropTable();
@@ -45,12 +45,12 @@ class UserDataParser {
         std::string tableId;
         int columns;
         int rows;
-        json packet;
+        std::unique_ptr<nlohmann::json> packet;
         std::string *colHeaders;
         DataProcessContainer *dataProcContainer;
         FileDataBaseAccess *fileDataBaseAccess;
     public:
-        UserDataParser(json packet) : packet(packet) {};
+        UserDataParser(std::unique_ptr<nlohmann::json> &&packet) : packet(std::move(packet)) {};
         int createSqlCmds(int cols, std::string body);
         int insertIntoTable(std::string data, int startIndex);
         void dropTable();

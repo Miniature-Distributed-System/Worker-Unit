@@ -22,11 +22,11 @@ class SenderSink : public Base {
             return id;
         }
         int pushPacket(std::string data, std::string tableID, SenderDataType statusCode, TaskPriority priority);   
-        json popPacket(void);
+        std::unique_ptr<nlohmann::json> popPacket(void);
         int matchItemInAwaitStack(int statusCode, std::string tableID);
         int size() { return fwdStack.size(); }
         int isEmpty(){ return fwdStack.isEmpty(); }
-        bool isValidPacket(json packet);
+        bool isValidPacket(nlohmann::json packet);
         bool isSenderInitilized() { return initSender.isFlagSet(); }
 };
 

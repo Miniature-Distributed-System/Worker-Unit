@@ -3,5 +3,5 @@
 #include <iostream>
 #include "../sender_proc/sender.hpp"
 
-int init_receiver(json);
+int init_receiver(std::unique_ptr<nlohmann::json>);
 #endif
