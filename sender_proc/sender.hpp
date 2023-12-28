@@ -5,8 +5,6 @@
 #include "../lib/nlohmann/json-schema.hpp"
 #include "../services/global_objects_manager.hpp"
 
-using json = nlohmann::json;
-
 class SenderSink : public Base {
         ForwardStack fwdStack;
         Flag initSender;

@@ -5,7 +5,6 @@
 #include "../data_processor/data_processor.hpp"
 #include "../services/file_database_access.hpp"
 #include "../lib/nlohmann/json-schema.hpp"
-using json = nlohmann::json;
 
 //These are local status codes
 enum ReceiverStatus {
