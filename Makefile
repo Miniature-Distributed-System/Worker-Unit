@@ -7,7 +7,7 @@ OUTDIR = ./bin
 DATADIR = ./data
 SUBDIR = algorithm data_processor instance receiver_proc scheduler sender_proc services socket lib lib/nlohmann
 DIR_OBJ = ./obj
-include_dir = -I /usr/include/boost -lsqlite3 -pthread
+include_dir = -I /usr/include/boost -lsqlite3 -pthread -lz
 
 INCS = $(wildcard *.hpp $(foreach fd, $(SUBDIR), $(fd)/*.hpp))
 SRCS = $(wildcard *.cpp $(foreach fd, $(SUBDIR), $(fd)/*.cpp))
