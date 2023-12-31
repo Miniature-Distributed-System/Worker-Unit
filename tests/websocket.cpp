@@ -34,8 +34,8 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 std::string dataArr[3] = {
     "{\"head\":1,\"id\":\"cu0000\",\"body\":{}}",
-    "{\"head\":2,\"id\":\"cu0000\",\"body\":{\"instanceid\":\"instance1\",\"algotype\":1,\"data\":\"sky,airtemp,humidity,wind,water,forecast,enjoysport\\nsunny,warm,normal,strong,warm,same,yes\\ncloudy,cold,high,weak,same,change,no\\nrainy,normal,NaN,NaN,cool,NaN,NaN\\n\"}}",
-    "{\"head\":2,\"id\":\"cu0000\",\"body\":{\"tableid\":\"myTable2\",\"priority\":2,\"instancetype\":\"instance1\",\"data\":\"sky,airtemp,humidity,wind,water,forecast,enjoysport\\nsunny,warm,normal,strong,warm,same,yes\\nsunny,warm,high,strong,warm,same,yes\\nrainy,cold,high,strong,cool,change,no\\nsunny,warm,high,strong,cool,change,yes\\nsunny,warm,normal,strong,warm,change,yes\\nsunny,warm,normal,weak,warm,same,yes\\nrainy,cold,high,strong,warm,same,no\\nsunny,warm,normal,weak,warm,change,yes\\nrainy,cold,normal,strong,cold,same,no\\nsunny,warm,normal,strong,warm,same,yes\"}}"
+    "{\"head\":2,\"id\":\"cu0000\",\"body\":{\"instanceid\":\"instance1\",\"algotype\":1,\"checksum\":3621979193,\"data\":\"sky,airtemp,humidity,wind,water,forecast,enjoysport\\nsunny,warm,normal,strong,warm,same,yes\\ncloudy,cold,high,weak,same,change,no\\nrainy,normal,NaN,NaN,cool,NaN,NaN\\n\"}}",
+    "{\"head\":2,\"id\":\"cu0000\",\"body\":{\"tableid\":\"myTable2\",\"priority\":2,\"instancetype\":\"instance1\",\"checksum\":3478680930,\"data\":\"sky,airtemp,humidity,wind,water,forecast,enjoysport\\nsunny,warm,normal,strong,warm,same,yes\\nsunny,warm,high,strong,warm,same,yes\\nrainy,cold,high,strong,cool,change,no\\nsunny,warm,high,strong,cool,change,yes\\nsunny,warm,normal,strong,warm,change,yes\\nsunny,warm,normal,weak,warm,same,yes\\nrainy,cold,high,strong,warm,same,no\\nsunny,warm,normal,weak,warm,change,yes\\nrainy,cold,normal,strong,cold,same,no\\nsunny,warm,normal,strong,warm,same,yes\"}}"
 };
 
 int iterationCount = 0;
