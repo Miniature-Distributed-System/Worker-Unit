@@ -9,6 +9,7 @@
 #include "../socket/socket.hpp"
 #include "../services/sqlite_database_access.hpp"
 #include "../services/global_objects_manager.hpp"
+#include "../services/security_ops.hpp"
 #include "../instance/instance.hpp"
 #include "../data_processor/data_processor.hpp"
 #include "../scheduler/task_pool.hpp"
@@ -151,7 +152,9 @@ ReceiverStatus Receiver::validatePacketBodyType()
         auto defaultPatch = validator.validate(checkPacket["body"]);
         Log().info(__func__, "received message is a data packet.");
         isUserData.setFlag();
-        return P_VALID;
+        SecurityOps secOps(checkPacket["body"]["data"]);
+        if (secOps.verifyCRC(checkPacket["body"]["checksum"]))
+            return P_VALID;
     } catch (const std::exception &e) {
         Log().debug(__func__, "body field is not User data ", e.what());
         
@@ -159,7 +162,9 @@ ReceiverStatus Receiver::validatePacketBodyType()
         try{
             auto defaultPatch = validator.validate(checkPacket["body"]);
             Log().info(__func__, "received message is a instance packet.");
-            return P_VALID;
+            SecurityOps secOps(checkPacket["body"]["data"]);
+        	secOps.verifyCRC(checkPacket["body"]["checksum"]);
+				return P_VALID;
         }catch(const std::exception &e){
             Log().debug(__func__, "body field is not Instance data ", e.what());
         }
