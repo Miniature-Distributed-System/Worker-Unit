@@ -89,9 +89,9 @@ void StatisticsEngine::updateThreadStats(TaskPriority taskPriority, TaskStatus t
 
 /* toJson(); Converts the above values recorded to json to be exported to server
 */
-json StatisticsEngine::toJson()
+nlohmann::json StatisticsEngine::toJson()
 {
-    json subPacket;
+    nlohmann::json subPacket;
     std::string thread;
     
     // Get current task queue map

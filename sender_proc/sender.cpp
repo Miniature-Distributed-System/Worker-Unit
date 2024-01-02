@@ -7,9 +7,7 @@
 #include "../configs.hpp"
 #include "sender.hpp"
 
-using nlohmann::json_schema::json_validator;
-
-static json senderSchema = R"(
+static nlohmann::json senderSchema = R"(
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Data Body of packet",
@@ -50,9 +48,9 @@ int SenderSink::pushPacket(std::string data, std::string tableID, SenderDataType
     return 0;
 }
 
-bool SenderSink::isValidPacket(json packet)
+bool SenderSink::isValidPacket(nlohmann::json packet)
 {
-    json_validator validator;
+    nlohmann::json_schema::json_validator validator;
     validator.set_root_schema(senderSchema);
 
     try{

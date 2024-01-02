@@ -9,8 +9,6 @@
 #include "../lib/nlohmann/json-schema.hpp"
 #include "../services/global_objects_manager.hpp"
 
-using json = nlohmann::json;
-
 enum TaskStatus {
     TASK_IN,
     TASK_OUT
@@ -37,7 +35,7 @@ class StatisticsEngine : public Base {
         void updateTimerAfter();
         void calculateAvgTimerVector();
         void updateThreadStats(TaskPriority taskPriority, TaskStatus taskStatus);
-        json toJson();
+        nlohmann::json toJson();
 };
 
 #endif
