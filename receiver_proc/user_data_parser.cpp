@@ -24,7 +24,7 @@ ReceiverStatus UserDataParser::processDataPacket(std::string &tableID, DataProce
     int bodyDataStart, priority;
     this->dataProcContainer = dataProcessContainer;
 
-    if(PacketContainer(*packet).getUserDataBody(tableId, algoType, priority, bodyData))
+    if(UserdataPacketContainer(*packet).getBody(tableId, algoType, priority, bodyData))
         return P_ERROR;
 
     try{
@@ -43,7 +43,7 @@ ReceiverStatus UserDataParser::processDataPacket(std::string &tableID, DataProce
     if(algoType.empty()){
         Log().debug(__func__, "instance type:",
 			[&](std::string &templateType) {
-				PacketContainer(*packet).getTemplateType(templateType);
+				UserdataPacketContainer(*packet).getTemplateType(templateType);
 				return templateType;
 			}," not found");
         return P_ERROR;

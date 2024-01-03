@@ -127,7 +127,7 @@ ReceiverStatus InstanceDataParser::processInstancePacket(std::string &tableID)
     std::string bodyData;
     int bodyDataStart, algoType;
     
-    if(PacketContainer(*packet).getTemplateBody(tableId, algoType, bodyData))
+    if(TemplatePacketContainer(*packet).getBody(tableId, algoType, bodyData))
         return P_ERROR;
     
     tableID = tableId = globalObjectsManager.get<DataBaseInstanceList>().addInstance(tableId);

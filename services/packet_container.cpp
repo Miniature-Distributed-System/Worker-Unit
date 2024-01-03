@@ -24,10 +24,16 @@ int PacketContainer::getId(std::string &id)
 	return 0;
 }
 
-int PacketContainer::getTableId(std::string &tableId)
+int PacketContainer::getDataId(std::string &dataId)
+{
+	// Nothing to impliment here therefore return false everytime 
+	return -1;
+}
+
+int UserdataPacketContainer::getDataId(std::string &dataId)
 {
 	try {
-        tableId = packet["body"]["tableId"];
+        dataId = packet["body"]["tableid"];
     } catch(nlohmann::json::exception e){
         Log().info(__func__, e.what());
         return -1;
@@ -36,7 +42,20 @@ int PacketContainer::getTableId(std::string &tableId)
 	return 0;
 }
 
-int PacketContainer::getPriority(int &priority)
+int TemplatePacketContainer::getDataId(std::string &dataId)
+{
+	try {
+        dataId = packet["body"]["instanceid"];
+    } catch(nlohmann::json::exception e){
+        Log().info(__func__, e.what());
+        return -1;
+    }
+   
+    return 0;
+
+}
+
+int UserdataPacketContainer::getPriority(int &priority)
 {
 	try {
         priority = packet["body"]["priority"];
@@ -48,7 +67,7 @@ int PacketContainer::getPriority(int &priority)
 	return 0;
 }
 
-int PacketContainer::getTemplateType(std::string &templateType)
+int UserdataPacketContainer::getTemplateType(std::string &templateType)
 {
 	try {
         templateType = packet["body"]["instancetype"];
@@ -60,7 +79,7 @@ int PacketContainer::getTemplateType(std::string &templateType)
 	return 0;
 }
 
-int PacketContainer::getTemplateId(std::string &instanceId)
+int TemplatePacketContainer::getTemplateId(std::string &instanceId)
 {
 	try {
         instanceId = packet["body"]["instanceid"];
@@ -72,7 +91,7 @@ int PacketContainer::getTemplateId(std::string &instanceId)
 	return 0;
 }
 
-int PacketContainer::getAlgorithmType(int &algoType)
+int TemplatePacketContainer::getAlgorithmType(int &algoType)
 {
 	try {
         algoType = packet["body"]["algotype"];
@@ -95,7 +114,7 @@ int PacketContainer::getData(std::string &data)
 	return 0;
 }
 
-int PacketContainer::getUserDataBody(std::string &tableId, std::string &instanceType, int &priority, std::string &data)
+int UserdataPacketContainer::getBody(std::string &tableId, std::string &instanceType, int &priority, std::string &data)
 {
 	try {
 		tableId = packet["body"]["tableid"];
@@ -109,7 +128,7 @@ int PacketContainer::getUserDataBody(std::string &tableId, std::string &instance
 	return 0;
 }
 
-int PacketContainer::getTemplateBody(std::string &instanceId, int &algoType, std::string &data)
+int TemplatePacketContainer::getBody(std::string &instanceId, int &algoType, std::string &data)
 {
 	try {
 		instanceId = packet["body"]["instanceid"];
