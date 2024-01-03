@@ -4,6 +4,7 @@
 #include "../include/logger.hpp"
 #include "../socket/socket.hpp"
 #include "../services/stats_engine.hpp"
+#include "../services/packet_container.hpp"
 #include "../configs.hpp"
 #include "sender.hpp"
 
@@ -97,6 +98,7 @@ compute_packet_status getPacketHead(SenderDataType status)
 std::unique_ptr<nlohmann::json> create_packet(struct ForwardStackPackage item)
 {
 	nlohmann::json packet;
+	PacketContainer packetContainer(packet);
     SenderDataType statusCode;
 
     statusCode = item.statusCode;
@@ -106,38 +108,38 @@ std::unique_ptr<nlohmann::json> create_packet(struct ForwardStackPackage item)
     if(socketStatus & SOC_SEIZE){
          /* curfew isnt lifted unless seizeMode is explicitly unset by core processes. This may be set due to either 
          node being overloaded or the node shutdown sequence being singnalled by the user. */
-        packet["head"] = getPacketHead(statusCode) | P_SEIZE;
+        packetContainer.setHead( getPacketHead(statusCode) | P_SEIZE );
     } else if(!globalObjectsManager.get<SenderSink>().isEmpty()){
         // stack is not empty that means there is one more item behind this current item, so proceed to quicksend mode
-        packet["head"] = getPacketHead(statusCode) | P_QSEND;
+        packetContainer.setHead( getPacketHead(statusCode) | P_QSEND );
         // if(senderSink.isEmpty())
         //     globalSocket.setFlag(SOC_SETQS);
     } else {
-        packet["head"] = getPacketHead(statusCode);
+        packetContainer.setHead( getPacketHead(statusCode) );
     }
 
-    packet["id"] = globalObjectsManager.get<Configs>().getWorkerId().c_str();
+    packetContainer.setId( globalObjectsManager.get<Configs>().getWorkerId().c_str() );
     //Here we append rest of the fields to packet
     switch(statusCode)
     {
         case RECV_ERR:
         case DAT_ERR:
-            packet["body"]["id"] = item.tableID.c_str();
-            packet["body"]["data"] = item.data.c_str();
+            packetContainer.setTableid(item.tableID);
+            packetContainer.setData(item.data);
             Log().debug(__func__, "data error packet created");
             break;
         case RESET_TIMER:
         case DAT_RECVD:
-            packet["body"]["id"] = item.tableID.c_str();
-            packet["body"]["priority"] = item.priority;
+            packetContainer.setTableid(item.tableID);
+            packetContainer.setPriority(item.priority);
             Log().debug(__func__, "data received/timeout ack created");
             break;
         case INTR_SEND:
         case FRES_SEND:
-            packet["body"]["id"] = item.tableID.c_str();
-            packet["body"]["data"] = item.data.c_str();
+            packetContainer.setId(item.tableID);
+            packetContainer.setData(item.data);
             //Only user generated data has priority
-            packet["body"]["priority"] = item.priority;
+            packetContainer.setPriority(item.priority);
             Log().debug(__func__, "final/intermediate res packet created");
             break;
         default:
@@ -145,7 +147,7 @@ std::unique_ptr<nlohmann::json> create_packet(struct ForwardStackPackage item)
             globalObjectsManager.get<Socket>().setFlag(SOC_NORMAL_MODE);
     }
     
-    packet["stats"] = globalObjectsManager.get<StatisticsEngine>().toJson();
+    packetContainer.setStats( globalObjectsManager.get<StatisticsEngine>().toJson() );
 
     return std::make_unique<nlohmann::json>(packet);
 }
@@ -182,9 +184,10 @@ std::unique_ptr<nlohmann::json> SenderSink::popPacket(void)
         } else {
             Log().info(__func__, "Initial handshake packet ready");
 			nlohmann::json tempPacket;
-            tempPacket["head"] = P_HANDSHAKE;
-            tempPacket["id"] = "W000";
-			packet = std::make_unique<nlohmann::json>(tempPacket);
+            PacketContainer packetContainer(tempPacket);
+            packetContainer.setHead(P_HANDSHAKE);
+            packetContainer.setId("W000");
+            packet = std::make_unique<nlohmann::json>(tempPacket);
             handshakeSent.setFlag();
         }
     } else {

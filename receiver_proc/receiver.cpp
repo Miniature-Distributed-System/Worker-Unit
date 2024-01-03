@@ -180,20 +180,22 @@ ReceiverStatus Receiver::identifyPacketType()
 {
     ReceiverStatus rc = P_ERROR;
     int packetHead;
-	nlohmann::json &packetRef = *packet;
+    nlohmann::json &packetRef = *packet;
+    PacketContainer packetCont(*packet);
 
     if(validatePacketHead() == P_VALID){
-        packetHead = packetRef["head"];
+        packetCont.getHead(packetHead);
+        
         if(packetHead & SP_HANDSHAKE){
-            try{
-                std::string workerId = packetRef["id"];
-                globalObjectsManager.get<Configs>().setWorkerId(workerId);
-                return P_EMPTY;
-            }catch(std::exception &e){
+            std::string workerId;
+            if (packetCont.getId(workerId)){
                 Log().error(__func__, "failed to set worker ID");
                 return P_ERROR;
             }
+            globalObjectsManager.get<Configs>().setWorkerId(workerId);
+            return P_EMPTY;
         }
+
         if(packetHead & SP_DATA_SENT){
             if(validatePacketBodyType() != P_ERROR){
                 if(isUserData.isFlagSet()){
@@ -205,12 +207,16 @@ ReceiverStatus Receiver::identifyPacketType()
                 }
             }
         }
+		
+        std::string tempId;
+        packetCont.getId(tempId);
+        
         if(packetHead & SP_INTR_ACK){
-            if(globalObjectsManager.get<SenderSink>().matchItemInAwaitStack(SP_INTR_ACK, packetRef["id"]))
+            if(globalObjectsManager.get<SenderSink>().matchItemInAwaitStack(SP_INTR_ACK, tempId))
                 return P_OK;
             else return P_EMPTY;
         }else if(packetHead & SP_FRES_ACK){
-            if(globalObjectsManager.get<SenderSink>().matchItemInAwaitStack(SP_FRES_ACK, packetRef["id"]))
+            if(globalObjectsManager.get<SenderSink>().matchItemInAwaitStack(SP_FRES_ACK, tempId))
                 return P_OK;
             else return P_EMPTY;
         }

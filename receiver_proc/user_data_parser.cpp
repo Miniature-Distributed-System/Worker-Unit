@@ -22,19 +22,10 @@ ReceiverStatus UserDataParser::processDataPacket(std::string &tableID, DataProce
 {
     std::string bodyData, algoType;
     int bodyDataStart, priority;
-	nlohmann::json &packetRef = *packet;
     this->dataProcContainer = dataProcessContainer;
 
-    //Even if one fails we flag error and not proceed further
-    try{
-        tableId = packetRef["body"]["tableid"];
-        bodyData = packetRef["body"]["data"];
-        algoType = packetRef["body"]["instancetype"];
-        priority = packetRef["body"]["priority"];
-    }catch(nlohmann::json::exception e){
-        Log().error(__func__, e.what());
+    if(PacketContainer(*packet).getUserDataBody(tableId, algoType, priority, bodyData))
         return P_ERROR;
-    }
 
     try{
         fileDataBaseAccess = new FileDataBaseAccess(tableId, RW_FILE);
@@ -50,7 +41,11 @@ ReceiverStatus UserDataParser::processDataPacket(std::string &tableID, DataProce
     // Get the alias name of the instance thats used by local database here
     algoType = instanceList.getInstanceAliasName(algoType);
     if(algoType.empty()){
-        Log().debug(__func__, "instance type:", packetRef["body"]["instancetype"]," not found");
+        Log().debug(__func__, "instance type:",
+			[&](std::string &templateType) {
+				PacketContainer(*packet).getTemplateType(templateType);
+				return templateType;
+			}," not found");
         return P_ERROR;
     }
 

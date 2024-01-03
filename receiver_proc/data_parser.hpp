@@ -4,6 +4,7 @@
 #include <string>
 #include "../data_processor/data_processor.hpp"
 #include "../services/file_database_access.hpp"
+#include "../services/packet_container.hpp"
 #include "../lib/nlohmann/json-schema.hpp"
 
 //These are local status codes

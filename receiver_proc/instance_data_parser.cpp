@@ -126,17 +126,9 @@ ReceiverStatus InstanceDataParser::processInstancePacket(std::string &tableID)
 {
     std::string bodyData;
     int bodyDataStart, algoType;
-	nlohmann::json &packetRef = *packet;
-    //Even if one fails we flag error and not proceed further
-    try{
-        tableId = packetRef["body"]["instanceid"];
-        bodyData = packetRef["body"]["data"];
-        algoType = packetRef["body"]["algotype"];
-        
-    }catch(nlohmann::json::exception e){
-        Log().info(__func__, e.what());
+    
+    if(PacketContainer(*packet).getTemplateBody(tableId, algoType, bodyData))
         return P_ERROR;
-    }
     
     tableID = tableId = globalObjectsManager.get<DataBaseInstanceList>().addInstance(tableId);
 
