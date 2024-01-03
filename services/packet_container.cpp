@@ -4,7 +4,7 @@
 int PacketContainer::getHead(int &head)
 {
 	try {
-		head = packet["head"];
+		head = packet[PK_HEAD];
 	} catch(nlohmann::json::exception e){
         Log().info(__func__, e.what());
         return -1;
@@ -15,7 +15,7 @@ int PacketContainer::getHead(int &head)
 int PacketContainer::getId(std::string &id)
 {
 	try {
-        id = packet["id"];
+        id = packet[PK_ID];
     } catch(nlohmann::json::exception e){
         Log().info(__func__, e.what());
         return -1;
@@ -33,7 +33,7 @@ int PacketContainer::getDataId(std::string &dataId)
 int UserdataPacketContainer::getDataId(std::string &dataId)
 {
 	try {
-        dataId = packet["body"]["tableid"];
+        dataId = packet[PK_BODY][UD_PK_DATAID];
     } catch(nlohmann::json::exception e){
         Log().info(__func__, e.what());
         return -1;
@@ -45,7 +45,7 @@ int UserdataPacketContainer::getDataId(std::string &dataId)
 int TemplatePacketContainer::getDataId(std::string &dataId)
 {
 	try {
-        dataId = packet["body"]["instanceid"];
+        dataId = packet[PK_BODY][TP_PK_DATAID];
     } catch(nlohmann::json::exception e){
         Log().info(__func__, e.what());
         return -1;
@@ -58,7 +58,7 @@ int TemplatePacketContainer::getDataId(std::string &dataId)
 int UserdataPacketContainer::getPriority(int &priority)
 {
 	try {
-        priority = packet["body"]["priority"];
+        priority = packet[PK_BODY][UD_PK_PRIORITY];
     } catch(nlohmann::json::exception e){
         Log().info(__func__, e.what());
         return -1;
@@ -70,7 +70,7 @@ int UserdataPacketContainer::getPriority(int &priority)
 int UserdataPacketContainer::getTemplateType(std::string &templateType)
 {
 	try {
-        templateType = packet["body"]["instancetype"];
+        templateType = packet[PK_BODY][UD_PK_TEMPLATETYPE];
     } catch(nlohmann::json::exception e){
         Log().info(__func__, e.what());
         return -1;
@@ -82,7 +82,7 @@ int UserdataPacketContainer::getTemplateType(std::string &templateType)
 int TemplatePacketContainer::getTemplateId(std::string &instanceId)
 {
 	try {
-        instanceId = packet["body"]["instanceid"];
+        instanceId = packet[PK_BODY][TP_PK_DATAID];
     } catch(nlohmann::json::exception e){
         Log().info(__func__, e.what());
         return -1;
@@ -94,7 +94,7 @@ int TemplatePacketContainer::getTemplateId(std::string &instanceId)
 int TemplatePacketContainer::getAlgorithmType(int &algoType)
 {
 	try {
-        algoType = packet["body"]["algotype"];
+        algoType = packet[PK_BODY][TP_PK_ALGOTYPE];
     } catch(nlohmann::json::exception e){
         Log().info(__func__, e.what());
         return -1;
@@ -105,7 +105,7 @@ int TemplatePacketContainer::getAlgorithmType(int &algoType)
 int PacketContainer::getData(std::string &data)
 {
 	try {
-        data = packet["body"]["data"];
+        data = packet[PK_BODY][PK_DATA];
     } catch(nlohmann::json::exception e){
         Log().info(__func__, e.what());
         return -1;
@@ -117,10 +117,10 @@ int PacketContainer::getData(std::string &data)
 int UserdataPacketContainer::getBody(std::string &tableId, std::string &instanceType, int &priority, std::string &data)
 {
 	try {
-		tableId = packet["body"]["tableid"];
-        data = packet["body"]["data"];
-        instanceType = packet["body"]["instancetype"];
-        priority = packet["body"]["priority"];
+        tableId = packet[PK_BODY][UD_PK_DATAID];
+        data = packet[PK_BODY][PK_DATA];
+        instanceType = packet[PK_BODY][UD_PK_TEMPLATETYPE];
+        priority = packet[PK_BODY][UD_PK_PRIORITY];
 	} catch(nlohmann::json::exception e){
         Log().info(__func__, e.what());
         return -1;
@@ -131,9 +131,9 @@ int UserdataPacketContainer::getBody(std::string &tableId, std::string &instance
 int TemplatePacketContainer::getBody(std::string &instanceId, int &algoType, std::string &data)
 {
 	try {
-		instanceId = packet["body"]["instanceid"];
-        data = packet["body"]["data"];
-        algoType = packet["body"]["algotype"];		
+        instanceId = packet[PK_BODY][TP_PK_DATAID];
+        data = packet[PK_BODY][PK_DATA];
+		algoType = packet[PK_BODY][TP_PK_ALGOTYPE];		
 	} catch(nlohmann::json::exception e){
         Log().info(__func__, e.what());
         return -1;
@@ -143,30 +143,30 @@ int TemplatePacketContainer::getBody(std::string &instanceId, int &algoType, std
 
 void PacketContainer::setHead(int head)
 {
-	packet["head"] = head;
+	packet[PK_HEAD] = head;
 }
 
 void PacketContainer::setId(std::string id)
 {
-	packet["id"] = id.c_str();
+	packet[PK_ID] = id.c_str();
 }
 
 void PacketContainer::setTableid(std::string tableId)
 {
-	packet["body"]["id"] = tableId.c_str();
+	packet[PK_BODY][PK_ID] = tableId.c_str();
 }
 
 void PacketContainer::setPriority(int priority)
 {
-	packet["body"]["priority"] = priority;
+	packet[PK_BODY][UD_PK_PRIORITY] = priority;
 }
 
 void PacketContainer::setData(std::string &data)
 {
-	packet["body"]["data"] = data.c_str();
+	packet[PK_BODY][PK_DATA] = data.c_str();
 }
 
 void PacketContainer::setStats(nlohmann::json statsJson)
 {
-	packet["stats"] = statsJson;
+	packet[PK_STATS] = statsJson;
 }

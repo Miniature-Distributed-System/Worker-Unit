@@ -148,7 +148,7 @@ ReceiverStatus Receiver::validatePacketBodyType()
     validator.set_root_schema(dataPacketSchema);
 
     try {
-        auto defaultPatch = validator.validate(checkPacket["body"]);
+        auto defaultPatch = validator.validate(checkPacket[PK_BODY]);
         Log().info(__func__, "received message is a data packet.");
         isUserData.setFlag();
         return P_VALID;
@@ -157,7 +157,7 @@ ReceiverStatus Receiver::validatePacketBodyType()
         
         validator.set_root_schema(instancePacketSchema);
         try{
-            auto defaultPatch = validator.validate(checkPacket["body"]);
+            auto defaultPatch = validator.validate(checkPacket[PK_BODY]);
             Log().info(__func__, "received message is a instance packet.");
             return P_VALID;
         }catch(const std::exception &e){

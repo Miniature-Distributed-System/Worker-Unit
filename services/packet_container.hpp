@@ -2,6 +2,18 @@
 #define PKT_CNT_H
 #include "../include/json.hpp"
 
+// These macros define the keys for json data access, don't use the keys directly.
+#define PK_HEAD "head"
+#define PK_ID "id"
+#define PK_BODY "body"
+#define PK_DATA "data"
+#define PK_STATS "stats"
+#define PK_CRC "crc"
+#define UD_PK_DATAID "tableid"
+#define UD_PK_TEMPLATETYPE "instancetype"
+#define UD_PK_PRIORITY "priority"
+#define TP_PK_DATAID "instanceid"
+#define TP_PK_ALGOTYPE "algotype"
 
 /* 
    PacketContainer: This class is a wrapper for the nlohmann json objects, using the objects
