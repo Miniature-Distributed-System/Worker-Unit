@@ -46,7 +46,9 @@ void *launch_client_socket(void *data)
         Log().info(__func__, "quick mode packet: ", tempPacket.dump());
     }
     std::unique_ptr<nlohmann::json> packet = ws_client_launch(std::move(jsonContainer->packet));
-    init_receiver(std::move(packet));
+
+	if(packet.get() != nullptr)
+    	init_receiver(std::move(packet));
     if(jsonContainer->socType == NORMAL){
         globalObjectsManager.get<Socket>().resetFlag(SOC_NORMAL_MODE);
     } else {
