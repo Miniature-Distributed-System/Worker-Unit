@@ -16,7 +16,6 @@
 #include "data_parser.hpp"
 #include "receiver.hpp"
 
-using nlohmann::json_schema::json_validator;
 class Receiver 
 {
     private:
@@ -126,7 +125,7 @@ Receiver::Receiver(std::unique_ptr<nlohmann::json> packet)
 // validatePacketHead(): validates the packet and returns the error code depending on output of validator
 ReceiverStatus Receiver::validatePacketHead()
 {
-    json_validator validator;
+    nlohmann::json_schema::json_validator validator;
     validator.set_root_schema(packetSchema);
 	
 	nlohmann::json &checkPacket = *packet;
@@ -143,7 +142,7 @@ ReceiverStatus Receiver::validatePacketHead()
 
 ReceiverStatus Receiver::validatePacketBodyType()
 {
-    json_validator validator;
+    nlohmann::json_schema::json_validator validator;
 	nlohmann::json &checkPacket = *packet;
     validator.set_root_schema(dataPacketSchema);
 
