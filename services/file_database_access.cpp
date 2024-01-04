@@ -5,13 +5,6 @@
 #include "../include/logger.hpp"
 #include "file_database_access.hpp"
 
-// class FileDataBaseExceptions : public std::exception {
-//         std::string message;
-//     public:
-//         FileDataBaseExceptions(std::string str) : message(str) {};
-//         const char * what() const override { return message.c_str(); };
-// };
-
 FileDataBaseAccess::FileDataBaseAccess(std::string fileName, FileAccessType accessMacro) : 
                 fileName(fileName) ,accessMode(accessMacro)
 {
@@ -57,7 +50,6 @@ FileDataBaseAccess::~FileDataBaseAccess()
     
     commitChanges();
     fileAccess.open(fileName, std::fstream::in);
-    //DEBUG_MSG(__func__, "commited changes are:", fileAccess.rdbuf());
     fileAccess.close();
     Log().info(__func__, "closing file:", fileName, " with access mode:", accessMode);
 }
@@ -159,9 +151,9 @@ void ListContainer::deleteRow(int index)
 }
 
 // Pulled off from stackoverflow
-std::list<std::string> split_string_by_newline(const std::string& str)
+ListContainer split_string_by_newline(const std::string& str)
 {
-    auto result = std::list<std::string>{};
+    auto result = ListContainer();
     auto ss = std::stringstream{str};
 
     for (std::string line; std::getline(ss, line, '\n');)
@@ -200,17 +192,7 @@ std::string FileDataBaseAccess::getBlob()
         return "";
     }
 
-    if(accessMode == READ_FILE){
-        std::string resultData;
-        for(auto& row : readData)
-            resultData += row + '\n';
-        return resultData;
-    } else {
-        std::string resultData;
-        for(auto i = readWriteData.begin(); i != readWriteData.end(); i++)
-            resultData += (*i) + "\n";
-        return resultData;
-    }
+	return getData().getBlob();
 }
 
 /* getTotalRows(): Returns the total number of rows of the whole formatted file
@@ -222,11 +204,7 @@ int FileDataBaseAccess::getTotalRows()
         return -1;
     }
 
-    if(accessMode == READ_FILE){
-        return readData.size();
-    }
-    
-    return readWriteData.size();
+	return getData().size();
 }
 
 /* getTotalColumns(): Returns the total number of columns of the whole formatted file
@@ -238,14 +216,8 @@ int FileDataBaseAccess::getTotalColumns()
         return ACCESS_DENIED;
     }
         
-    std::string data;
     int totalColumns = 0;
-
-    if(accessMode == READ_FILE){
-        data = readData.front();
-    } else {
-        data = readWriteData.front();
-    }
+	std::string data = getData().front();
     
     for(int i = 0, total = 0; i < data.length(); i++)
         if(data[i] == ',')
@@ -287,22 +259,7 @@ std::vector<std::string> FileDataBaseAccess::getRowValueList(int rowIndex)
         return empty;
     }
 
-    std::list<std::string> resultData;
-    std::string data;
-
-    if(accessMode == READ_FILE){
-        data = readData[rowIndex];
-    } else {
-        int k = 0;
-        for(auto i = readWriteData.begin(); i != readWriteData.end(); i++, k++){
-            if(k == rowIndex){
-                data = *i;
-                break;
-            }
-        }
-    }
-
-    return adv_tokenizer(data, ',');
+    return adv_tokenizer(getData().getRow(rowIndex), ',');
 }
 
 /* getRowValueList(): This method returns all the values of the Column header Values/Names.
@@ -317,15 +274,7 @@ std::vector<std::string> FileDataBaseAccess::getColumnNamesList()
         return empty;
     }
 
-    std::string data;
-
-    if(accessMode == READ_FILE){
-        data = readData[0];
-    } else {
-        data = readWriteData.front();
-    }
-
-    return adv_tokenizer(data, ',');
+    return adv_tokenizer(getData().front(), ',');
 }
 
 /* writeRowValue(): Method writes the passed string value into the row and column specified.
@@ -358,22 +307,9 @@ int FileDataBaseAccess::writeRowValue(std::string value, int rowIndex, int colum
     if(columnIndex < 0)
         return COLUMN_INDEX_UNDERFLOW;
 
-    std::string data;
-    std::string replacementString;
-    int k = 0;
-
-    auto i = readWriteData.begin();
-    for(; i != readWriteData.end(); i++, k++){
-        if(k == rowIndex){
-            data = *i;
-            break;
-        }
-    }
-
+	std::string data = readWriteData.getRow(rowIndex);
     data = std::regex_replace(data, std::regex(adv_tokenizer(data, ',')[columnIndex]), value);
-    // i moves forward and insert inserts before i th element
-    readWriteData.erase(i);
-    readWriteData.insert(i, data);
+	readWriteData.replaceRow(rowIndex, data);
     dataModified.setFlag();
 
     return 0;
@@ -405,11 +341,7 @@ int FileDataBaseAccess::writeRowValueList(std::vector<std::string> valueList, in
     std::string rowString = valueList[0];
     for(int i = 1; i < valueList.size(); i++)
         rowString += "," + valueList[i];
-    auto i = readWriteData.begin();
-    // Move iterator to the desired row index
-    for(int j = 0; j != rowIndex; j++) i++;
-    i = readWriteData.erase(i);
-    readWriteData.insert(i, rowString);
+	readWriteData.replaceRow(rowIndex, rowString);
 
     return 0;
 }
@@ -439,20 +371,7 @@ std::string FileDataBaseAccess::getRowValue(int rowIndex, int columnIndex)
     if(columnIndex < 0)
         return "";
 
-    std::string data;
-    int k;
-
-    if(accessMode == READ_FILE)
-        data = readData[rowIndex];
-    else {
-        k = 0;
-        for(auto i = readWriteData.begin(); i != readWriteData.end(); i++, k++){
-            if(k == rowIndex){
-                data = *i;
-                break;
-            }
-        }
-    }
+	std::string data = getData().getRow(rowIndex);
     return adv_tokenizer(data, ',')[columnIndex]; 
 }
 
@@ -477,19 +396,15 @@ int FileDataBaseAccess::deleteDuplicateRecords(int rowIndex)
     if(rowIndex < 0)
         return ROW_INDEX_UNDERFLOW;
         
-    auto iterator = readWriteData.begin();
-    int k = 0;
-    while(k++ != rowIndex){
-        iterator++;
-    }
-    k = 0;
-    std::string compareString = *iterator;
-    for(auto iteratorString = ++iterator; iteratorString != readWriteData.end(); iteratorString++, k++){
-        if(!(compareString).compare(*iteratorString)){
-            readWriteData.erase(iteratorString--);
-            dataModified.setFlag();
-        }
-    }
+	std::string compareString = readWriteData.getRow(rowIndex);
+	for(int i = rowIndex + 1; i < readWriteData.size(); i++)
+	{
+		std::string listString = readWriteData.getRow(i);
+		if(!(compareString).compare(listString)){
+			readWriteData.deleteRow(i);
+			dataModified.setFlag();		
+		}
+	}
 
     return 0;
 }
@@ -515,22 +430,24 @@ void FileDataBaseAccess::dropFile()
 }
 
 /* commitChanges(): Used to push saved changes to file.
-* This method psuhes all the saved formatted string data into the opened file. Works only in RW_FILE mode. This does
-* not close file and file can be used for write opertaion using same object. 
+* This method pushes all the saved formatted string data into the opened file. Works only in RW_FILE mode. This does
+* not close file and file can be used for write operation using same object. 
 */
 void FileDataBaseAccess::commitChanges()
 {
     // Commit changes done after write and if modifed
     if(accessMode == RW_FILE && dataModified.isFlagSet()){
-        std::ofstream writeAccess(fileName, std::fstream::out);
-        if(writeAccess.is_open())
-        {
-            std::string buffer;
-            for(auto i = readWriteData.begin(); i != readWriteData.end(); i++){
-            	buffer += (*i) + "\n";
-            }
-            writeAccess << buffer;
-            writeAccess.close();
-        }
+		try {
+			fileAccess.open(this->fileName, std::fstream::out);
+        	if(!fileAccess.fail())
+        	{
+            	fileAccess << readWriteData.getBlob();
+            	fileAccess.close();
+        	}
+		} catch (const std::ios_base::failure& e) {
+			Log().error(__func__, "file db error: ", e.what());
+		} catch (const std::exception &e) {
+			Log().error(__func__, "Exception: ", e.what());
+		}
     }
 }
