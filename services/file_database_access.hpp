@@ -26,12 +26,12 @@ class IDataContainer {
         virtual ~IDataContainer() = default;
         virtual std::string& operator[](std::size_t index) = 0;
         virtual std::size_t size() const = 0;
-        virtual std::string* begin() = 0;
-        virtual std::string* end() = 0;
-        virtual std::string* erase(std::string *position) = 0;
-        virtual std::string* insert(std::string * position, const std::string& value) = 0;
         virtual std::string& front() = 0;
         virtual void push_back(const std::string& value) = 0;
+		virtual std::string getRow(int) = 0;
+		virtual std::string getBlob() = 0;
+		virtual void replaceRow(int, std::string) = 0;
+		virtual void deleteRow(int) = 0;
 };
 
 class VectorContainer : public IDataContainer {
@@ -43,27 +43,16 @@ class VectorContainer : public IDataContainer {
         std::size_t size() const override {
             return dataContainer.size();
         }
-        std::string* begin() override {
-            return dataContainer.data();
-        }
-        std::string* end() override {
-            return dataContainer.data() + dataContainer.size();
-        }
-        std::string* erase(std::string* position) override {
-            auto iter = position - dataContainer.data();
-            auto eraseIter = dataContainer.erase(dataContainer.begin() + iter);
-            return &(*eraseIter);
-        }
-        std::string* insert(std::string* position, const std::string& value) override {
-            auto iter = position - dataContainer.data();
-            return &(*dataContainer.insert(dataContainer.begin() + iter, value));
-        }
         std::string& front() override {
             return dataContainer.front();
         }
         void push_back(const std::string& value) override {
             dataContainer.push_back(value);
         }
+		std::string getRow(int index) override;
+		std::string getBlob() override;
+		void replaceRow(int index, std::string rowValue) override;
+		void deleteRow(int index) override;
 };
 
 class ListContainer : public IDataContainer {
