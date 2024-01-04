@@ -59,9 +59,9 @@ class ListContainer : public IDataContainer {
 
 class FileDataBaseAccess {
         FileAccessType accessMode;
-        std::list<std::string> readWriteData;
-        std::vector<std::string> readData;
-        std::ifstream fileAccess;
+        ListContainer readWriteData;
+        VectorContainer readData;
+        std::fstream fileAccess;
         std::string fileName;
         Flag dataModified;
         Flag fileDeleted;
@@ -83,7 +83,7 @@ class FileDataBaseAccess {
         void dropFile();
         void commitChanges();
 
-        IDataContainer& getData();
+        IDataContainer& getContainer();
 };
 
 #endif

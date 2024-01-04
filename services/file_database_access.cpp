@@ -54,7 +54,7 @@ FileDataBaseAccess::~FileDataBaseAccess()
     Log().info(__func__, "closing file:", fileName, " with access mode:", accessMode);
 }
 
-IDataContainer& FileDataBaseAccess::getData()
+IDataContainer& FileDataBaseAccess::getContainer()
 {
     if (accessMode == RW_FILE)
         return readWriteData;
@@ -192,7 +192,7 @@ std::string FileDataBaseAccess::getBlob()
         return "";
     }
 
-	return getData().getBlob();
+	return getContainer().getBlob();
 }
 
 /* getTotalRows(): Returns the total number of rows of the whole formatted file
@@ -204,7 +204,7 @@ int FileDataBaseAccess::getTotalRows()
         return -1;
     }
 
-	return getData().size();
+	return getContainer().size();
 }
 
 /* getTotalColumns(): Returns the total number of columns of the whole formatted file
@@ -217,7 +217,7 @@ int FileDataBaseAccess::getTotalColumns()
     }
         
     int totalColumns = 0;
-	std::string data = getData().front();
+	std::string data = getContainer().front();
     
     for(int i = 0, total = 0; i < data.length(); i++)
         if(data[i] == ',')
@@ -259,7 +259,7 @@ std::vector<std::string> FileDataBaseAccess::getRowValueList(int rowIndex)
         return empty;
     }
 
-    return adv_tokenizer(getData().getRow(rowIndex), ',');
+    return adv_tokenizer(getContainer().getRow(rowIndex), ',');
 }
 
 /* getRowValueList(): This method returns all the values of the Column header Values/Names.
@@ -274,7 +274,7 @@ std::vector<std::string> FileDataBaseAccess::getColumnNamesList()
         return empty;
     }
 
-    return adv_tokenizer(getData().front(), ',');
+    return adv_tokenizer(getContainer().front(), ',');
 }
 
 /* writeRowValue(): Method writes the passed string value into the row and column specified.
@@ -371,7 +371,7 @@ std::string FileDataBaseAccess::getRowValue(int rowIndex, int columnIndex)
     if(columnIndex < 0)
         return "";
 
-	std::string data = getData().getRow(rowIndex);
+	std::string data = getContainer().getRow(rowIndex);
     return adv_tokenizer(data, ',')[columnIndex]; 
 }
 
