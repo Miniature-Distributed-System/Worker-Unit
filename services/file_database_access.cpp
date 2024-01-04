@@ -69,6 +69,95 @@ IDataContainer& FileDataBaseAccess::getData()
     return readData;
 }
 
+std::string VectorContainer::getRow(int index)
+{
+	return dataContainer[index];
+}
+
+std::string VectorContainer::getBlob()
+{
+	std::string buffer;
+    for(const auto &line : dataContainer){
+        buffer += line + "\n";
+    }
+	return buffer;
+}
+
+void VectorContainer::deleteRow(int index)
+{
+    dataContainer.erase(dataContainer.begin() + index);
+}
+
+void VectorContainer::replaceRow(int index, std::string rowValue)
+{
+	dataContainer[index] = rowValue;
+}
+
+std::size_t VectorContainer::size() const
+{
+    return dataContainer.size();
+}
+
+std::string& VectorContainer::front() 
+{
+    return dataContainer.front();
+}
+
+void VectorContainer::push_back(const std::string& value) 
+{
+    dataContainer.push_back(value);
+}
+
+std::string ListContainer::getRow(int index)
+{
+	int tempIndex = 0;
+	for(auto i = dataContainer.begin(); i != dataContainer.end(); i++, tempIndex++)
+	{
+		if(index == tempIndex) return *i;
+	}
+	return "";
+}
+
+std::size_t ListContainer::size() const 
+{
+    return dataContainer.size();
+}
+
+std::string& ListContainer::front() 
+{
+	return dataContainer.front();
+}
+
+void ListContainer::push_back(const std::string& value) 
+{
+  	dataContainer.push_back(value);
+}
+
+std::string ListContainer::getBlob()
+{
+	std::string buffer;
+	for(const auto &line : dataContainer){
+		buffer += line + "\n";
+	}
+	return buffer;
+}
+
+void ListContainer::replaceRow(int index, std::string rowString)
+{
+	auto i = dataContainer.begin();
+    // Move iterator to the desired row index
+    for(int j = 0; j != index; j++) i++;
+    i = dataContainer.erase(i);
+    dataContainer.insert(i, rowString);
+}
+
+void ListContainer::deleteRow(int index)
+{
+	auto it = dataContainer.begin();
+	std::advance(it, index);
+    dataContainer.erase(it);
+}
+
 // Pulled off from stackoverflow
 std::list<std::string> split_string_by_newline(const std::string& str)
 {
