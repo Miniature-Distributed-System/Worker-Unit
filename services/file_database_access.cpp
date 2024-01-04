@@ -439,11 +439,9 @@ void FileDataBaseAccess::commitChanges()
     if(accessMode == RW_FILE && dataModified.isFlagSet()){
 		try {
 			fileAccess.open(this->fileName, std::fstream::out);
-        	if(!fileAccess.fail())
-        	{
+        	if(!fileAccess.fail()) {
             	fileAccess << readWriteData.getBlob();
-            	fileAccess.close();
-        	}
+        	} else Log().error(__func__, "opening ", fileName, " failed therefore changes not commited");
 		} catch (const std::ios_base::failure& e) {
 			Log().error(__func__, "file db error: ", e.what());
 		} catch (const std::exception &e) {
