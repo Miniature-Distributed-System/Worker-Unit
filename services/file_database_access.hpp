@@ -127,7 +127,7 @@ class FileDataBaseAccess {
         void dropFile();
         void commitChanges();
 
-        IDataContainer& getData(FileAccessType acccessMacro);
+        IDataContainer& getData();
 };
 
 #endif
