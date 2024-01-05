@@ -22,7 +22,6 @@ struct socket {
 };
 
 struct JsonContainer {
-    std::unique_ptr<nlohmann::json> packet;
     SocType socType;
     JsonContainer(SocType socType){
         this->socType = socType;
@@ -39,13 +38,17 @@ struct JsonContainer {
 void *launch_client_socket(void *data)
 {
     JsonContainer *jsonContainer = (JsonContainer*)data;
- 	nlohmann::json &tempPacket = (*jsonContainer->packet);	
-	if(jsonContainer->socType == NORMAL){
-        Log().info(__func__, "normal mode packet: ", tempPacket.dump());
-    } else {
-        Log().info(__func__, "quick mode packet: ", tempPacket.dump());
+ 	std::unique_ptr<nlohmann::json> upPacket = globalObjectsManager.get<SenderSink>().popPacket();
+    if(!upPacket){
+    	Log().error(__func__, "Failed to fetch packet from sender unit");
+        return 0;
     }
-    std::unique_ptr<nlohmann::json> packet = ws_client_launch(std::move(jsonContainer->packet));
+	if(jsonContainer->socType == NORMAL){
+        Log().info(__func__, "normal mode packet: ", (*upPacket).dump());
+    } else {
+        Log().info(__func__, "quick mode packet: ", (*upPacket).dump());
+    }
+    std::unique_ptr<nlohmann::json> packet = ws_client_launch(std::move(upPacket));
 
 	if(packet.get() != nullptr)
     	init_receiver(std::move(packet));
@@ -72,25 +75,18 @@ void* socket_task(void *data)
     Socket &socket = globalObjectsManager.get<Socket>();
     Log().info(__func__, "socket thread running...");
     while(!socket.getSocketStopStatus())
-    { 
+    {
+		 
         int socStatus = socket.getSocketStatus();
-        std::unique_ptr<nlohmann::json> upPacket = globalObjectsManager.get<SenderSink>().popPacket();
-		if(!upPacket){
-			Log().error(__func__, "Failed to fetch packet from sender unit");
-			continue;
-		}
-
         if(!(socStatus & SOC_NORMAL_MODE))
         {
             
             socket.setFlag(SOC_NORMAL_MODE);
-            nModeContainer->packet = std::move(upPacket);
             pthread_create(&wsClientThread, NULL, launch_client_socket, nModeContainer);
         }
         else if(!(socStatus & SOC_QUICKSEND_MODE) && globalObjectsManager.get<SenderSink>().isSenderInitilized())
         {
             socket.setFlag(SOC_QUICKSEND_MODE);
-            qModeContainer->packet = std::move(upPacket);
             pthread_create(&wsClientThread, NULL, launch_client_socket, qModeContainer);
         }
     }
