@@ -102,6 +102,16 @@ class Log{
                 colorCoder(fun_name, BOLD, FG_RED, BG_DEFAULT) <<
                 colorCoder(": " + DEBUG(args...).str(), ALL, FG_RED, BG_DEFAULT) << std::endl;
             std::cout << ostring.str();
+        };
+
+		template<typename... Args>
+        void success(std::string fun_name, Args... args){
+            std::ostringstream ostring;
+            ostring << colorCoder(currentDateTime(), ALL, FG_YELLOW, BG_DARKGREY) <<
+                colorCoder(" S ", BOLD, FG_GREEN, BG_DEFAULT) <<
+                colorCoder(fun_name, BOLD, FG_GREEN, BG_DEFAULT) <<
+                colorCoder(": " + DEBUG(args...).str(), ALL, FG_GREEN, BG_DEFAULT) << std::endl;
+            std::cout << ostring.str();
         };  
 };
 
