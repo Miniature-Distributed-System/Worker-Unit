@@ -10,4 +10,5 @@ obj/
 ### Above combination will ignore all files without extension ###
 *.o
 *.db
+cscope.*
 !Makefile
