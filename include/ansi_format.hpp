@@ -9,7 +9,7 @@ enum Foreground {
     FG_MAGNETA  = 35,
     FG_CYAN     = 36,
     FG_GREY     = 90,
-    FG_YELLLOW  = 93,
+    FG_YELLOW  = 93,
     FG_LMAGNETA = 95,
     FG_DEFAULT  = 39
 };

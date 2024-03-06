@@ -35,7 +35,7 @@ class Log{
         template<typename... Args>
         void schedINFO(std::string fun_name, Args... args){
             std::ostringstream ostring;
-            ostring << colorCoder(currentDateTime(), ALL, FG_YELLLOW, BG_DARKGREY) << 
+            ostring << colorCoder(currentDateTime(), ALL, FG_YELLOW, BG_DARKGREY) << 
                 colorCoder(" I ", BOLD, FG_GREEN, BG_DEFAULT) <<
                 colorCoder(fun_name, BOLD, FG_GOLD, BG_DEFAULT) <<
                 colorCoder(": " + DEBUG(args...).str(), ALL, FG_GOLD, BG_DEFAULT) << std::endl;
@@ -45,7 +45,7 @@ class Log{
         template<typename... Args>
         void schedERR(std::string fun_name, Args... args){
             std::ostringstream ostring;
-            ostring << colorCoder(currentDateTime(), ALL, FG_YELLLOW, BG_DARKGREY) <<
+            ostring << colorCoder(currentDateTime(), ALL, FG_YELLOW, BG_DARKGREY) <<
                 colorCoder(" E ", BOLD, FG_RED, BG_DARKGREY) <<
                 colorCoder(fun_name, BOLD, FG_RED, BG_DARKGREY) <<
                 colorCoder(": " + DEBUG(args...).str(), ALL, FG_RED, BG_DARKGREY) << std::endl;
@@ -55,7 +55,7 @@ class Log{
         template<typename... Args>
         void dataProcInfo(std::string fun_name, Args... args){
             std::ostringstream ostring;
-            ostring << colorCoder(currentDateTime(), ALL, FG_YELLLOW, BG_DARKGREY) << 
+            ostring << colorCoder(currentDateTime(), ALL, FG_YELLOW, BG_DARKGREY) << 
                 colorCoder(" I ", BOLD, FG_GREEN, BG_DEFAULT) <<
                 colorCoder(fun_name, BOLD, FG_CYAN, BG_DEFAULT) <<
                 colorCoder(": " + DEBUG(args...).str(), ALL, FG_CYAN, BG_DEFAULT) << std::endl;
@@ -65,7 +65,7 @@ class Log{
         template<typename... Args>
         void taskPoolInfo(std::string fun_name, Args... args){
             std::ostringstream ostring;
-            ostring << colorCoder(currentDateTime(), ALL, FG_YELLLOW, BG_DARKGREY) << 
+            ostring << colorCoder(currentDateTime(), ALL, FG_YELLOW, BG_DARKGREY) << 
                 colorCoder(" I ", BOLD, FG_GREEN, BG_DEFAULT) <<
                 colorCoder(fun_name, BOLD, FG_MAGNETA, BG_DEFAULT) <<
                 colorCoder(": " + DEBUG(args...).str(), ALL, FG_MAGNETA, BG_DEFAULT) << std::endl;
@@ -75,7 +75,7 @@ class Log{
         template<typename... Args>
         void info(std::string fun_name, Args... args){
             std::ostringstream ostring;
-            ostring << colorCoder(currentDateTime(), ALL, FG_YELLLOW, BG_DARKGREY) <<
+            ostring << colorCoder(currentDateTime(), ALL, FG_YELLOW, BG_DARKGREY) <<
                 colorCoder(" I ", BOLD, FG_GREEN, BG_DEFAULT) << 
                 colorCoder(fun_name, BOLD, FG_DEFAULT, BG_DEFAULT) << 
                 ": " << DEBUG(args...).str() << std::endl;
@@ -86,10 +86,10 @@ class Log{
         void debug(std::string fun_name, Args... args){
             #ifdef ENABLE_DEBUG
             std::ostringstream ostring;
-            ostring << colorCoder(currentDateTime(), ALL, FG_YELLLOW, BG_DARKGREY) <<
-                colorCoder(" D ", BOLD, FG_YELLLOW, BG_DEFAULT) << 
-                colorCoder(fun_name, BOLD, FG_YELLLOW, BG_DEFAULT) << 
-                colorCoder(": " + DEBUG(args...).str(), ALL, FG_YELLLOW, BG_DEFAULT) << std::endl;
+            ostring << colorCoder(currentDateTime(), ALL, FG_YELLOW, BG_DARKGREY) <<
+                colorCoder(" D ", BOLD, FG_YELLOW, BG_DEFAULT) << 
+                colorCoder(fun_name, BOLD, FG_YELLOW, BG_DEFAULT) << 
+                colorCoder(": " + DEBUG(args...).str(), ALL, FG_YELLOW, BG_DEFAULT) << std::endl;
             std::cout << ostring.str();
             #endif
         };
@@ -97,7 +97,7 @@ class Log{
         template<typename... Args>
         void error(std::string fun_name, Args... args){
             std::ostringstream ostring;
-            ostring << colorCoder(currentDateTime(), ALL, FG_YELLLOW, BG_DARKGREY) <<
+            ostring << colorCoder(currentDateTime(), ALL, FG_YELLOW, BG_DARKGREY) <<
                 colorCoder(" E ", BOLD, FG_RED, BG_DEFAULT) <<
                 colorCoder(fun_name, BOLD, FG_RED, BG_DEFAULT) <<
                 colorCoder(": " + DEBUG(args...).str(), ALL, FG_RED, BG_DEFAULT) << std::endl;
