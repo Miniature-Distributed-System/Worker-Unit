@@ -26,6 +26,7 @@
 #include <thread>
 #include <vector>
 #include "mock_json_data.hpp"
+#include "test.hpp"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -41,7 +42,7 @@ int iterationCount = 0;
 void
 fail(beast::error_code ec, char const* what)
 {
-    std::cerr << what << ": " << ec.message() << "\n";
+    Log().error(__func__, what, ": ", ec.message());
 }
 
 // Echoes back all received WebSocket messages
@@ -103,7 +104,7 @@ public:
             return fail(ec, "accept");
 
         // Read a message
-        std::cout << "Accepted Connection\n";
+        Log().info(__func__, "Accepted Connection");
         do_read();
     }
     
@@ -134,7 +135,7 @@ public:
             return fail(ec, "read");
 	
         // Echo the message
-        std::cout << "Read message from client:-" <<beast::make_printable(buffer_.data()) << std::endl;
+        Log().info(__func__, "Message from client: ", beast::make_printable(buffer_.data()));
         std::string out(boost::asio::buffer_cast<const char *>(buffer_.data()), buffer_.size());
         buffer_.consume(buffer_.size());
         // Read a message into our buffer
@@ -147,8 +148,7 @@ public:
             std::cin >> str;
         }
         std::cin.clear();
-        std::cout << "Your string is" << str << std::endl;
-        std::cout << std::endl;
+        Log().info(__func__, "Your string is", str);
         ws_.text(ws_.got_text());
         ws_.write(net::buffer(std::string(str)));
         ws_.async_write(
@@ -271,10 +271,10 @@ int main(int argc, char* argv[])
     // Check command line arguments.
     if (argc != 4)
     {
-        std::cerr <<
-            "Usage: websocket-server-async <address> <port> <threads>\n" <<
-            "Example:\n" <<
-            "    websocket-server-async 0.0.0.0 8080 1\n";
+    
+        Log().error(__func__, "Usage: websocket-server-async <address> <port> <threads>",
+            "Example: ",
+            "websocket-server-async 0.0.0.0 8080 1");
         return EXIT_FAILURE;
     }
     auto const address = net::ip::make_address(argv[1]);
