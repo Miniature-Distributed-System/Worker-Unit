@@ -1,5 +1,6 @@
 #include "test.hpp"
-#include "../include/logger.hpp"
+#include "../../include/logger.hpp"
+#include "../../lib/nlohmann/json-schema.hpp"
 
 int Tester::exactMatch(std::string function, std::string actualResult, 
 				std::string expectedResult, std::string identifier)
@@ -47,7 +48,7 @@ int jsonKeyMatch(std::string function, std::string actualJsonString,
 		checkKeysRecursive(jsonObject, matchingStrings, missingKeys);
 		if(missingKeys.size() > 0){
 			for(std::string err : missingKeys){
-				Log().error(function, "Key not present:", missingKeys);
+				Log().error(function, "Key not present:", err);
 			Log().error(function, "Total missing keys:", missingKeys.size());
 			return 0;
 			}

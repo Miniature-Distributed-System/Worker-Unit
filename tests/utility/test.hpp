@@ -2,7 +2,7 @@
 #define TESTER_HPP
 
 #include <vector>
-#include "../lib/nlohmann/json-schema.hpp"
+#include <string>
 
 class Tester {
 	public:
